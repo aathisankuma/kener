@@ -43,8 +43,10 @@
     MonitorNone,
     MonitorGrpc,
     MonitorPrometheus,
-    MonitorDocker
+    MonitorDocker,
+    MonitorCloud
   } from "../types/index.js";
+  import { GetCloudProvider, CLOUD_CUSTOM_M365, CLOUD_CUSTOM_STATUSPAGE } from "$lib/cloudServices.js";
 
   interface Props {
     monitor: MonitorRecord;
@@ -130,7 +132,8 @@
     GAMEDIG: "Game Server",
     GRPC: "gRPC Health",
     PROMETHEUS: "Prometheus",
-    DOCKER: "Docker Container"
+    DOCKER: "Docker Container",
+    CLOUD: "Cloud Service (Atlassian, Microsoft 365, …)"
   };
 
   // Validation for each monitor type
@@ -293,6 +296,25 @@
         return true;
       }
 
+      case "CLOUD": {
+        const data = typeData as any;
+        const provider = GetCloudProvider(data.provider);
+        if (!provider) return false;
+        if (data.provider === CLOUD_CUSTOM_STATUSPAGE && !IsValidURL(data.statuspageUrl || "")) return false;
+        if (provider.kind === "m365") {
+          for (const key of ["tenantId", "clientId", "clientSecret"]) {
+            if (typeof data[key] !== "string" || !data[key].trim()) return false;
+          }
+          if (data.provider === CLOUD_CUSTOM_M365 && !(data.m365Service || "").trim()) return false;
+        }
+        if (
+          data.timeout !== undefined &&
+          (typeof data.timeout !== "number" || !Number.isFinite(data.timeout) || data.timeout < 1)
+        )
+          return false;
+        return true;
+      }
+
       default:
         return true;
     }
@@ -406,6 +428,8 @@
         <MonitorPrometheus bind:data={typeData} />
       {:else if monitor.monitor_type === "DOCKER"}
         <MonitorDocker bind:data={typeData} defaults={dockerDefaults} />
+      {:else if monitor.monitor_type === "CLOUD"}
+        <MonitorCloud bind:data={typeData} />
       {:else if monitor.monitor_type === "NONE"}
         <MonitorNone bind:data={typeData} />
       {/if}

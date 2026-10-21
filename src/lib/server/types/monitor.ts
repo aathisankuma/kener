@@ -135,7 +135,21 @@ export interface PrometheusMonitorTypeData {
   proxy?: string; // as ApiMonitorTypeData.proxy
 }
 
+export interface CloudServiceMonitorTypeData {
+  provider: string; // an id from CLOUD_PROVIDERS in $lib/cloudServices, or a custom provider id
+  statuspageUrl?: string; // custom Statuspage base URL (provider "statuspage-custom")
+  component?: string; // optional Statuspage component, by name or id; empty follows the whole page
+  m365Service?: string; // Microsoft 365 service name or id (provider "m365-custom")
+  tenantId?: string; // Microsoft 365: Entra tenant id; secret substitution applies
+  clientId?: string; // Microsoft 365: app registration client id; secret substitution applies
+  clientSecret?: string; // Microsoft 365: client secret, ideally "$ENV_NAME"; secret substitution applies
+  ignoreMinor?: boolean; // Statuspage: minor incidents and degraded performance count as UP
+  errorStatus?: "UP" | "DEGRADED" | "DOWN"; // status when the provider cannot be read, default "DEGRADED"
+  timeout?: number; // ms, default 10000
+}
+
 export type MonitorTypeData =
+  | CloudServiceMonitorTypeData
   | ApiMonitorTypeData
   | DnsMonitorTypeData
   | PingMonitorTypeData
@@ -168,6 +182,7 @@ export type GamedigMonitor = Monitor<GamedigMonitorTypeData>;
 export type GrpcMonitor = Monitor<GrpcMonitorTypeData>;
 export type PrometheusMonitor = Monitor<PrometheusMonitorTypeData>;
 export type DockerMonitor = Monitor<DockerMonitorTypeData>;
+export type CloudServiceMonitor = Monitor<CloudServiceMonitorTypeData>;
 
 export interface EvalResponse {
   status?: string;

@@ -217,7 +217,7 @@ BODY_SIZE_LIMIT=10M
 
 ### HTTP_PROXY / HTTPS_PROXY / NO_PROXY {#http-proxy}
 
-**Purpose**: Route Kener's outbound HTTP through a forward proxy: API and Prometheus monitor checks, webhook/Discord/Slack triggers, Resend email, and OIDC discovery. HTTPS targets are tunnelled with `CONNECT`.
+**Purpose**: Route Kener's outbound HTTP through a forward proxy: API, Prometheus and Cloud Service monitor checks, webhook/Discord/Slack triggers, Resend email, and OIDC discovery. HTTPS targets are tunnelled with `CONNECT`.
 
 **Default**: unset (direct connections)
 

@@ -130,6 +130,10 @@
                           "content": "v4/monitors/prometheus"
                         },
                         {
+                          "title": "Cloud Service Monitors",
+                          "content": "v4/monitors/cloud"
+                        },
+                        {
                           "title": "Docker Monitors",
                           "content": "v4/monitors/docker"
                         },
