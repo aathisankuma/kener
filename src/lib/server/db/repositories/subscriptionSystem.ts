@@ -153,7 +153,53 @@ export class SubscriptionSystemRepository extends BaseRepository {
   }
 
   async deleteSubscriberMethod(id: number): Promise<number> {
+    // SQLite enforces foreign keys only when asked to, so remove the monitor choices explicitly.
+    await this.knex("subscriber_method_monitors").where("subscriber_method_id", id).del();
     return await this.knex("subscriber_methods").where("id", id).del();
+  }
+
+  // ============ Subscriber Method Monitors ============
+  // A method with no rows hears of every monitor. A method with rows hears only of those monitors.
+
+  async getMonitorTagsForMethod(subscriberMethodId: number): Promise<string[]> {
+    return await this.knex("subscriber_method_monitors")
+      .where("subscriber_method_id", subscriberMethodId)
+      .orderBy("monitor_tag", "asc")
+      .pluck("monitor_tag");
+  }
+
+  async getMonitorTagsForMethods(subscriberMethodIds: number[]): Promise<Map<number, string[]>> {
+    const result = new Map<number, string[]>();
+    if (subscriberMethodIds.length === 0) return result;
+    const rows: Array<{ subscriber_method_id: number; monitor_tag: string }> = await this.knex(
+      "subscriber_method_monitors",
+    )
+      .whereIn("subscriber_method_id", subscriberMethodIds)
+      .select("subscriber_method_id", "monitor_tag");
+    for (const row of rows) {
+      const id = Number(row.subscriber_method_id);
+      const tags = result.get(id) ?? [];
+      tags.push(row.monitor_tag);
+      result.set(id, tags);
+    }
+    return result;
+  }
+
+  /** Replaces a method's monitor choices. An empty list means every monitor. */
+  async setMonitorTagsForMethod(subscriberMethodId: number, monitorTags: string[]): Promise<void> {
+    const unique = [...new Set(monitorTags)];
+    await this.knex.transaction(async (trx) => {
+      await trx("subscriber_method_monitors").where("subscriber_method_id", subscriberMethodId).del();
+      if (unique.length > 0) {
+        await trx("subscriber_method_monitors").insert(
+          unique.map((monitor_tag) => ({
+            subscriber_method_id: subscriberMethodId,
+            monitor_tag,
+            created_at: trx.fn.now(),
+          })),
+        );
+      }
+    });
   }
 
   async getActiveMethodsByType(methodType: SubscriptionMethodType): Promise<SubscriberMethodRecord[]> {

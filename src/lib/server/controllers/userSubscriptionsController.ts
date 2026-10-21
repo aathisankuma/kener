@@ -356,15 +356,60 @@ export async function AdminAddSubscriber(
 /**
  * Get active email addresses for a given event type
  * Used for sending notification emails to subscribers
+ *
+ * eventMonitorTags: the monitors the event is about. A subscriber who chose monitors hears only
+ * of events on those monitors; null or empty reaches every subscriber.
  */
-export async function GetActiveEmailsForEventType(eventType: SubscriptionEventType): Promise<string[]> {
-  const subscribers = await db.getSubscribersForEvent(eventType);
+export async function GetActiveEmailsForEventType(
+  eventType: SubscriptionEventType,
+  eventMonitorTags: string[] | null = null,
+): Promise<string[]> {
+  const subscribers = (await db.getSubscribersForEvent(eventType)).filter((s) => s.method.method_type === "email");
 
-  // Filter for email method type and extract unique email addresses
-  const emails = subscribers.filter((s) => s.method.method_type === "email").map((s) => s.method.method_value);
+  let wanted = subscribers;
+  if (eventMonitorTags && eventMonitorTags.length > 0 && subscribers.length > 0) {
+    const [choices, groupMembers] = await Promise.all([
+      db.getMonitorTagsForMethods([...new Set(subscribers.map((s) => s.method.id))]),
+      GetGroupMembers(),
+    ]);
+    wanted = subscribers.filter((s) => SubscriberWantsEvent(choices.get(s.method.id), eventMonitorTags, groupMembers));
+  }
 
   // Return unique emails
-  return [...new Set(emails)];
+  return [...new Set(wanted.map((s) => s.method.method_value))];
+}
+
+/** Group monitor tag -> member monitor tags, for every group monitor. */
+export async function GetGroupMembers(): Promise<GroupMembers> {
+  const groups = await db.getMonitors({ monitor_type: "GROUP" });
+  const result: GroupMembers = new Map();
+  for (const group of groups) {
+    try {
+      const typeData = group.type_data ? JSON.parse(group.type_data) : {};
+      const members = Array.isArray(typeData?.monitors) ? typeData.monitors : [];
+      result.set(
+        group.tag,
+        members.map((m: { tag?: string }) => m?.tag).filter((t: unknown): t is string => typeof t === "string"),
+      );
+    } catch {
+      result.set(group.tag, []);
+    }
+  }
+  return result;
+}
+
+export interface SubscribableMonitor {
+  tag: string;
+  name: string;
+  image: string | null;
+}
+
+/** Monitors a visitor can choose in the subscribe menu: active and shown on the status page. */
+export async function GetSubscribableMonitors(): Promise<SubscribableMonitor[]> {
+  const monitors = await db.getMonitors({ status: "ACTIVE", is_hidden: "NO" });
+  return monitors
+    .map((m) => ({ tag: m.tag, name: m.name, image: m.image || null }))
+    .sort((a, b) => a.name.localeCompare(b.name));
 }
 
 // ============ Public Subscription Functions ============
@@ -375,6 +420,7 @@ import sendEmail from "../notification/email_notification.js";
 import { GetAllSiteData } from "./controller.js";
 import { siteDataToVariables } from "../notification/notification_utils.js";
 import { GetGeneralEmailTemplateById } from "./generalTemplateController.js";
+import { SubscriberWantsEvent, type GroupMembers } from "../subscriptionMonitorMatch.js";
 
 interface SubscriberTokenPayload {
   subscriber_user_id: number;
@@ -392,6 +438,8 @@ export async function VerifySubscriberToken(token: string): Promise<{
   user?: SubscriberUserRecord;
   method?: SubscriberMethodRecord;
   subscriptions?: { incidents: boolean; maintenances: boolean };
+  /** Chosen monitors; empty means every monitor. */
+  monitorTags?: string[];
 }> {
   const decoded = await VerifyToken(token);
   if (!decoded || (decoded as unknown as SubscriberTokenPayload).type !== "subscriber") {
@@ -420,7 +468,9 @@ export async function VerifySubscriberToken(token: string): Promise<{
     maintenances: allSubs.some((s) => s.event_type === "maintenances" && s.status === "ACTIVE"),
   };
 
-  return { success: true, user, method, subscriptions };
+  const monitorTags = await db.getMonitorTagsForMethod(method.id);
+
+  return { success: true, user, method, subscriptions, monitorTags };
 }
 
 /**
@@ -550,7 +600,7 @@ export async function VerifySubscriberOTP(
  */
 export async function UpdateSubscriberPreferences(
   token: string,
-  preferences: { incidents?: boolean; maintenances?: boolean },
+  preferences: { incidents?: boolean; maintenances?: boolean; monitorTags?: string[] },
 ): Promise<{ success: boolean; error?: string }> {
   const verifyResult = await VerifySubscriberToken(token);
   if (!verifyResult.success || !verifyResult.user || !verifyResult.method) {
@@ -558,6 +608,19 @@ export async function UpdateSubscriberPreferences(
   }
 
   const { user, method } = verifyResult;
+
+  // Monitor choices: keep only monitors a visitor can see; an empty list means every monitor.
+  if (preferences.monitorTags !== undefined) {
+    if (!Array.isArray(preferences.monitorTags) || preferences.monitorTags.some((t) => typeof t !== "string")) {
+      return { success: false, error: "monitorTags must be a list of monitor tags" };
+    }
+    const allowed = new Set((await GetSubscribableMonitors()).map((m) => m.tag));
+    const chosen = preferences.monitorTags.filter((t) => allowed.has(t));
+    if (preferences.monitorTags.length > 0 && chosen.length === 0) {
+      return { success: false, error: "None of the chosen monitors exist" };
+    }
+    await db.setMonitorTagsForMethod(method.id, chosen);
+  }
 
   // Handle incidents subscription
   if (preferences.incidents !== undefined) {

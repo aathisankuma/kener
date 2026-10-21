@@ -140,6 +140,12 @@
     "Verification failed": "Verification failed",
     "Verify": "Verify",
     "Verifying": "Verifying",
-    "We sent a 6-digit code to": "We sent a 6-digit code to"
+    "We sent a 6-digit code to": "We sent a 6-digit code to",
+    "Only selected services": "Only selected services",
+    "Get updates only for the services you pick": "Get updates only for the services you pick",
+    "Search services": "Search services",
+    "No services found": "No services found",
+    "Pick at least one service. Until then you get updates for all services.": "Pick at least one service. Until then you get updates for all services.",
+    "You get updates only for the selected services.": "You get updates only for the selected services."
   }
 }

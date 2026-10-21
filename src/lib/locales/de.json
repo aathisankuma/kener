@@ -133,6 +133,12 @@
     "Verification failed": "Überprüfung fehlgeschlagen",
     "Verify": "Verifizieren",
     "Verifying": "Verifizieren",
-    "We sent a 6-digit code to": "Wir haben einen 6-stelligen Code gesendet an"
+    "We sent a 6-digit code to": "Wir haben einen 6-stelligen Code gesendet an",
+    "Only selected services": "Nur ausgewählte Dienste",
+    "Get updates only for the services you pick": "Nur Updates zu den Diensten erhalten, die Sie auswählen",
+    "Search services": "Dienste suchen",
+    "No services found": "Keine Dienste gefunden",
+    "Pick at least one service. Until then you get updates for all services.": "Wählen Sie mindestens einen Dienst. Bis dahin erhalten Sie Updates zu allen Diensten.",
+    "You get updates only for the selected services.": "Sie erhalten nur Updates zu den ausgewählten Diensten."
   }
 }

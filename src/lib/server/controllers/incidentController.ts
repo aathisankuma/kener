@@ -475,8 +475,12 @@ const notifySubscribersOfComment = async (
     const siteUrl = siteDataToVariables(siteData).site_url;
     // Failing to read the impact must not cost the mail itself; it goes out without the flags.
     let impacts: Array<string | null> | null = null;
+    // The incident's monitors; subscribers who chose monitors hear only of incidents on them.
+    let monitorTags: string[] | null = null;
     try {
-      impacts = (await db.getMonitorsByIncidentId(incident.id)).map((m) => m.monitor_impact);
+      const incidentMonitors = await db.getMonitorsByIncidentId(incident.id);
+      impacts = incidentMonitors.map((m) => m.monitor_impact);
+      monitorTags = incidentMonitors.map((m) => m.monitor_tag);
     } catch (err) {
       console.error(`Error reading monitors of incident ${incident.id} for its subscriber mail:`, err);
     }
@@ -502,9 +506,13 @@ const notifySubscribersOfComment = async (
     };
     // Stable dedup id per comment so a retried/double push notifies once — without
     // it subscriberQueue falls back to a Date.now()-suffixed id that never dedupes.
-    await subscriberQueue.push(variables, {
-      deduplication: { id: `subscriber-incidents-${comment.id}` },
-    });
+    await subscriberQueue.push(
+      variables,
+      {
+        deduplication: { id: `subscriber-incidents-${comment.id}` },
+      },
+      monitorTags,
+    );
   } catch (err) {
     console.error(`Error sending subscriber notification for incident ${incident.id}:`, err);
   }

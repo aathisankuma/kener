@@ -13,6 +13,7 @@ vi.mock("$lib/server/controllers/userSubscriptionsController", () => ({
   VerifySubscriberOTP: vi.fn(),
   VerifySubscriberToken: vi.fn(),
   UpdateSubscriberPreferences: vi.fn(),
+  GetSubscribableMonitors: vi.fn(),
 }));
 
 import post from "./post";
