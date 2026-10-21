@@ -343,6 +343,24 @@ REDIS_URL=redis://localhost:6379
 
 📖 **See**: [Redis Setup Guide](/docs/v4/setup/redis-setup) for installation and performance benefits.
 
+### Microsoft 365 Connection {#microsoft-365-connection}
+
+| Variable             | Description                                        | Required |
+| :------------------- | :------------------------------------------------- | :------- |
+| `M365_TENANT_ID`     | Directory (tenant) ID of your Microsoft 365 tenant | No       |
+| `M365_CLIENT_ID`     | Application (client) ID of the app registration    | No       |
+| `M365_CLIENT_SECRET` | Client secret of the app registration              | No       |
+
+**Purpose**: The shared connection for [Cloud Service monitors](/docs/v4/monitors/cloud#microsoft-365) that follow Microsoft 365 services. A monitor whose connection fields are empty uses these. The app needs the application permission `ServiceHealth.Read.All` with admin consent.
+
+**Example**:
+
+```bash
+M365_TENANT_ID=00000000-0000-0000-0000-000000000000
+M365_CLIENT_ID=00000000-0000-0000-0000-000000000000
+M365_CLIENT_SECRET=your-client-secret
+```
+
 ## Custom Environment Variables {#custom-variables}
 
 Beyond built-in variables, Kener supports custom environment variables for use in monitors and alert triggers. This keeps sensitive credentials secure and out of your configuration.
@@ -355,9 +373,10 @@ Custom variables (format: `$VARIABLE_NAME`) can be used in:
 2. **Monitor Headers**
 3. **Monitor Request Bodies**
 4. **Monitor Connection Strings** (SQL monitors)
-5. **Alert Trigger URLs**
-6. **Alert Trigger Headers**
-7. **Alert Trigger Bodies**
+5. **Microsoft 365 connection fields** (Cloud Service monitors)
+6. **Alert Trigger URLs**
+7. **Alert Trigger Headers**
+8. **Alert Trigger Bodies**
 
 ### Variable Syntax {#variable-syntax}
 

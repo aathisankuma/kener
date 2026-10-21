@@ -17,6 +17,9 @@ beforeEach(() => {
 });
 afterEach(() => {
   delete process.env.TEST_M365_SECRET;
+  delete process.env.M365_TENANT_ID;
+  delete process.env.M365_CLIENT_ID;
+  delete process.env.M365_CLIENT_SECRET;
 });
 
 function monitor(type_data: Partial<CloudServiceMonitor["type_data"]>): CloudServiceMonitor {
@@ -168,6 +171,29 @@ describe("Microsoft 365 providers", () => {
       m365({ provider: "m365-custom", m365Service: "exchange online" }),
     ).execute();
     expect(result.status).toBe("UP");
+  });
+
+  it("uses the shared connection from the environment when the fields are empty", async () => {
+    process.env.M365_TENANT_ID = "shared-tenant";
+    process.env.M365_CLIENT_ID = "shared-client";
+    process.env.M365_CLIENT_SECRET = "shared-secret";
+    mockedAxios.mockResolvedValueOnce(token).mockResolvedValueOnce(health);
+
+    const result = await new CloudServiceCall(monitor({ provider: "m365-exchange" })).execute();
+
+    expect(result.status).toBe("UP");
+    const [tokenUrl, tokenOptions] = mockedAxios.mock.calls[0] as [string, { data: string }];
+    expect(tokenUrl).toBe("https://login.microsoftonline.com/shared-tenant/oauth2/v2.0/token");
+    expect(tokenOptions.data).toContain("client_id=shared-client");
+    expect(tokenOptions.data).toContain("client_secret=shared-secret");
+  });
+
+  it("names the missing shared settings", async () => {
+    const result = await new CloudServiceCall(monitor({ provider: "m365-exchange" })).execute();
+    expect(result.error_message).toBe(
+      "Microsoft 365 connection is missing: set M365_TENANT_ID, M365_CLIENT_ID, M365_CLIENT_SECRET or fill in the fields",
+    );
+    expect(mockedAxios).not.toHaveBeenCalled();
   });
 
   it("explains a missing environment variable without calling Microsoft", async () => {

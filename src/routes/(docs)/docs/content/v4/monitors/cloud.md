@@ -32,9 +32,18 @@ Microsoft 365 monitors read your tenant's [service health](https://learn.microso
 
 1. In Microsoft Entra ID, register an app. Under **API permissions**, add the **application** permission `ServiceHealth.Read.All` for Microsoft Graph and grant admin consent.
 2. Create a client secret for the app.
-3. Store the secret in an environment variable of Kener, e.g. `M365_CLIENT_SECRET`, and restart Kener.
-4. Create a Cloud Service monitor, pick the service (e.g. **Microsoft Teams**), and enter the **Tenant ID**, **Client ID** and `$M365_CLIENT_SECRET` as **Client secret**.
+3. Set the shared connection in Kener's environment and restart Kener:
+
+    ```bash
+    M365_TENANT_ID=<directory (tenant) id>
+    M365_CLIENT_ID=<application (client) id>
+    M365_CLIENT_SECRET=<client secret>
+    ```
+
+4. Create a Cloud Service monitor, pick the service (e.g. **Microsoft Teams**), leave the connection fields empty and save.
 5. Run **Test Monitor**.
+
+One app registration serves every Microsoft 365 monitor. Fill the **Tenant ID**, **Client ID** or **Client secret** of a monitor only to use a different app for it; a field can name another environment variable as `$NAME`.
 
 | Microsoft reports                                                       | Kener records |
 | ----------------------------------------------------------------------- | ------------- |
@@ -47,7 +56,7 @@ For a service that is not in the list, pick **Other Microsoft 365 service** and 
 Monitors that share an app registration share one sign-in and one Graph read per minute.
 
 > [!TIP]
-> Enter the client secret as `$NAME` of an environment variable. A secret typed into the field is stored in Kener's database as is.
+> Keep the secret in `M365_CLIENT_SECRET`. A secret typed into the monitor's field is stored in Kener's database as is.
 
 ## When the provider cannot be read {#errors}
 

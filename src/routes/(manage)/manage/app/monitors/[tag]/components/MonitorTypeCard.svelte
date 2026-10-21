@@ -301,12 +301,10 @@
         const provider = GetCloudProvider(data.provider);
         if (!provider) return false;
         if (data.provider === CLOUD_CUSTOM_STATUSPAGE && !IsValidURL(data.statuspageUrl || "")) return false;
-        if (provider.kind === "m365") {
-          for (const key of ["tenantId", "clientId", "clientSecret"]) {
-            if (typeof data[key] !== "string" || !data[key].trim()) return false;
-          }
-          if (data.provider === CLOUD_CUSTOM_M365 && !(data.m365Service || "").trim()) return false;
-        }
+        // Microsoft 365 credentials may stay empty: the check then uses M365_TENANT_ID,
+        // M365_CLIENT_ID and M365_CLIENT_SECRET from the environment.
+        if (provider.kind === "m365" && data.provider === CLOUD_CUSTOM_M365 && !(data.m365Service || "").trim())
+          return false;
         if (
           data.timeout !== undefined &&
           (typeof data.timeout !== "number" || !Number.isFinite(data.timeout) || data.timeout < 1)

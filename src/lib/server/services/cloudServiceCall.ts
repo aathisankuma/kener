@@ -159,15 +159,30 @@ class CloudServiceCall {
 
   private async checkM365(provider: CloudProvider): Promise<MonitoringResult> {
     const data = this.monitor.type_data;
-    const tenantId = this.secret(data.tenantId);
-    const clientId = this.secret(data.clientId);
-    const clientSecret = this.secret(data.clientSecret);
-    if (!tenantId || !clientId || !clientSecret) {
-      return this.fail(GC.ERROR, "Microsoft 365 needs tenant id, client id and client secret");
+    // An empty field falls back to the shared connection in M365_TENANT_ID, M365_CLIENT_ID and
+    // M365_CLIENT_SECRET, so every Microsoft 365 monitor can use one app registration set up once.
+    const credentials = {
+      tenantId: this.secret(data.tenantId) || (process.env.M365_TENANT_ID || "").trim(),
+      clientId: this.secret(data.clientId) || (process.env.M365_CLIENT_ID || "").trim(),
+      clientSecret: this.secret(data.clientSecret) || (process.env.M365_CLIENT_SECRET || "").trim(),
+    };
+    const missing = Object.entries(credentials)
+      .filter(([, value]) => !value)
+      .map(
+        ([key]) =>
+          ({ tenantId: "M365_TENANT_ID", clientId: "M365_CLIENT_ID", clientSecret: "M365_CLIENT_SECRET" })[key],
+      );
+    if (missing.length > 0) {
+      return this.fail(
+        GC.ERROR,
+        `Microsoft 365 connection is missing: set ${missing.join(", ")} or fill in the fields`,
+      );
     }
-    if (/^\$\w+$/.test(clientSecret)) {
-      return this.fail(GC.ERROR, `Environment variable ${clientSecret.slice(1)} is not set`);
+    const unresolved = Object.values(credentials).find((value) => /^\$\w+$/.test(value));
+    if (unresolved) {
+      return this.fail(GC.ERROR, `Environment variable ${unresolved.slice(1)} is not set`);
     }
+    const { tenantId, clientId, clientSecret } = credentials;
     const match = (provider.id === CLOUD_CUSTOM_M365 ? [data.m365Service || ""] : provider.m365Match || [])
       .map((m) => m.trim().toLowerCase())
       .filter(Boolean);

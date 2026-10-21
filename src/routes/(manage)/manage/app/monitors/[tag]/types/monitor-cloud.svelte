@@ -165,28 +165,33 @@
       </div>
     {/if}
 
+    <div class="bg-muted/40 rounded-md border p-3 text-xs">
+      <p class="font-medium">Microsoft 365 connection</p>
+      <p class="text-muted-foreground mt-1">
+        Leave these fields empty to use the shared connection from Kener's environment:
+        <code>M365_TENANT_ID</code>, <code>M365_CLIENT_ID</code> and <code>M365_CLIENT_SECRET</code>. One app
+        registration with the application permission <code>ServiceHealth.Read.All</code> (admin consent) serves every Microsoft
+        365 monitor. Fill a field only to use a different app for this monitor.
+      </p>
+    </div>
+
     <div class="grid gap-4 sm:grid-cols-2">
       <div class="flex flex-col gap-2">
-        <Label for="cloud-tenant">Tenant ID <span class="text-destructive">*</span></Label>
-        <Input id="cloud-tenant" bind:value={data.tenantId} placeholder="00000000-0000-0000-0000-000000000000" />
+        <Label for="cloud-tenant">Tenant ID</Label>
+        <Input id="cloud-tenant" bind:value={data.tenantId} placeholder="from M365_TENANT_ID" />
       </div>
       <div class="flex flex-col gap-2">
-        <Label for="cloud-client">Client ID <span class="text-destructive">*</span></Label>
-        <Input id="cloud-client" bind:value={data.clientId} placeholder="00000000-0000-0000-0000-000000000000" />
+        <Label for="cloud-client">Client ID</Label>
+        <Input id="cloud-client" bind:value={data.clientId} placeholder="from M365_CLIENT_ID" />
       </div>
     </div>
     <div class="flex flex-col gap-2">
-      <Label for="cloud-secret">Client secret <span class="text-destructive">*</span></Label>
-      <Input id="cloud-secret" bind:value={data.clientSecret} placeholder="$M365_CLIENT_SECRET" />
+      <Label for="cloud-secret">Client secret</Label>
+      <Input id="cloud-secret" bind:value={data.clientSecret} placeholder="from M365_CLIENT_SECRET" />
       {#if secretIsLiteral}
         <p class="text-xs text-amber-600 dark:text-amber-400">
-          The secret is stored in Kener's database as typed. Put it in an environment variable instead, e.g.
-          <code>M365_CLIENT_SECRET</code>, and enter <code>$M365_CLIENT_SECRET</code> here.
-        </p>
-      {:else}
-        <p class="text-muted-foreground text-xs">
-          Enter the name of an environment variable that holds the secret, e.g. <code>$M365_CLIENT_SECRET</code>. The
-          app registration needs the application permission <code>ServiceHealth.Read.All</code> with admin consent.
+          The secret is stored in Kener's database as typed. Leave it empty to use <code>M365_CLIENT_SECRET</code>, or
+          enter the name of another environment variable, e.g. <code>$OTHER_SECRET</code>.
         </p>
       {/if}
     </div>
