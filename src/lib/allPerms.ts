@@ -5,7 +5,7 @@
  * Mapping from actions → permissions:
  *
  * monitors.read      → getMonitors, getMonitoringDataPaginated
- * monitors.write     → storeMonitorData, updateMonitoringData, deleteMonitor, deleteMonitorData, cloneMonitor, testMonitor, listDockerContainers
+ * monitors.write     → storeMonitorData, updateMonitoringData, deleteMonitor, deleteMonitorData, cloneMonitor, testMonitor, listDockerContainers, fetchCloudServiceIcon
  *
  * incidents.read     → getIncidents, getIncident, getComments
  * incidents.write    → createIncident, updateIncident, deleteIncident, addMonitor, removeMonitor, addComment, deleteComment, updateComment
@@ -125,6 +125,7 @@ export const ACTION_PERMISSION_MAP: Record<string, string | null> = {
   cloneMonitor: "monitors.write",
   testMonitor: "monitors.write",
   listDockerContainers: "monitors.write",
+  fetchCloudServiceIcon: "monitors.write",
 
   // Incidents
   getIncidents: "incidents.read",

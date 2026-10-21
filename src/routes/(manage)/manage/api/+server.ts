@@ -138,6 +138,7 @@ import serverResolver from "$lib/server/resolver.js";
 import { ACTION_PERMISSION_MAP } from "$lib/allPerms.js";
 import { TestOidcConnection } from "$lib/server/controllers/oidcController.js";
 import { uploadImage } from "$lib/server/controllers/imageController.js";
+import { FetchCloudServiceIcon } from "$lib/server/cloudServiceIcon.js";
 
 export async function POST({ request, cookies }) {
   const payload = await request.json();
@@ -678,6 +679,9 @@ export async function POST({ request, cookies }) {
       resp = await DeleteRole(data.roleId, data.options);
     } else if (action == "listDockerContainers") {
       resp = await ListDockerContainers(data);
+    } else if (action == "fetchCloudServiceIcon") {
+      // The provider's own icon, stored as an image; the client puts its URL in the monitor's image.
+      resp = { url: await FetchCloudServiceIcon(data.typeData || {}) };
     }
     // ============ OIDC Group-Role Mappings ============
     else if (action == "getOidcGroupRoleMappings") {

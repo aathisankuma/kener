@@ -15,6 +15,8 @@ export interface CloudProvider {
   url?: string;
   /** Microsoft Graph service ids and names that identify this service (matched ignoring case). */
   m365Match?: string[];
+  /** Web page whose icon is the service's icon. Statuspage providers use their status page. */
+  iconSite?: string;
 }
 
 /** Provider id for any other Atlassian Statuspage, entered by URL. */
@@ -93,6 +95,7 @@ export const CLOUD_PROVIDERS: CloudProvider[] = [
     group: "Microsoft 365",
     kind: "m365",
     m365Match: ["OSDPPlatform", "Microsoft 365 suite"],
+    iconSite: "https://www.microsoft365.com",
   },
   {
     id: "m365-exchange",
@@ -100,6 +103,7 @@ export const CLOUD_PROVIDERS: CloudProvider[] = [
     group: "Microsoft 365",
     kind: "m365",
     m365Match: ["Exchange", "Exchange Online"],
+    iconSite: "https://outlook.office.com",
   },
   {
     id: "m365-teams",
@@ -107,6 +111,7 @@ export const CLOUD_PROVIDERS: CloudProvider[] = [
     group: "Microsoft 365",
     kind: "m365",
     m365Match: ["microsoftteams", "Microsoft Teams"],
+    iconSite: "https://teams.microsoft.com",
   },
   {
     id: "m365-sharepoint",
@@ -121,6 +126,7 @@ export const CLOUD_PROVIDERS: CloudProvider[] = [
     group: "Microsoft 365",
     kind: "m365",
     m365Match: ["OneDriveForBusiness", "OneDrive for Business"],
+    iconSite: "https://onedrive.live.com",
   },
   {
     id: "m365-apps",
@@ -128,6 +134,7 @@ export const CLOUD_PROVIDERS: CloudProvider[] = [
     group: "Microsoft 365",
     kind: "m365",
     m365Match: ["O365Client", "Microsoft 365 Apps", "Microsoft 365 apps"],
+    iconSite: "https://www.office.com",
   },
   {
     id: "m365-entra",
@@ -135,6 +142,7 @@ export const CLOUD_PROVIDERS: CloudProvider[] = [
     group: "Microsoft 365",
     kind: "m365",
     m365Match: ["OrgLiveID", "Microsoft Entra", "Identity Service"],
+    iconSite: "https://entra.microsoft.com",
   },
   {
     id: "m365-intune",
@@ -142,14 +150,23 @@ export const CLOUD_PROVIDERS: CloudProvider[] = [
     group: "Microsoft 365",
     kind: "m365",
     m365Match: ["Intune", "Microsoft Intune"],
+    iconSite: "https://intune.microsoft.com",
   },
-  { id: "m365-planner", label: "Planner", group: "Microsoft 365", kind: "m365", m365Match: ["Planner"] },
+  {
+    id: "m365-planner",
+    label: "Planner",
+    group: "Microsoft 365",
+    kind: "m365",
+    m365Match: ["Planner"],
+    iconSite: "https://planner.cloud.microsoft",
+  },
   {
     id: "m365-forms",
     label: "Microsoft Forms",
     group: "Microsoft 365",
     kind: "m365",
     m365Match: ["Forms", "Microsoft Forms"],
+    iconSite: "https://forms.office.com",
   },
   {
     id: "m365-powerbi",
@@ -157,6 +174,7 @@ export const CLOUD_PROVIDERS: CloudProvider[] = [
     group: "Microsoft 365",
     kind: "m365",
     m365Match: ["PowerBIcom", "Power BI"],
+    iconSite: "https://app.powerbi.com",
   },
 
   // Other services that publish a Statuspage

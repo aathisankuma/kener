@@ -7,6 +7,7 @@
   import SaveIcon from "@lucide/svelte/icons/save";
   import Loader from "@lucide/svelte/icons/loader";
   import PlayIcon from "@lucide/svelte/icons/play";
+  import ImageIcon from "@lucide/svelte/icons/image";
   import type { MonitorRecord } from "$lib/server/types/db.js";
   import type { GroupMonitorTypeData, MonitoringResult } from "$lib/server/types/monitor.js";
   import type { DockerConnectionDefaults } from "$lib/types/docker.js";
@@ -318,10 +319,45 @@
     }
   });
 
+  let fetchingIcon = $state(false);
+
+  /** Downloads the provider's own icon into Kener's images and puts it in the monitor's image. */
+  async function useProviderIcon(): Promise<boolean> {
+    fetchingIcon = true;
+    try {
+      const response = await fetch(clientResolver(resolve, "/manage/api"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "fetchCloudServiceIcon", data: { typeData } })
+      });
+      const result = await response.json();
+      if (result.error || !result.url) {
+        toast.info(result.error || "No icon found. Upload an image under General Settings.");
+        return false;
+      }
+      monitor.image = result.url;
+      return true;
+    } catch {
+      toast.info("No icon found. Upload an image under General Settings.");
+      return false;
+    } finally {
+      fetchingIcon = false;
+    }
+  }
+
+  async function refreshProviderIcon() {
+    if (await useProviderIcon()) await saveTypeSettings();
+  }
+
   async function saveTypeSettings() {
     savingType = true;
 
     try {
+      // A Cloud Service monitor without an image gets the provider's own icon. An image someone
+      // uploaded is never replaced here; "Use provider's icon" replaces it on request.
+      if (monitor.monitor_type === "CLOUD" && !monitor.image) {
+        await useProviderIcon();
+      }
       const payload = {
         ...monitor,
         type_data: JSON.stringify(typeData)
@@ -529,13 +565,30 @@
       </Dialog.Content>
     </Dialog.Root>
 
-    <Button onclick={saveTypeSettings} disabled={savingType || !isTypeSettingsValid}>
-      {#if savingType}
-        <Loader class="size-4 animate-spin" />
-      {:else}
-        <SaveIcon class="size-4" />
+    <div class="flex flex-wrap justify-end gap-2">
+      {#if monitor.monitor_type === "CLOUD"}
+        <Button
+          variant="outline"
+          onclick={refreshProviderIcon}
+          disabled={fetchingIcon || savingType || !isTypeSettingsValid}
+          title="Download the service's official icon and use it as this monitor's image"
+        >
+          {#if fetchingIcon}
+            <Loader class="size-4 animate-spin" />
+          {:else}
+            <ImageIcon class="size-4" />
+          {/if}
+          Use provider's icon
+        </Button>
       {/if}
-      Save Monitor Type Settings
-    </Button>
+      <Button onclick={saveTypeSettings} disabled={savingType || !isTypeSettingsValid}>
+        {#if savingType}
+          <Loader class="size-4 animate-spin" />
+        {:else}
+          <SaveIcon class="size-4" />
+        {/if}
+        Save Monitor Type Settings
+      </Button>
+    </div>
   </Card.Footer>
 </Card.Root>
