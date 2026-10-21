@@ -58,6 +58,20 @@ Monitors that share an app registration share one sign-in and one Graph read per
 > [!TIP]
 > Keep the secret in `M365_CLIENT_SECRET`. A secret typed into the monitor's field is stored in Kener's database as is.
 
+## Detail page {#detail-page}
+
+A visitor who opens a Cloud Service monitor on the status page sees what the provider itself shows, read live and refreshed at most once a minute:
+
+- **Scheduled maintenance** that is planned or in progress
+- **Active incidents** with their latest updates
+- The provider's **components** with their status; a `?` shows the provider's description
+- **Past incidents** of the last 15 days, by day, with every update and the affected components
+
+For a Statuspage, the list follows the monitor's component when one is set. Microsoft 365 lists no fixed components: the page shows the service and each feature group with an open issue, and Microsoft's issues for the service as incidents.
+
+> [!NOTE]
+> The texts come from the provider as they are, usually in English. Microsoft's issues concern your tenant: anyone who can open the status page can read them.
+
 ## When the provider cannot be read {#errors}
 
 A timeout, an HTTP error or an unexpected answer records **If the provider cannot be read** (default **DEGRADED**) and keeps the reason in the monitor's log. Common messages:

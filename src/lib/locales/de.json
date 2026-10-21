@@ -139,6 +139,19 @@
     "Search services": "Dienste suchen",
     "No services found": "Keine Dienste gefunden",
     "Pick at least one service. Until then you get updates for all services.": "Wählen Sie mindestens einen Dienst. Bis dahin erhalten Sie Updates zu allen Diensten.",
-    "You get updates only for the selected services.": "Sie erhalten nur Updates zu den ausgewählten Diensten."
+    "You get updates only for the selected services.": "Sie erhalten nur Updates zu den ausgewählten Diensten.",
+    "Major Outage": "Schwerer Ausfall",
+    "Past Incidents": "Vergangene Vorfälle",
+    "No incidents reported today.": "Heute keine Vorfälle gemeldet.",
+    "No incidents reported.": "Keine Vorfälle gemeldet.",
+    "Scheduled Maintenance": "Geplante Wartung",
+    "Active Incident": "Aktueller Vorfall",
+    "Affects": "Betrifft",
+    "Source": "Quelle",
+    "Open the provider's status page": "Statusseite des Anbieters öffnen",
+    "Could not load the provider's details": "Details des Anbieters konnten nicht geladen werden",
+    "IN_PROGRESS": "IN ARBEIT",
+    "VERIFYING": "WIRD GEPRÜFT",
+    "POSTMORTEM": "NACHBETRACHTUNG"
   }
 }
