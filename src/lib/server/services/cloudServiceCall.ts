@@ -1,10 +1,16 @@
-import axios, { type AxiosRequestConfig, type AxiosResponse } from "axios";
-import { AxiosProxyConfig } from "../proxy.js";
+import axios from "axios";
 import GC from "../../global-constants.js";
-import version from "../../version.js";
-import { GetRequiredSecrets, ReplaceAllOccurrences } from "../tool.js";
 import type { CloudServiceMonitor, MonitoringResult } from "../types/monitor.js";
-import { GetCloudProvider, CLOUD_CUSTOM_M365, type CloudProvider } from "../../cloudServices.js";
+import { GetCloudProvider, type CloudProvider } from "../../cloudServices.js";
+import {
+  CloudHttpOptions,
+  ClearCloudProviderCache,
+  FindM365Service,
+  M365HealthOverviews,
+  M365MatchNames,
+  ResolveM365Credentials,
+  StatuspageBase,
+} from "../cloudProviderClient.js";
 
 /** Statuspage page indicator -> Kener status. `ignoreMinor` lets a minor incident read UP. */
 export function MapStatuspageIndicator(indicator: string, ignoreMinor = false): string | null {
@@ -64,32 +70,14 @@ export function MapM365Status(status: string): string {
   return GC.DEGRADED;
 }
 
-interface HealthOverview {
-  id: string;
-  service: string;
-  status: string;
-}
-
-// Tokens and health overviews are shared by every CLOUD monitor of the same app registration, so
-// ten Microsoft 365 monitors cost one token per hour and one Graph call per minute.
-const tokenCache = new Map<string, { token: string; expiresAt: number }>();
-const overviewCache = new Map<string, { at: number; data: Promise<HealthOverview[]> }>();
-const OVERVIEW_TTL_MS = 50 * 1000;
-
 /** Test hook: forget cached Microsoft tokens and health data. */
-export function ClearCloudServiceCache(): void {
-  tokenCache.clear();
-  overviewCache.clear();
-}
+export const ClearCloudServiceCache = ClearCloudProviderCache;
 
 class CloudServiceCall {
   monitor: CloudServiceMonitor;
-  envSecrets: Array<{ find: string; replace: string | undefined }>;
 
   constructor(monitor: CloudServiceMonitor) {
     this.monitor = monitor;
-    const td = monitor.type_data;
-    this.envSecrets = GetRequiredSecrets(`${td?.tenantId ?? ""} ${td?.clientId ?? ""} ${td?.clientSecret ?? ""}`);
   }
 
   async execute(): Promise<MonitoringResult> {
@@ -114,13 +102,16 @@ class CloudServiceCall {
 
   private async checkStatuspage(provider: CloudProvider): Promise<MonitoringResult> {
     const data = this.monitor.type_data;
-    const base = (provider.url || data.statuspageUrl || "").trim().replace(/\/+$/, "");
-    if (!/^https?:\/\//i.test(base)) {
+    const base = StatuspageBase(provider, data);
+    if (!base) {
       return this.fail(GC.ERROR, "Statuspage URL is missing or not http(s)");
     }
     const component = (data.component || "").trim();
     const started = Date.now();
-    const response = await axios(`${base}/api/v2/${component ? "components" : "status"}.json`, this.httpOptions());
+    const response = await axios(
+      `${base}/api/v2/${component ? "components" : "status"}.json`,
+      CloudHttpOptions(data.timeout || 10000),
+    );
     const latency = Date.now() - started;
 
     if (response.status < 200 || response.status >= 300) {
@@ -159,44 +150,20 @@ class CloudServiceCall {
 
   private async checkM365(provider: CloudProvider): Promise<MonitoringResult> {
     const data = this.monitor.type_data;
-    // An empty field falls back to the shared connection in M365_TENANT_ID, M365_CLIENT_ID and
-    // M365_CLIENT_SECRET, so every Microsoft 365 monitor can use one app registration set up once.
-    const credentials = {
-      tenantId: this.secret(data.tenantId) || (process.env.M365_TENANT_ID || "").trim(),
-      clientId: this.secret(data.clientId) || (process.env.M365_CLIENT_ID || "").trim(),
-      clientSecret: this.secret(data.clientSecret) || (process.env.M365_CLIENT_SECRET || "").trim(),
-    };
-    const missing = Object.entries(credentials)
-      .filter(([, value]) => !value)
-      .map(
-        ([key]) =>
-          ({ tenantId: "M365_TENANT_ID", clientId: "M365_CLIENT_ID", clientSecret: "M365_CLIENT_SECRET" })[key],
-      );
-    if (missing.length > 0) {
-      return this.fail(
-        GC.ERROR,
-        `Microsoft 365 connection is missing: set ${missing.join(", ")} or fill in the fields`,
-      );
+    const resolved = ResolveM365Credentials(data);
+    if ("error" in resolved) {
+      return this.fail(GC.ERROR, resolved.error);
     }
-    const unresolved = Object.values(credentials).find((value) => /^\$\w+$/.test(value));
-    if (unresolved) {
-      return this.fail(GC.ERROR, `Environment variable ${unresolved.slice(1)} is not set`);
-    }
-    const { tenantId, clientId, clientSecret } = credentials;
-    const match = (provider.id === CLOUD_CUSTOM_M365 ? [data.m365Service || ""] : provider.m365Match || [])
-      .map((m) => m.trim().toLowerCase())
-      .filter(Boolean);
+    const match = M365MatchNames(provider, data);
     if (match.length === 0) {
       return this.fail(GC.ERROR, "Microsoft 365 service name is missing");
     }
 
     const started = Date.now();
-    const overviews = await this.healthOverviews(tenantId, clientId, clientSecret);
+    const overviews = await M365HealthOverviews(resolved.credentials, data.timeout || 10000);
     const latency = Date.now() - started;
 
-    const service = overviews.find(
-      (o) => match.includes(String(o.id).toLowerCase()) || match.includes(String(o.service).toLowerCase()),
-    );
+    const service = FindM365Service(overviews, match);
     if (!service) {
       const names = overviews.map((o) => o.service).filter(Boolean);
       return this.fail(GC.ERROR, `Service not found in this tenant. Available: ${names.join(", ") || "none"}`);
@@ -204,100 +171,7 @@ class CloudServiceCall {
     return { status: MapM365Status(service.status), latency, type: GC.REALTIME, raw_status: String(service.status) };
   }
 
-  private async healthOverviews(tenantId: string, clientId: string, clientSecret: string): Promise<HealthOverview[]> {
-    const key = `${tenantId}|${clientId}`;
-    const cached = overviewCache.get(key);
-    if (cached && Date.now() - cached.at < OVERVIEW_TTL_MS) {
-      return cached.data;
-    }
-    const data = this.fetchHealthOverviews(key, tenantId, clientId, clientSecret);
-    overviewCache.set(key, { at: Date.now(), data });
-    // A failed read must not be served to the next monitor from the cache.
-    data.catch(() => overviewCache.delete(key));
-    return data;
-  }
-
-  private async fetchHealthOverviews(
-    key: string,
-    tenantId: string,
-    clientId: string,
-    clientSecret: string,
-  ): Promise<HealthOverview[]> {
-    const token = await this.accessToken(key, tenantId, clientId, clientSecret);
-    const result: HealthOverview[] = [];
-    let url: string | undefined =
-      "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/healthOverviews?$select=id,service,status";
-    for (let page = 0; url && page < 5; page++) {
-      const response: AxiosResponse = await axios(url, {
-        ...this.httpOptions(),
-        headers: { ...this.httpOptions().headers, Authorization: `Bearer ${token}` },
-      });
-      if (response.status === 401 || response.status === 403) {
-        tokenCache.delete(key);
-        throw new Error(
-          `Microsoft Graph refused access (HTTP ${response.status}). Grant the app ServiceHealth.Read.All with admin consent.`,
-        );
-      }
-      if (response.status < 200 || response.status >= 300) {
-        throw new Error(`Microsoft Graph answered HTTP ${response.status}`);
-      }
-      const value = Array.isArray(response.data?.value) ? response.data.value : [];
-      result.push(...value);
-      url = response.data?.["@odata.nextLink"];
-    }
-    return result;
-  }
-
-  private async accessToken(key: string, tenantId: string, clientId: string, clientSecret: string): Promise<string> {
-    const cached = tokenCache.get(key);
-    if (cached && cached.expiresAt - 5 * 60 * 1000 > Date.now()) {
-      return cached.token;
-    }
-    const form = new URLSearchParams({
-      client_id: clientId,
-      client_secret: clientSecret,
-      scope: "https://graph.microsoft.com/.default",
-      grant_type: "client_credentials",
-    });
-    const response = await axios(
-      `https://login.microsoftonline.com/${encodeURIComponent(tenantId)}/oauth2/v2.0/token`,
-      {
-        ...this.httpOptions(),
-        method: "POST",
-        headers: { ...this.httpOptions().headers, "Content-Type": "application/x-www-form-urlencoded" },
-        data: form.toString(),
-      },
-    );
-    const token = response.data?.access_token;
-    if (response.status < 200 || response.status >= 300 || typeof token !== "string") {
-      // Microsoft's own text names the cause, e.g. a wrong or expired secret (AADSTS7000215).
-      const reason = response.data?.error_description || response.data?.error || `HTTP ${response.status}`;
-      throw new Error(`Microsoft sign-in failed: ${String(reason).split("\r\n")[0]}`);
-    }
-    const expiresIn = Number(response.data?.expires_in) || 3600;
-    tokenCache.set(key, { token, expiresAt: Date.now() + expiresIn * 1000 });
-    return token;
-  }
-
   // ---------------------------------------------------------------- helpers
-
-  private httpOptions(): AxiosRequestConfig & { headers: Record<string, string> } {
-    return {
-      method: "GET",
-      timeout: this.monitor.type_data.timeout || 10000,
-      headers: { "User-Agent": `Kener/${version()}`, Accept: "application/json" },
-      validateStatus: () => true,
-      ...AxiosProxyConfig(undefined, {}, {}),
-    };
-  }
-
-  private secret(value: string | undefined): string {
-    let result = (value || "").trim();
-    for (const s of this.envSecrets) {
-      if (s.replace !== undefined) result = ReplaceAllOccurrences(result, s.find, s.replace);
-    }
-    return result;
-  }
 
   private configuredStatus(value: string | undefined): string {
     const map: Record<string, string> = { UP: GC.UP, DEGRADED: GC.DEGRADED, DOWN: GC.DOWN };

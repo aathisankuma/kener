@@ -5,6 +5,7 @@
   import { Button } from "$lib/components/ui/button/index.js";
   import ThemePlus from "$lib/components/ThemePlus.svelte";
   import MonitorOverview from "$lib/components/MonitorOverview.svelte";
+  import CloudServiceDetails from "$lib/components/CloudServiceDetails.svelte";
   import ArrowUpRight from "@lucide/svelte/icons/arrow-up-right";
   import clientResolver, { absoluteResolve } from "$lib/client/resolver.js";
   import { resolve } from "$app/paths";
@@ -184,6 +185,11 @@
         </div>
       {/each}
     </div>
+  {/if}
+
+  <!-- Cloud Service: what the provider itself shows (components, incidents, maintenances) -->
+  {#if data.monitorType === "CLOUD"}
+    <CloudServiceDetails tag={data.monitorTag} />
   {/if}
 
   <!-- Calendar View (self-contained component with its own API call) -->

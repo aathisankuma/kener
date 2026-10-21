@@ -180,3 +180,60 @@ export function GetCloudProvider(id: string | undefined): CloudProvider | undefi
   }
   return CLOUD_PROVIDERS.find((p) => p.id === id);
 }
+
+// ---------------------------------------------------------------- Detail view
+
+/** Kener status of a provider component or issue. */
+export type CloudStatus = "UP" | "DEGRADED" | "DOWN" | "MAINTENANCE";
+
+export interface CloudComponent {
+  id: string;
+  name: string;
+  description: string | null;
+  status: CloudStatus;
+  /** Name of the group this component belongs to on the provider's page, if any. */
+  group: string | null;
+}
+
+export interface CloudUpdate {
+  /** Provider's step, e.g. "investigating", "resolved"; "" when the provider gives none. */
+  status: string;
+  /** Text of the update. HTML when `isHtml` (Microsoft), plain text otherwise (Statuspage). */
+  body: string;
+  isHtml: boolean;
+  /** UTC seconds. */
+  at: number;
+}
+
+export interface CloudIncident {
+  id: string;
+  title: string;
+  /** Worst impact while it lasted. */
+  impact: CloudStatus;
+  /** Provider's current step, e.g. "resolved", "serviceRestored". */
+  status: string;
+  resolved: boolean;
+  /** UTC seconds. */
+  startedAt: number;
+  resolvedAt: number | null;
+  url: string | null;
+  /** Component, feature or service names the provider lists as affected. */
+  affected: string[];
+  /** Newest first. */
+  updates: CloudUpdate[];
+}
+
+export interface CloudMaintenance extends CloudIncident {
+  /** UTC seconds. */
+  scheduledFor: number | null;
+  scheduledUntil: number | null;
+}
+
+export interface CloudDetails {
+  provider: { label: string; kind: CloudProviderKind; pageUrl: string | null };
+  components: CloudComponent[];
+  incidents: CloudIncident[];
+  maintenances: CloudMaintenance[];
+  /** UTC seconds. */
+  fetchedAt: number;
+}

@@ -146,6 +146,19 @@
     "Search services": "Search services",
     "No services found": "No services found",
     "Pick at least one service. Until then you get updates for all services.": "Pick at least one service. Until then you get updates for all services.",
-    "You get updates only for the selected services.": "You get updates only for the selected services."
+    "You get updates only for the selected services.": "You get updates only for the selected services.",
+    "Major Outage": "Major Outage",
+    "Past Incidents": "Past Incidents",
+    "No incidents reported today.": "No incidents reported today.",
+    "No incidents reported.": "No incidents reported.",
+    "Scheduled Maintenance": "Scheduled Maintenance",
+    "Active Incident": "Active Incident",
+    "Affects": "Affects",
+    "Source": "Source",
+    "Open the provider's status page": "Open the provider's status page",
+    "Could not load the provider's details": "Could not load the provider's details",
+    "IN_PROGRESS": "IN PROGRESS",
+    "VERIFYING": "VERIFYING",
+    "POSTMORTEM": "POSTMORTEM"
   }
 }
