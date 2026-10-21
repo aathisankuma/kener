@@ -38,6 +38,18 @@
   const eventsPath = $derived(`/events/${format(new Date(), "MMMM-yyyy")}`);
   const showNotificationsPopover = $derived(!hideNotificationsPopover);
 
+  // On a monitor or app page the subscribe button subscribes to that page's monitors.
+  const subscribeScope = $derived.by((): { tags: string[]; name: string } => {
+    if (page.params.monitor_tag) {
+      return { tags: [page.params.monitor_tag], name: page.data?.monitorName || page.params.monitor_tag };
+    }
+    if (page.params.page_path && monitor_tags.length > 0) {
+      const details = page.data?.pageDetails;
+      return { tags: monitor_tags, name: details?.page_title || details?.page_header || page.params.page_path };
+    }
+    return { tags: [], name: "" };
+  });
+
   const rssHref = $derived.by(() => {
     const params = page.params;
     if (params.monitor_tag) return clientResolver(resolve, `/monitors/${params.monitor_tag}/rss.xml`);
@@ -95,13 +107,13 @@
   <div class="ml-auto flex shrink-0 items-center gap-2">
     {#if page.data.isSubsEnabled && page.data.canSendEmail}
       <ButtonGroup.Root class="hidden shrink-0 sm:flex">
-        <SubscribeMenu />
+        <SubscribeMenu scopeTags={subscribeScope.tags} scopeName={subscribeScope.name} />
       </ButtonGroup.Root>
     {/if}
 
     {#if page.data.isSubsEnabled && page.data.canSendEmail}
       <ButtonGroup.Root class="rounded-btn-grp shrink-0 sm:hidden">
-        <SubscribeMenu compact={true} />
+        <SubscribeMenu compact={true} scopeTags={subscribeScope.tags} scopeName={subscribeScope.name} />
       </ButtonGroup.Root>
     {/if}
 
