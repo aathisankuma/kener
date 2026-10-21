@@ -367,6 +367,9 @@ class DbImpl {
   updateSubscriberMethod!: SubscriptionSystemRepository["updateSubscriberMethod"];
   deleteSubscriberMethod!: SubscriptionSystemRepository["deleteSubscriberMethod"];
   getActiveMethodsByType!: SubscriptionSystemRepository["getActiveMethodsByType"];
+  getMonitorTagsForMethod!: SubscriptionSystemRepository["getMonitorTagsForMethod"];
+  getMonitorTagsForMethods!: SubscriptionSystemRepository["getMonitorTagsForMethods"];
+  setMonitorTagsForMethod!: SubscriptionSystemRepository["setMonitorTagsForMethod"];
   createUserSubscriptionV2!: SubscriptionSystemRepository["createUserSubscriptionV2"];
   getUserSubscriptionV2ById!: SubscriptionSystemRepository["getUserSubscriptionV2ById"];
   getUserSubscriptionsV2!: SubscriptionSystemRepository["getUserSubscriptionsV2"];
@@ -829,6 +832,9 @@ class DbImpl {
     this.updateSubscriberMethod = this.subscriptionSystem.updateSubscriberMethod.bind(this.subscriptionSystem);
     this.deleteSubscriberMethod = this.subscriptionSystem.deleteSubscriberMethod.bind(this.subscriptionSystem);
     this.getActiveMethodsByType = this.subscriptionSystem.getActiveMethodsByType.bind(this.subscriptionSystem);
+    this.getMonitorTagsForMethod = this.subscriptionSystem.getMonitorTagsForMethod.bind(this.subscriptionSystem);
+    this.getMonitorTagsForMethods = this.subscriptionSystem.getMonitorTagsForMethods.bind(this.subscriptionSystem);
+    this.setMonitorTagsForMethod = this.subscriptionSystem.setMonitorTagsForMethod.bind(this.subscriptionSystem);
 
     // User Subscriptions V2
     this.createUserSubscriptionV2 = this.subscriptionSystem.createUserSubscriptionV2.bind(this.subscriptionSystem);

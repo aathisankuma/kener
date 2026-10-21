@@ -111,8 +111,11 @@ const pushMaintenanceUpdate = async (
   ]);
   if (maintenance?.is_global !== "YES" && monitors.length === 0) return;
   const monitorNames = monitors.map((m) => `${m.monitor_name}(${m.monitor_impact})`).join(", ");
+  // Subscribers who chose monitors hear only of maintenances on them.
   await subscriberQueue.push(
     maintenanceToVariables(event, monitorNames, statusMessage, updateIdSuffix, subjectPrefix, siteUrl),
+    undefined,
+    monitors.map((m) => m.monitor_tag),
   );
 };
 

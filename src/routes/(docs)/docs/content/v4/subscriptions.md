@@ -47,8 +47,20 @@ From the status page, user clicks **Subscribe**:
 3. User enters OTP to verify.
 4. Kener stores a subscriber session token in browser storage.
 5. User toggles preferences for incidents and/or maintenances.
+6. Optional: user turns on **Only selected services** and ticks the monitors they care about. See [Choose services](#choose-services).
 
 If token is invalid/expired, user is asked to verify again.
+
+## Choose services {#choose-services}
+
+By default a subscriber hears of every incident and maintenance. With **Only selected services** on, they hear only of events that affect a monitor they ticked.
+
+- The list shows active monitors that are not hidden.
+- Choosing a [group monitor](/docs/v4/monitors/group) also covers its member monitors. An event on a group reaches the subscribers of its members.
+- An incident or maintenance with no monitors reaches every subscriber.
+- With nothing ticked, the subscriber still hears of every service. The choice is saved once at least one service is ticked.
+
+The choice applies to both incident and maintenance emails.
 
 ## Add subscriber from backend (admin) {#add-subscriber-from-backend-admin}
 
@@ -90,7 +102,7 @@ Maintenance subscription emails are queued on maintenance event status transitio
 
 When an event is queued:
 
-1. Kener selects active subscribers for that `event_type`.
+1. Kener selects active subscribers for that `event_type`, keeping only those whose [chosen services](#choose-services) include an affected monitor.
 2. Kener renders the `subscription_update` email template with event/site variables.
 3. Kener enqueues **one email per recipient** (privacy-safe fan-out).
 4. Email sender queue sends the final emails.

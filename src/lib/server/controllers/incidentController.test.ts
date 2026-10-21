@@ -67,6 +67,18 @@ describe("AddIncidentComment: subscriber mail variables", () => {
     });
   });
 
+  it("passes the incident's monitors so only their subscribers hear of it", async () => {
+    db.getMonitorsByIncidentId.mockResolvedValue([
+      { monitor_tag: "printer", monitor_impact: "DOWN" },
+      { monitor_tag: "web", monitor_impact: "DEGRADED" },
+    ]);
+
+    await AddIncidentComment(12, "Printing fails", "INVESTIGATING", 2000);
+
+    pushedVariables();
+    expect(subscriberQueue.push.mock.calls[0][2]).toEqual(["printer", "web"]);
+  });
+
   it("reads degraded when no monitor is down", async () => {
     db.getMonitorsByIncidentId.mockResolvedValue([{ monitor_tag: "api", monitor_impact: "DEGRADED" }]);
 

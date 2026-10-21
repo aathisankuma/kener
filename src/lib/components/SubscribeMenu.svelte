@@ -4,6 +4,7 @@
   import { Button } from "$lib/components/ui/button/index.js";
   import { Input } from "$lib/components/ui/input/index.js";
   import { Switch } from "$lib/components/ui/switch/index.js";
+  import { Checkbox } from "$lib/components/ui/checkbox/index.js";
   import { Label } from "$lib/components/ui/label/index.js";
   import { onMount } from "svelte";
   import { resolve } from "$app/paths";
@@ -16,6 +17,7 @@
   import Bell from "@lucide/svelte/icons/bell";
   import AlertTriangle from "@lucide/svelte/icons/alert-triangle";
   import Wrench from "@lucide/svelte/icons/wrench";
+  import Layers from "@lucide/svelte/icons/layers";
   import { t } from "$lib/stores/i18n";
   import trackEvent from "$lib/beacon";
   import ICONS from "$lib/icons";
@@ -51,6 +53,25 @@
     incidents: false,
     maintenances: false
   });
+
+  // Monitor choices: an empty list means every monitor.
+  interface SubscribableMonitor {
+    tag: string;
+    name: string;
+    image: string | null;
+  }
+  let availableMonitors = $state<SubscribableMonitor[]>([]);
+  let chosenMonitorTags = $state<string[]>([]);
+  // "Only selected services" is on while the visitor picks; it stays on with nothing picked
+  // until they pick one, and nothing is saved until then.
+  let onlySelectedMonitors = $state(false);
+  let monitorSearch = $state("");
+  let savingMonitors = $state(false);
+  let filteredMonitors = $derived(
+    monitorSearch.trim()
+      ? availableMonitors.filter((m) => m.name.toLowerCase().includes(monitorSearch.trim().toLowerCase()))
+      : availableMonitors
+  );
 
   // Check token on mount
   onMount(() => {
@@ -91,6 +112,10 @@
       incidentsEnabled = data.subscriptions?.incidents || false;
       maintenancesEnabled = data.subscriptions?.maintenances || false;
       availableSubscriptions = data.availableSubscriptions || { incidents: false, maintenances: false };
+      availableMonitors = data.availableMonitors || [];
+      chosenMonitorTags = data.monitorTags || [];
+      onlySelectedMonitors = chosenMonitorTags.length > 0;
+      monitorSearch = "";
       currentView = "preferences";
     } catch (err) {
       localStorage.removeItem(STORAGE_KEY);
@@ -231,6 +256,59 @@
     }
   }
 
+  async function saveMonitorTags(tags: string[]): Promise<boolean> {
+    const token = localStorage.getItem(STORAGE_KEY);
+    if (!token) {
+      currentView = "login";
+      return false;
+    }
+    savingMonitors = true;
+    errorMessage = "";
+    try {
+      const response = await fetch(clientResolver(resolve, "/dashboard-apis/subscription"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "updatePreferences", token, monitorTags: tags })
+      });
+      if (!response.ok) {
+        errorMessage = $t("Failed to update preference");
+        return false;
+      }
+      trackEvent("subscribe_monitors_changed", { source: "subscribe_menu", count: tags.length });
+      return true;
+    } catch (err) {
+      errorMessage = $t("Network error. Please try again.");
+      return false;
+    } finally {
+      savingMonitors = false;
+    }
+  }
+
+  async function handleOnlySelectedChange(value: boolean) {
+    onlySelectedMonitors = value;
+    if (!value && chosenMonitorTags.length > 0) {
+      const previous = chosenMonitorTags;
+      chosenMonitorTags = [];
+      if (!(await saveMonitorTags([]))) {
+        chosenMonitorTags = previous;
+        onlySelectedMonitors = true;
+      }
+    }
+  }
+
+  async function handleMonitorToggle(tag: string, value: boolean) {
+    const previous = chosenMonitorTags;
+    const next = value ? [...previous.filter((t) => t !== tag), tag] : previous.filter((t) => t !== tag);
+    chosenMonitorTags = next;
+    // With nothing picked the visitor still hears of every monitor; keep the list open and
+    // save only once a monitor is picked again.
+    const toSave = next.length > 0 ? next : previous.length > 0 ? [] : null;
+    if (toSave === null) return;
+    if (!(await saveMonitorTags(toSave))) {
+      chosenMonitorTags = previous;
+    }
+  }
+
   function handleLogout() {
     localStorage.removeItem(STORAGE_KEY);
     email = "";
@@ -238,6 +316,8 @@
     subscriberEmail = "";
     incidentsEnabled = false;
     maintenancesEnabled = false;
+    chosenMonitorTags = [];
+    onlySelectedMonitors = false;
     errorMessage = "";
     currentView = "login";
     trackEvent("subscribe_logout", { source: "subscribe_menu" });
@@ -455,6 +535,68 @@
               </div>
             {/if}
           </div>
+
+          {#if availableMonitors.length > 0 && (availableSubscriptions.incidents || availableSubscriptions.maintenances)}
+            <div class="flex flex-col gap-3 border-t pt-4">
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-3">
+                  <Layers class="text-muted-foreground h-5 w-5" />
+                  <div>
+                    <Label class="font-medium">{$t("Only selected services")}</Label>
+                    <p class="text-muted-foreground text-xs">
+                      {$t("Get updates only for the services you pick")}
+                    </p>
+                  </div>
+                </div>
+                <Switch
+                  checked={onlySelectedMonitors}
+                  disabled={savingMonitors}
+                  onCheckedChange={(value) => handleOnlySelectedChange(value)}
+                />
+              </div>
+
+              {#if onlySelectedMonitors}
+                {#if availableMonitors.length > 8}
+                  <Input
+                    type="search"
+                    placeholder={$t("Search services")}
+                    class="h-8 text-sm"
+                    bind:value={monitorSearch}
+                  />
+                {/if}
+                <div class="scrollbar-hidden max-h-56 overflow-y-auto rounded-lg border">
+                  {#each filteredMonitors as monitor (monitor.tag)}
+                    <label
+                      class="hover:bg-muted/60 flex cursor-pointer items-center gap-3 border-b px-3 py-2 last:border-b-0"
+                    >
+                      <Checkbox
+                        checked={chosenMonitorTags.includes(monitor.tag)}
+                        disabled={savingMonitors}
+                        onCheckedChange={(value) => handleMonitorToggle(monitor.tag, value === true)}
+                      />
+                      {#if monitor.image}
+                        <img
+                          src={clientResolver(resolve, monitor.image)}
+                          alt=""
+                          class="size-5 shrink-0 rounded object-contain"
+                        />
+                      {/if}
+                      <span class="min-w-0 truncate text-sm">{monitor.name}</span>
+                    </label>
+                  {:else}
+                    <p class="text-muted-foreground px-3 py-2 text-sm">{$t("No services found")}</p>
+                  {/each}
+                </div>
+                <p class="text-muted-foreground text-xs">
+                  {#if chosenMonitorTags.length === 0}
+                    {$t("Pick at least one service. Until then you get updates for all services.")}
+                  {:else}
+                    {$t("You get updates only for the selected services.")}
+                  {/if}
+                </p>
+              {/if}
+            </div>
+          {/if}
 
           {#if errorMessage}
             <p class="text-destructive text-sm">{errorMessage}</p>

@@ -18,6 +18,9 @@ const jobNamePrefix = "subscriberJob";
 
 interface SubscriberJobData {
   variables: SubscriptionVariableMap;
+  // Monitors the event is about. Subscribers who chose monitors hear only of events on them;
+  // null or missing (jobs queued before this field existed) reaches every subscriber.
+  monitorTags?: string[] | null;
 }
 
 const getQueue = () => {
@@ -31,7 +34,7 @@ const addWorker = () => {
   if (worker) return worker;
 
   worker = q.createWorker(getQueue(), async (job: Job): Promise<void> => {
-    const { variables } = job.data as SubscriberJobData;
+    const { variables, monitorTags } = job.data as SubscriberJobData;
 
     try {
       // Get site data for template variables
@@ -50,7 +53,7 @@ const addWorker = () => {
       const eventType = variables.event_type;
 
       // Get active subscriber emails for this event type
-      const subscriberEmails = await GetActiveEmailsForEventType(eventType);
+      const subscriberEmails = await GetActiveEmailsForEventType(eventType, monitorTags ?? null);
 
       if (subscriberEmails.length === 0) {
         console.log(`📭 No active subscribers for event type: ${eventType}`);
@@ -90,7 +93,11 @@ const addWorker = () => {
 /**
  * Push a subscriber notification job to the queue
  */
-export const push = async (variables: SubscriptionVariableMap, options?: JobsOptions) => {
+export const push = async (
+  variables: SubscriptionVariableMap,
+  options?: JobsOptions,
+  monitorTags: string[] | null = null,
+) => {
   if (!options) {
     options = {};
   }
@@ -119,6 +126,7 @@ export const push = async (variables: SubscriptionVariableMap, options?: JobsOpt
     `${jobNamePrefix}_${variables.update_id}`,
     {
       variables,
+      monitorTags,
     },
     options,
   );
