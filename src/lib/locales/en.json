@@ -159,6 +159,12 @@
     "Could not load the provider's details": "Could not load the provider's details",
     "IN_PROGRESS": "IN PROGRESS",
     "VERIFYING": "VERIFYING",
-    "POSTMORTEM": "POSTMORTEM"
+    "POSTMORTEM": "POSTMORTEM",
+    "Subscribe to this service": "Subscribe to this service",
+    "Subscribe to %name": "Subscribe to %name",
+    "Get notified about incidents and scheduled maintenance of %name.": "Get notified about incidents and scheduled maintenance of %name.",
+    "You now get updates only for %name.": "You now get updates only for %name.",
+    "%name was added to your services.": "%name was added to your services.",
+    "You already get updates for %name.": "You already get updates for %name."
   }
 }

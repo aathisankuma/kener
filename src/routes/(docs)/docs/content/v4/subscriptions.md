@@ -62,6 +62,18 @@ By default a subscriber hears of every incident and maintenance. With **Only sel
 
 The choice applies to both incident and maintenance emails.
 
+### Subscribe from a monitor or page {#subscribe-to-this-service}
+
+On a monitor's page and on every status page except the home page, the subscribe button reads **Subscribe to this service**. After signing in, Kener applies that page's monitors:
+
+| Subscriber before                           | After                                                                      |
+| ------------------------------------------- | -------------------------------------------------------------------------- |
+| New, or incidents and maintenances both off | Gets updates only for this page's monitors; incidents and maintenances on  |
+| Already chose some services                 | This page's monitors are added to the choice                               |
+| Gets updates for every service              | Unchanged: they already hear of this service. They can narrow it down here |
+
+The dialog says which case applied. Monitors that are hidden or not active are left out.
+
 ## Add subscriber from backend (admin) {#add-subscriber-from-backend-admin}
 
 You can add subscribers manually from **Manage → Subscriptions**:

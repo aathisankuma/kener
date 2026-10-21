@@ -24,7 +24,7 @@ No login is needed. Kener reads the public `/api/v2/status.json`, or `/api/v2/co
 | `major`, `critical` / `major_outage` | DOWN          |
 | `maintenance` / `under_maintenance`  | MAINTENANCE   |
 
-Turn on **Ignore minor issues** to record minor incidents and degraded performance as UP. A provider's page reports problems in every region, so small issues elsewhere can otherwise mark the monitor DEGRADED.
+**Ignore minor issues** records minor incidents and degraded performance as UP. A provider's page reports problems in every region, so small issues elsewhere would otherwise mark the monitor DEGRADED. It is on for monitors created in the dashboard; turn it off to record every minor issue. Monitors created through the API without `ignoreMinor` record minor issues.
 
 ## Microsoft 365 {#microsoft-365}
 

@@ -22,12 +22,21 @@
   import trackEvent from "$lib/beacon";
   import ICONS from "$lib/icons";
   import Captcha from "./Captcha.svelte";
+  import { PlanScopedSubscription } from "$lib/subscribeScope";
 
   interface Props {
     compact?: boolean;
+    /** Monitors of the current monitor or app page; the button then subscribes to these. */
+    scopeTags?: string[];
+    /** Name of that monitor or page, shown in the dialog. */
+    scopeName?: string;
   }
 
-  let { compact = false }: Props = $props();
+  let { compact = false, scopeTags = [], scopeName = "" }: Props = $props();
+  let isScoped = $derived(scopeTags.length > 0 && !!scopeName);
+  // Set when the dialog is opened from a scoped button; used once preferences are loaded.
+  let pendingScope = $state(false);
+  let scopeMessage = $state("");
   let open = $state(false);
 
   const STORAGE_KEY = "subscriber_token";
@@ -117,6 +126,10 @@
       onlySelectedMonitors = chosenMonitorTags.length > 0;
       monitorSearch = "";
       currentView = "preferences";
+      if (pendingScope && open) {
+        pendingScope = false;
+        await applyScope(token);
+      }
     } catch (err) {
       localStorage.removeItem(STORAGE_KEY);
       currentView = "login";
@@ -284,6 +297,56 @@
     }
   }
 
+  /** Adds this page's monitors to the visitor's subscription, see PlanScopedSubscription. */
+  async function applyScope(token: string) {
+    const plan = PlanScopedSubscription({
+      scopeTags,
+      availableTags: availableMonitors.map((m) => m.tag),
+      chosenTags: chosenMonitorTags,
+      incidentsEnabled,
+      maintenancesEnabled,
+      availableSubscriptions
+    });
+    if (plan.result === "none") return;
+    if (plan.monitorTags || plan.enable) {
+      savingMonitors = true;
+      try {
+        const response = await fetch(clientResolver(resolve, "/dashboard-apis/subscription"), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "updatePreferences",
+            token,
+            ...(plan.enable ?? {}),
+            ...(plan.monitorTags ? { monitorTags: plan.monitorTags } : {})
+          })
+        });
+        if (!response.ok) {
+          errorMessage = $t("Failed to update preference");
+          return;
+        }
+      } catch (err) {
+        errorMessage = $t("Network error. Please try again.");
+        return;
+      } finally {
+        savingMonitors = false;
+      }
+      if (plan.monitorTags) {
+        chosenMonitorTags = plan.monitorTags;
+        onlySelectedMonitors = true;
+      }
+      if (plan.enable?.incidents) incidentsEnabled = true;
+      if (plan.enable?.maintenances) maintenancesEnabled = true;
+      trackEvent("subscribe_scope_applied", { source: "subscribe_menu", result: plan.result });
+    }
+    const messages = {
+      only: "You now get updates only for %name.",
+      added: "%name was added to your services.",
+      already: "You already get updates for %name."
+    };
+    scopeMessage = $t(messages[plan.result], { name: scopeName });
+  }
+
   async function handleOnlySelectedChange(value: boolean) {
     onlySelectedMonitors = value;
     if (!value && chosenMonitorTags.length > 0) {
@@ -329,6 +392,13 @@
     errorMessage = "";
   }
 
+  function openDialog() {
+    pendingScope = isScoped;
+    scopeMessage = "";
+    open = true;
+    trackEvent("subscribe_opened", { source: "theme_plus", scoped: isScoped });
+  }
+
   function handleClose() {
     open = false;
     errorMessage = "";
@@ -353,11 +423,8 @@
     variant="outline"
     size="icon-sm"
     class="bg-background/80 dark:bg-background/70 border-foreground/10 rounded-full border shadow-none backdrop-blur-md"
-    aria-label={$t("Subscribe")}
-    onclick={() => {
-      open = true;
-      trackEvent("subscribe_opened", { source: "theme_plus" });
-    }}
+    aria-label={isScoped ? $t("Subscribe to %name", { name: scopeName }) : $t("Subscribe")}
+    onclick={openDialog}
   >
     <ICONS.Bell />
   </Button>
@@ -366,14 +433,12 @@
     variant="outline"
     size="sm"
     class="rounded-btn bg-background/80 dark:bg-background/70 border-foreground/10 border text-xs backdrop-blur-md"
-    aria-label="Subscribe"
-    onclick={() => {
-      open = true;
-      trackEvent("subscribe_opened", { source: "theme_plus" });
-    }}
+    aria-label={isScoped ? $t("Subscribe to %name", { name: scopeName }) : $t("Subscribe")}
+    title={isScoped ? $t("Subscribe to %name", { name: scopeName }) : undefined}
+    onclick={openDialog}
   >
     <ICONS.Bell class="" />
-    {$t("Subscribe")}
+    {isScoped ? $t("Subscribe to this service") : $t("Subscribe")}
   </Button>
 {/if}
 
@@ -390,7 +455,9 @@
         {$t("Subscribe to Updates")}
       </Dialog.Title>
       <Dialog.Description>
-        {#if currentView === "login"}
+        {#if currentView === "login" && isScoped}
+          {$t("Get notified about incidents and scheduled maintenance of %name.", { name: scopeName })}
+        {:else if currentView === "login"}
           {$t("Get notified about incidents and scheduled maintenance.")}
         {:else if currentView === "otp"}
           {$t("Enter the verification code sent to your email.")}
@@ -490,6 +557,9 @@
       {:else if currentView === "preferences"}
         <!-- Preferences View -->
         <div class="flex flex-col gap-6">
+          {#if scopeMessage}
+            <p class="bg-muted rounded-lg px-3 py-2 text-sm" role="status">{scopeMessage}</p>
+          {/if}
           <div class="rounded-lg border p-4">
             <div class="flex items-center justify-between gap-2">
               <div class="flex gap-2">

@@ -17,7 +17,8 @@
   if (!data.provider) data.provider = "jira";
   if (!data.errorStatus) data.errorStatus = "DEGRADED";
   if (!data.timeout) data.timeout = 10000;
-  if (data.ignoreMinor === undefined) data.ignoreMinor = false;
+  // New monitors ignore minor issues: a provider's page reports small problems anywhere in the world.
+  if (data.ignoreMinor === undefined) data.ignoreMinor = true;
   if (data.component === undefined) data.component = "";
 
   let provider = $derived(GetCloudProvider(data.provider));
@@ -149,8 +150,8 @@
       <div>
         <Label for="cloud-ignore-minor">Ignore minor issues</Label>
         <p class="text-muted-foreground text-xs">
-          Minor incidents and degraded performance count as UP. Useful when small problems elsewhere in the world turn
-          the card yellow too often.
+          Minor incidents and degraded performance count as UP, so small problems elsewhere in the world do not turn the
+          card yellow. On for new monitors; turn it off to see every minor issue.
         </p>
       </div>
     </div>
