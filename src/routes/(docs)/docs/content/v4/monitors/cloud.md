@@ -58,6 +58,14 @@ Monitors that share an app registration share one sign-in and one Graph read per
 > [!TIP]
 > Keep the secret in `M365_CLIENT_SECRET`. A secret typed into the monitor's field is stored in Kener's database as is.
 
+## Icon {#icon}
+
+When you save a Cloud Service monitor that has no image, Kener downloads the service's own icon and uses it as the monitor's image: for a Statuspage service the icon of its status page, for Microsoft 365 the icon of the service's web app (e.g. `teams.microsoft.com`). The icon is stored like an uploaded image, at most 128 × 128 px; SVG and ICO icons are converted to PNG.
+
+- An image you uploaded is never replaced on save. **Use provider's icon** replaces it on request.
+- If no icon is found, the monitor keeps no image and shows its initials. Upload one under **General Settings**.
+- Kener's server needs access to the provider's website, through `HTTP_PROXY` / `HTTPS_PROXY` when set.
+
 ## Detail page {#detail-page}
 
 A visitor who opens a Cloud Service monitor on the status page sees what the provider itself shows, read live and refreshed at most once a minute:
