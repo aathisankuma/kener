@@ -53,6 +53,7 @@ UP + MAINTENANCE + DEGRADED + DOWN
 - [Docker Monitor](/docs/v4/monitors/docker) — Container state and healthcheck via the Docker Engine API, or the daemon itself
 - [Group Monitor](/docs/v4/monitors/group) — Weighted aggregate of member monitors
 - [Prometheus Monitor](/docs/v4/monitors/prometheus) — PromQL instant query with threshold-based status
+- [Cloud Service Monitor](/docs/v4/monitors/cloud) — Official status of Atlassian, Microsoft 365 and other cloud services, picked from a list
 
 ## Related docs {#related-docs}
 

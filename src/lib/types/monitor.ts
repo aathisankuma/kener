@@ -18,6 +18,7 @@ export const MONITOR_TYPES = [
   "GRPC",
   "PROMETHEUS",
   "DOCKER",
+  "CLOUD",
 ] as const;
 export type MonitorType = (typeof MONITOR_TYPES)[number];
 

@@ -11,6 +11,7 @@ import NoneCall from "./noneCall.js";
 import GrpcCall from "./grpcCall.js";
 import PrometheusCall from "./prometheusCall.js";
 import DockerCall from "./dockerCall.js";
+import CloudServiceCall from "./cloudServiceCall.js";
 
 import type {
   ApiMonitor,
@@ -25,6 +26,7 @@ import type {
   GrpcMonitor,
   PrometheusMonitor,
   DockerMonitor,
+  CloudServiceMonitor,
   MonitoringResult,
   NoneMonitor,
 } from "../types/monitor.js";
@@ -42,6 +44,7 @@ type ServiceCall =
   | GrpcCall
   | PrometheusCall
   | DockerCall
+  | CloudServiceCall
   | NoneCall;
 
 export interface MonitorWithType {
@@ -79,6 +82,8 @@ class Service {
       this.service = new PrometheusCall(monitor as PrometheusMonitor);
     } else if (monitor.monitor_type === "DOCKER") {
       this.service = new DockerCall(monitor as DockerMonitor);
+    } else if (monitor.monitor_type === "CLOUD") {
+      this.service = new CloudServiceCall(monitor as CloudServiceMonitor);
     } else {
       this.service = new NoneCall(monitor as NoneMonitor);
     }
