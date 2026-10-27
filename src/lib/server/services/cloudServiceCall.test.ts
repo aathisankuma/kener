@@ -97,15 +97,26 @@ describe("Statuspage providers", () => {
     expect(mockedAxios.mock.calls[0][0]).toBe("https://status.example.com/api/v2/status.json");
   });
 
+  it("reads summary.json when a page has no status.json (OpenAI on incident.io)", async () => {
+    mockedAxios.mockImplementation(async (url) =>
+      url === "https://status.openai.com/api/v2/summary.json"
+        ? reply(200, { status: { indicator: "minor" }, components: [] })
+        : reply(404, "not found"),
+    );
+    const result = await new CloudServiceCall(monitor({ provider: "openai" })).execute();
+    expect(result).toMatchObject({ status: "DEGRADED", raw_status: "minor" });
+  });
+
   it("records the configured status with the reason when the page cannot be read", async () => {
-    mockedAxios.mockResolvedValueOnce(reply(503, "unavailable"));
+    // status.json and the summary.json fallback both fail.
+    mockedAxios.mockResolvedValue(reply(503, "unavailable"));
     expect(await new CloudServiceCall(monitor({})).execute()).toMatchObject({
       status: "DEGRADED",
       type: "ERROR",
       error_message: "Statuspage answered HTTP 503",
     });
 
-    mockedAxios.mockRejectedValueOnce(
+    mockedAxios.mockRejectedValue(
       Object.assign(new Error("timeout of 10000ms exceeded"), { code: "ECONNABORTED" }),
     );
     expect(await new CloudServiceCall(monitor({ errorStatus: "DOWN" })).execute()).toMatchObject({

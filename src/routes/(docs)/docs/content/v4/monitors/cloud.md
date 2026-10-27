@@ -7,7 +7,7 @@ Cloud Service monitors follow a provider's own status instead of probing your ne
 
 The list marks a service with a green check when another monitor already follows it, and names that monitor. Choosing the same service and component again shows a warning, since the second monitor would show the same status twice.
 
-Besides Atlassian, Microsoft 365 and Abacus, the list holds widely used services that publish a Statuspage: GitHub, Cloudflare, Zoom, TeamViewer, Canva and Claude.
+Besides Atlassian, Microsoft 365 and Abacus, the list holds widely used services that publish a Statuspage: GitHub, Cloudflare, Zoom, TeamViewer, Canva, OpenAI and Claude. Microsoft 365 Copilot is under **Microsoft 365**.
 
 To also check that _your_ users can reach the service, add an [API monitor](/docs/v4/monitors/api) on your own address and combine both in a [group monitor](/docs/v4/monitors/group).
 

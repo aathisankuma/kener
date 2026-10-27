@@ -118,10 +118,18 @@ class CloudServiceCall {
     }
     const component = (data.component || "").trim();
     const started = Date.now();
-    const response = await axios(
+    let response = await axios(
       `${base}/api/v2/${component ? "components" : "status"}.json`,
       CloudHttpOptions(data.timeout || 10000),
     );
+    // Pages that only copy part of the Statuspage API (incident.io, e.g. OpenAI) may lack
+    // status.json; summary.json carries the same indicator.
+    const hasIndicator = (r: typeof response) =>
+      r.status >= 200 && r.status < 300 && typeof r.data?.status?.indicator === "string";
+    if (!component && !hasIndicator(response)) {
+      const summary = await axios(`${base}/api/v2/summary.json`, CloudHttpOptions(data.timeout || 10000));
+      if (hasIndicator(summary)) response = summary;
+    }
     const latency = Date.now() - started;
 
     if (response.status < 200 || response.status >= 300) {

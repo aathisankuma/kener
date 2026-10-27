@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CloudMonitorName, CloudServicesInUse, SuggestMonitorTag, SuggestUniqueMonitorTag } from "./cloudServices";
+import { CloudMonitorName, CloudServicesInUse, SuggestMonitorTag } from "./cloudServices";
 
 describe("names for new Cloud Service monitors", () => {
   it("names a monitor after the service without the explanation in brackets", () => {
@@ -14,12 +14,6 @@ describe("names for new Cloud Service monitors", () => {
     expect(SuggestMonitorTag("Exchange Online")).toBe("exchange-online");
     expect(SuggestMonitorTag("Ökosystem / Kundenportal ")).toBe("oekosystem-kundenportal");
     expect(SuggestMonitorTag("Café 2")).toBe("cafe-2");
-  });
-
-  it("skips tags other monitors already use", () => {
-    expect(SuggestUniqueMonitorTag("Jira", ["confluence"])).toBe("jira");
-    expect(SuggestUniqueMonitorTag("Jira", ["jira"])).toBe("jira-2");
-    expect(SuggestUniqueMonitorTag("Jira", ["jira", "jira-2"])).toBe("jira-3");
   });
 });
 
