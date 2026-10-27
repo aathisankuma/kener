@@ -156,6 +156,15 @@ export const CLOUD_PROVIDERS: CloudProvider[] = [
     iconSite: "https://entra.microsoft.com",
   },
   {
+    // Microsoft 365 Copilot runs on OpenAI models; Service Health lists it under this name.
+    id: "m365-copilot",
+    label: "Microsoft 365 Copilot",
+    group: "Microsoft 365",
+    kind: "m365",
+    m365Match: ["Microsoft Copilot (Microsoft 365)", "MicrosoftCopilot", "Microsoft 365 Copilot"],
+    iconSite: "https://copilot.microsoft.com",
+  },
+  {
     id: "m365-intune",
     label: "Microsoft Intune",
     group: "Microsoft 365",
@@ -234,6 +243,14 @@ export const CLOUD_PROVIDERS: CloudProvider[] = [
     url: "https://status.teamviewer.com",
   },
   { id: "canva", label: "Canva", group: "Other", kind: "statuspage", url: "https://www.canvastatus.com" },
+  // Runs on incident.io, which answers the Statuspage API paths.
+  {
+    id: "openai",
+    label: "OpenAI (ChatGPT, API)",
+    group: "Other",
+    kind: "statuspage",
+    url: "https://status.openai.com",
+  },
   { id: "claude", label: "Claude (Anthropic)", group: "Other", kind: "statuspage", url: "https://status.claude.com" },
 ];
 
@@ -332,16 +349,6 @@ export function SuggestMonitorTag(name: string): string {
     .replace(/[̀-ͯ]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
-}
-
-/** SuggestMonitorTag(name), or the same with -2, -3, … when a monitor already has that tag. */
-export function SuggestUniqueMonitorTag(name: string, takenTags: Iterable<string>): string {
-  const taken = new Set(takenTags);
-  const base = SuggestMonitorTag(name);
-  if (!base || !taken.has(base)) return base;
-  let n = 2;
-  while (taken.has(`${base}-${n}`)) n++;
-  return `${base}-${n}`;
 }
 
 /** A monitor that already follows a service. */

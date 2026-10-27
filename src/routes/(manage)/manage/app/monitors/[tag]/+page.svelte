@@ -31,7 +31,7 @@
   import StatusHistoryDaysCard from "./components/StatusHistoryDaysCard.svelte";
   import MonitorSharingOptionsCard from "./components/MonitorSharingOptionsCard.svelte";
   import GC from "$lib/global-constants.js";
-  import { CloudMonitorName, SuggestUniqueMonitorTag } from "$lib/cloudServices.js";
+  import { CloudMonitorName, SuggestMonitorTag } from "$lib/cloudServices.js";
 
   let { params, data }: PageProps = $props();
   const isNew = $derived(params.tag === "new");
@@ -101,7 +101,8 @@
     const ownTag = !!monitor.tag && monitor.tag !== suggestedTag;
     if (ownName || ownTag) return;
     monitor.name = name;
-    monitor.tag = SuggestUniqueMonitorTag(name, existingTags);
+    // A taken tag is not changed to another one: the form says it is taken and blocks creating.
+    monitor.tag = SuggestMonitorTag(name);
     suggestedName = name;
     suggestedTag = monitor.tag;
   });
