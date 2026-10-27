@@ -5,7 +5,7 @@ import { IsEmailSetup } from "$lib/server/controllers/controller.js";
 import { RequirePermission } from "$lib/server/controllers/userController.js";
 import seedSiteData from "$lib/server/db/seedSiteData.js";
 import serverResolve from "$lib/server/resolver.js";
-import { ROUTE_PERMISSION_MAP } from "$lib/allPerms.js";
+import { HomePathFor, ROUTE_PERMISSION_MAP } from "$lib/allPerms.js";
 import { error } from "@sveltejs/kit";
 
 import { resolve } from "$app/paths";
@@ -33,6 +33,11 @@ export const load: LayoutServerLoad = async ({ cookies, route }) => {
   const siteData = await GetAllSiteData();
   const userPermissions = await GetUserPermissions(loggedInUser.id);
   const routeId = route.id || "";
+
+  // A service manager has no dashboard: their page lists their services.
+  if (HomePathFor(userPermissions) === "/my-services") {
+    throw redirect(302, serverResolve("/my-services"));
+  }
 
   const requiredPermission = ROUTE_PERMISSION_MAP[routeId];
   if (requiredPermission === undefined) {

@@ -27,7 +27,7 @@
  * api_keys.delete    → deleteApiKey (admin-only today)
  *
  * users.read         → getUsers
- * users.write        → manualUpdate, createNewUser, resendInvitation, sendVerificationEmail
+ * users.write        → manualUpdate, createNewUser, resendInvitation, sendVerificationEmail, setUserServices
  *
  * settings.read      → getAllSiteData, getSiteDataByKey, getSubscriptionsConfig
  * settings.write     → storeSiteData, updateSubscriptionsConfig
@@ -39,6 +39,10 @@
  * email_templates.write → updateGeneralEmailTemplate
  *
  * images.write       → uploadImage, deleteImage
+ *
+ * services.manage_assigned → getMyServices, setMyServiceStatus, createMyServiceIncident,
+ *                            addMyServiceIncidentUpdate, createMyServiceMaintenance, cancelMyServiceMaintenance
+ *                            (each limited to the monitors assigned to the user in users_monitors)
  */
 export const permissions: Array<{ id: string; permission_name: string }> = [
   // Monitors
@@ -89,6 +93,12 @@ export const permissions: Array<{ id: string; permission_name: string }> = [
   // Images
   { id: "images.write", permission_name: "Upload and delete images" },
 
+  // Service managers
+  {
+    id: "services.manage_assigned",
+    permission_name: "Set status, post incidents and plan maintenance for the services assigned to the user",
+  },
+
   // Roles
   { id: "roles.read", permission_name: "View roles, permissions, and user assignments" },
   { id: "roles.write", permission_name: "Create, update, and delete roles" },
@@ -114,6 +124,15 @@ export const ACTION_PERMISSION_MAP: Record<string, string | null> = {
   manualUpdate: "users.write",
   createNewUser: "users.write",
   resendInvitation: "users.write",
+  setUserServices: "users.write",
+
+  // Service managers: each action also checks that the service is assigned to the user
+  getMyServices: "services.manage_assigned",
+  setMyServiceStatus: "services.manage_assigned",
+  createMyServiceIncident: "services.manage_assigned",
+  addMyServiceIncidentUpdate: "services.manage_assigned",
+  createMyServiceMaintenance: "services.manage_assigned",
+  cancelMyServiceMaintenance: "services.manage_assigned",
 
   // Monitors
   getMonitors: "monitors.read",
@@ -287,3 +306,10 @@ export const ROUTE_PERMISSION_MAP: Record<string, string | null> = {
   // OIDC
   "/(manage)/manage/app/oidc": "settings.read",
 };
+
+/** Where a signed-in user starts: the dashboard, or for a service manager the page of their services. */
+export function HomePathFor(permissionIds: Iterable<string>): "/manage/app/site-configurations" | "/my-services" {
+  const set = new Set(permissionIds);
+  if (!set.has("settings.read") && set.has("services.manage_assigned")) return "/my-services";
+  return "/manage/app/site-configurations";
+}

@@ -5,6 +5,7 @@ const { db } = vi.hoisted(() => {
   return {
     db: {
       getMonitorByTag: vi.fn(async (tag: string) => rows.get(tag)),
+      getMonitorsByTag: vi.fn(async (tag: string) => rows.get(tag)),
       insertMonitor: vi.fn(async (monitor: Record<string, unknown>) => {
         rows.set(monitor.tag as string, monitor);
         return [rows.size];
