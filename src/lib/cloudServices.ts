@@ -254,6 +254,15 @@ export const CLOUD_PROVIDERS: CloudProvider[] = [
   },
 
   // Other services that publish a Statuspage
+  {
+    // status.hin.ch shows HIN's Atlassian Statuspage, which answers at hin.statuspage.io.
+    id: "hin",
+    label: "HIN (Health Info Net)",
+    group: "Other",
+    kind: "statuspage",
+    url: "https://hin.statuspage.io",
+    iconSite: "https://www.hin.ch",
+  },
   { id: "github", label: "GitHub", group: "Other", kind: "statuspage", url: "https://www.githubstatus.com" },
   {
     id: "cloudflare",

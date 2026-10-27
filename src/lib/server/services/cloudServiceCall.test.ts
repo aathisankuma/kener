@@ -99,6 +99,13 @@ describe("Statuspage providers", () => {
     expect(mockedAxios.mock.calls[0][0]).toBe("https://status.example.com/api/v2/status.json");
   });
 
+  it("reads HIN from its Statuspage behind status.hin.ch", async () => {
+    mockedAxios.mockResolvedValueOnce(reply(200, { status: { indicator: "none" } }));
+    const result = await new CloudServiceCall(monitor({ provider: "hin" })).execute();
+    expect(result.status).toBe("UP");
+    expect(mockedAxios.mock.calls[0][0]).toBe("https://hin.statuspage.io/api/v2/status.json");
+  });
+
   it("reads summary.json when a page has no status.json (OpenAI on incident.io)", async () => {
     mockedAxios.mockImplementation(async (url) =>
       url === "https://status.openai.com/api/v2/summary.json"
