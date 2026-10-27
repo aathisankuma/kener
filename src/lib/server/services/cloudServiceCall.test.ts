@@ -83,6 +83,34 @@ describe("Statuspage providers", () => {
     expect(mockedAxios.mock.calls[0][0]).toBe("https://jira-software.status.atlassian.com/api/v2/components.json");
   });
 
+  it("follows several components and records the worst of them", async () => {
+    const page = {
+      components: [
+        { id: "a", name: "HIN SMTP", status: "operational" },
+        { id: "b", name: "HIN Webmail", status: "degraded_performance" },
+        { id: "c", name: "HIN Client", status: "major_outage" },
+      ],
+    };
+    mockedAxios.mockResolvedValue(reply(200, page));
+    const two = await new CloudServiceCall(
+      monitor({ provider: "hin", components: ["HIN SMTP", "hin webmail"], ignoreMinor: false }),
+    ).execute();
+    expect(two).toMatchObject({ status: "DEGRADED", raw_status: "degraded_performance (HIN Webmail)" });
+
+    const three = await new CloudServiceCall(
+      monitor({ provider: "hin", components: ["HIN SMTP", "HIN Webmail", "HIN Client"] }),
+    ).execute();
+    expect(three).toMatchObject({ status: "DOWN", raw_status: "major_outage (HIN Client)" });
+
+    const allUp = await new CloudServiceCall(monitor({ provider: "hin", components: ["HIN SMTP"] })).execute();
+    expect(allUp).toMatchObject({ status: "UP", raw_status: "operational" });
+
+    const missing = await new CloudServiceCall(
+      monitor({ provider: "hin", components: ["HIN SMTP", "HIN Fax", "HIN Telex"] }),
+    ).execute();
+    expect(missing.error_message).toContain('Components "HIN Fax", "HIN Telex" not found');
+  });
+
   it("names the available components when the chosen one is missing", async () => {
     mockedAxios.mockResolvedValueOnce(reply(200, { components: [{ id: "a", name: "Search", status: "operational" }] }));
     const result = await new CloudServiceCall(monitor({ component: "Mobile" })).execute();
@@ -167,6 +195,14 @@ describe("Instatus providers", () => {
       monitor({ provider: "swiss21", component: "Swiss21 Services" }),
     ).execute();
     expect(result).toMatchObject({ status: "DEGRADED", raw_status: "PARTIALOUTAGE" });
+  });
+
+  it("follows several Abacus components and takes the worst", async () => {
+    routes({ "https://status.abaservices.ch/v3/components.json": ABACUS_COMPONENTS });
+    const result = await new CloudServiceCall(
+      monitor({ provider: "abacus-cloud", components: ["Abacus IDP", "Swiss21 Services"] }),
+    ).execute();
+    expect(result).toMatchObject({ status: "DEGRADED", raw_status: "PARTIALOUTAGE (Swiss21 Services)" });
   });
 
   it("tells repeated component names apart by group", async () => {

@@ -14,6 +14,7 @@
     CLOUD_CUSTOM_STATUSPAGE,
     GetCloudProvider,
     CloudServicesInUse,
+    ChosenComponents,
     CLOUD_CUSTOM_AZURE,
     IsAzureResourceId,
     IsMicrosoftKind,
@@ -40,20 +41,22 @@
   if (!data.timeout) data.timeout = 10000;
   // New monitors ignore minor issues: a provider's page reports small problems anywhere in the world.
   if (data.ignoreMinor === undefined) data.ignoreMinor = true;
-  if (data.component === undefined) data.component = "";
+  // Several components; a monitor saved with the older single `component` keeps it as the first.
+  if (!Array.isArray(data.components)) data.components = ChosenComponents(data);
+  data.component = "";
 
   let provider = $derived(GetCloudProvider(data.provider));
   const inUse = $derived(CloudServicesInUse(otherMonitors));
   const usedHere = $derived(inUse.get(data.provider) ?? []);
   // Same service and same component (or both the whole page): this monitor would be a copy.
+  const setKey = (names: string[]) =>
+    names
+      .map((n) => n.trim().toLowerCase())
+      .filter(Boolean)
+      .sort()
+      .join("|");
   const duplicate = $derived(
-    usedHere.find(
-      (u) =>
-        u.component.toLowerCase() ===
-        String(data.component || "")
-          .trim()
-          .toLowerCase()
-    )
+    usedHere.find((u) => setKey(u.component ? u.component.split(", ") : []) === setKey(ChosenComponents(data)))
   );
   let isCustomPage = $derived(data.provider === CLOUD_CUSTOM_STATUSPAGE || data.provider === CLOUD_CUSTOM_INSTATUS);
   let statuspageBase = $derived(
@@ -89,7 +92,9 @@
 
   function selectProvider(id: string) {
     data.provider = id;
-    data.component = GetCloudProvider(id)?.defaultComponent ?? "";
+    const preset = GetCloudProvider(id)?.defaultComponent;
+    data.components = preset ? [preset] : [];
+    data.component = "";
     components = [];
     componentsError = "";
   }
@@ -184,12 +189,25 @@
       <div class="flex gap-2">
         {#if components.length > 0}
           <Select.Root
-            type="single"
-            value={data.component || WHOLE_PAGE}
-            onValueChange={(v) => (data.component = v === WHOLE_PAGE ? "" : v)}
+            type="multiple"
+            value={data.components.length > 0 ? data.components : [WHOLE_PAGE]}
+            onValueChange={(v) => {
+              // "Whole page" clears the choice; picking a part while "Whole page" is ticked replaces it.
+              const before: string[] = data.components;
+              const picked = v.filter((x) => x !== WHOLE_PAGE);
+              data.components = v.includes(WHOLE_PAGE) && before.length > 0 ? [] : picked;
+            }}
           >
             <Select.Trigger id="cloud-component" class="w-full">
-              {data.component || "Whole page"}
+              <span class="truncate">
+                {#if data.components.length === 0}
+                  Whole page
+                {:else if data.components.length <= 2}
+                  {data.components.join(", ")}
+                {:else}
+                  {data.components.length} components: {data.components.join(", ")}
+                {/if}
+              </span>
             </Select.Trigger>
             <Select.Content class="max-h-80">
               <Select.Item value={WHOLE_PAGE}>Whole page</Select.Item>
@@ -199,7 +217,17 @@
             </Select.Content>
           </Select.Root>
         {:else}
-          <Input id="cloud-component" bind:value={data.component} placeholder="Whole page" class="flex-1" />
+          <Input
+            id="cloud-component"
+            value={data.components.join(", ")}
+            oninput={(e) =>
+              (data.components = e.currentTarget.value
+                .split(",")
+                .map((x) => x.trim())
+                .filter(Boolean))}
+            placeholder="Whole page"
+            class="flex-1"
+          />
         {/if}
         <Button variant="outline" onclick={loadComponents} disabled={!statuspageBase || loadingComponents}>
           {#if loadingComponents}<Loader class="size-4 animate-spin" />{/if}
@@ -210,7 +238,8 @@
         <p class="text-xs text-amber-600 dark:text-amber-400">{componentsError}</p>
       {:else}
         <p class="text-muted-foreground text-xs">
-          Empty follows the whole page. Pick one part, e.g. "Search", to follow only that part.
+          Empty follows the whole page. Tick one or more parts, e.g. "Search" and "Notifications", to follow only those:
+          the card shows the worst of them. Without the list, separate names with commas.
         </p>
       {/if}
     </div>

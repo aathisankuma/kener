@@ -1,7 +1,8 @@
 import axios from "axios";
 import GC from "../../global-constants.js";
 import type { CloudServiceMonitor, MonitoringResult } from "../types/monitor.js";
-import { GetCloudProvider, IsAzureResourceId, type CloudProvider } from "../../cloudServices.js";
+import { ChosenComponents, GetCloudProvider, IsAzureResourceId, type CloudProvider } from "../../cloudServices.js";
+import { WorstStatus } from "../instatusClient.js";
 import { FetchAzureCurrent, MapAzureAvailability } from "../azureResourceHealth.js";
 import {
   CloudHttpOptions,
@@ -118,17 +119,17 @@ class CloudServiceCall {
     if (!base) {
       return this.fail(GC.ERROR, "Statuspage URL is missing or not http(s)");
     }
-    const component = (data.component || "").trim();
+    const chosen = ChosenComponents(data);
     const started = Date.now();
     let response = await axios(
-      `${base}/api/v2/${component ? "components" : "status"}.json`,
+      `${base}/api/v2/${chosen.length > 0 ? "components" : "status"}.json`,
       CloudHttpOptions(data.timeout || 10000),
     );
     // Pages that only copy part of the Statuspage API (incident.io, e.g. OpenAI) may lack
     // status.json; summary.json carries the same indicator.
     const hasIndicator = (r: typeof response) =>
       r.status >= 200 && r.status < 300 && typeof r.data?.status?.indicator === "string";
-    if (!component && !hasIndicator(response)) {
+    if (chosen.length === 0 && !hasIndicator(response)) {
       const summary = await axios(`${base}/api/v2/summary.json`, CloudHttpOptions(data.timeout || 10000));
       if (hasIndicator(summary)) response = summary;
     }
@@ -139,7 +140,7 @@ class CloudServiceCall {
     }
     const body = response.data;
 
-    if (!component) {
+    if (chosen.length === 0) {
       const indicator = body?.status?.indicator;
       const status = typeof indicator === "string" ? MapStatuspageIndicator(indicator, !!data.ignoreMinor) : null;
       if (!status) {
@@ -151,19 +152,24 @@ class CloudServiceCall {
     const components: Array<{ id?: string; name?: string; status?: string }> = Array.isArray(body?.components)
       ? body.components
       : [];
-    const wanted = component.toLowerCase();
-    const match = components.find(
-      (c) => (c.id && c.id.toLowerCase() === wanted) || (c.name && c.name.trim().toLowerCase() === wanted),
-    );
-    if (!match) {
+    const found: Array<{ name: string; status: string }> = [];
+    const missing: string[] = [];
+    for (const component of chosen) {
+      const wanted = component.toLowerCase();
+      const match = components.find(
+        (c) => (c.id && c.id.toLowerCase() === wanted) || (c.name && c.name.trim().toLowerCase() === wanted),
+      );
+      if (match) found.push({ name: String(match.name ?? component), status: String(match.status) });
+      else missing.push(component);
+    }
+    if (missing.length > 0) {
       const names = components.map((c) => c.name).filter(Boolean);
-      return this.fail(GC.ERROR, `Component "${component}" not found. Available: ${names.join(", ") || "none"}`);
+      return this.fail(
+        GC.ERROR,
+        `Component${missing.length > 1 ? "s" : ""} ${missing.map((m) => `"${m}"`).join(", ")} not found. Available: ${names.join(", ") || "none"}`,
+      );
     }
-    const status = MapStatuspageComponent(String(match.status), !!data.ignoreMinor);
-    if (!status) {
-      return this.fail(GC.ERROR, `Unknown component status "${match.status}"`);
-    }
-    return { status, latency, type: GC.REALTIME, raw_status: String(match.status) };
+    return this.worstOf(found, (s) => MapStatuspageComponent(s, !!data.ignoreMinor), latency);
   }
 
   // ---------------------------------------------------------------- Instatus
@@ -176,22 +182,27 @@ class CloudServiceCall {
     }
     const timeout = data.timeout || 10000;
     const ignoreMinor = !!data.ignoreMinor;
-    const component = (data.component || "").trim();
+    const chosen = ChosenComponents(data);
     const started = Date.now();
 
-    if (component) {
+    if (chosen.length > 0) {
       const components = await FetchInstatusComponents(base, timeout);
       const latency = Date.now() - started;
-      const match = FindInstatusComponent(components, component);
-      if (!match) {
+      const found: Array<{ name: string; status: string }> = [];
+      const missing: string[] = [];
+      for (const component of chosen) {
+        const match = FindInstatusComponent(components, component);
+        if (match) found.push({ name: InstatusComponentLabel(match, components), status: match.status });
+        else missing.push(component);
+      }
+      if (missing.length > 0) {
         const names = components.map((c) => InstatusComponentLabel(c, components));
-        return this.fail(GC.ERROR, `Component "${component}" not found. Available: ${names.join(", ") || "none"}`);
+        return this.fail(
+          GC.ERROR,
+          `Component${missing.length > 1 ? "s" : ""} ${missing.map((m) => `"${m}"`).join(", ")} not found. Available: ${names.join(", ") || "none"}`,
+        );
       }
-      const status = MapInstatusStatus(match.status, ignoreMinor);
-      if (!status) {
-        return this.fail(GC.ERROR, `Unknown component status "${match.status}"`);
-      }
-      return { status, latency, type: GC.REALTIME, raw_status: match.status };
+      return this.worstOf(found, (s) => MapInstatusStatus(s, ignoreMinor), latency);
     }
 
     const summary = await FetchInstatusSummary(base, timeout);
@@ -255,6 +266,30 @@ class CloudServiceCall {
   }
 
   // ---------------------------------------------------------------- helpers
+
+  /**
+   * The worst status among the followed components. raw_status names the component that decides
+   * it, or the shared state when all agree, e.g. "major_outage (Search)".
+   */
+  private worstOf(
+    found: Array<{ name: string; status: string }>,
+    map: (status: string) => string | null,
+    latency: number,
+  ): MonitoringResult {
+    let worst: string = GC.UP;
+    let decidedBy: { name: string; status: string } | null = null;
+    for (const c of found) {
+      const status = map(c.status);
+      if (!status) return this.fail(GC.ERROR, `Unknown status "${c.status}" of component "${c.name}"`);
+      if (!decidedBy || WorstStatus(worst, status) !== worst) {
+        worst = WorstStatus(worst, status);
+        decidedBy = c;
+      }
+    }
+    const raw =
+      found.length === 1 || !decidedBy || worst === GC.UP ? found[0].status : `${decidedBy.status} (${decidedBy.name})`;
+    return { status: worst, latency, type: GC.REALTIME, raw_status: raw };
+  }
 
   private configuredStatus(value: string | undefined): string {
     const map: Record<string, string> = { UP: GC.UP, DEGRADED: GC.DEGRADED, DOWN: GC.DOWN };

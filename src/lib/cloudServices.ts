@@ -402,7 +402,7 @@ export function SuggestMonitorTag(name: string): string {
 export interface CloudServiceUse {
   /** Monitor name. */
   name: string;
-  /** Component it follows, "" for the whole page. */
+  /** Components it follows, joined with ", "; "" for the whole page. */
   component: string;
 }
 
@@ -416,7 +416,7 @@ export function CloudServicesInUse(
   const used = new Map<string, CloudServiceUse[]>();
   for (const m of monitors) {
     if (m.monitor_type !== "CLOUD" || !m.type_data) continue;
-    let data: { provider?: unknown; component?: unknown };
+    let data: { provider?: unknown; component?: unknown; components?: unknown };
     try {
       data = JSON.parse(m.type_data);
     } catch {
@@ -426,8 +426,26 @@ export function CloudServicesInUse(
     // Azure entries stand for whichever resource was entered, so they are never the same service.
     if (!CLOUD_PROVIDERS.some((p) => p.id === id && p.kind !== "azure")) continue;
     const list = used.get(id) ?? [];
-    list.push({ name: m.name, component: typeof data.component === "string" ? data.component.trim() : "" });
+    list.push({ name: m.name, component: ChosenComponents(data).join(", ") });
     used.set(id, list);
   }
   return used;
+}
+
+/**
+ * The parts of a status page a monitor follows, as typed: `components` (several), or the older
+ * single `component`. Empty = the whole page.
+ */
+export function ChosenComponents(data: { component?: unknown; components?: unknown } | null | undefined): string[] {
+  const list = Array.isArray(data?.components) && data.components.length > 0 ? data.components : [data?.component];
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const raw of list) {
+    const name = typeof raw === "string" ? raw.trim() : "";
+    if (name && !seen.has(name.toLowerCase())) {
+      seen.add(name.toLowerCase());
+      out.push(name);
+    }
+  }
+  return out;
 }

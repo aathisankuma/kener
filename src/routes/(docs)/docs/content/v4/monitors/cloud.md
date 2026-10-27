@@ -5,7 +5,7 @@ description: Follow the official status of Atlassian, Microsoft 365, Abacus and 
 
 Cloud Service monitors follow a provider's own status instead of probing your network. Pick the service from a dropdown: Kener reads the provider's status and records **UP**, **DEGRADED**, **DOWN** or **MAINTENANCE**.
 
-The list marks a service with a green check when another monitor already follows it, and names that monitor. Choosing the same service and component again shows a warning, since the second monitor would show the same status twice.
+The list marks a service with a green check when another monitor already follows it, and names that monitor. Choosing the same service and components again shows a warning, since the second monitor would show the same status twice.
 
 Besides Atlassian, Microsoft 365, Azure and Abacus, the list holds widely used services that publish a Statuspage: HIN, GitHub, Cloudflare, Zoom, TeamViewer, Canva, OpenAI and Claude. Microsoft 365 Copilot is under **Microsoft 365**.
 
@@ -15,10 +15,10 @@ To also check that _your_ users can reach the service, add an [API monitor](/doc
 
 1. Set **Monitor Type** to **Cloud Service**.
 2. Pick the service, e.g. **Confluence** or **Jira Service Management**. For any other page run on Atlassian Statuspage, pick **Other Statuspage (URL)** and enter its address.
-3. Optional: click **Load list** and pick one **Component**, e.g. `Search`. Empty follows the whole page.
+3. Optional: click **Load list** and tick one or more **Components**, e.g. `Search` and `Notifications`. The monitor then records the worst status among them. Empty follows the whole page. Without the list, type the names separated by commas.
 4. Save, then run **Test Monitor**.
 
-No login is needed. Kener reads the public `/api/v2/status.json`, or `/api/v2/components.json` when a component is set.
+No login is needed. Kener reads the public `/api/v2/status.json`, or `/api/v2/components.json` when components are set.
 
 | Provider reports                     | Kener records |
 | ------------------------------------ | ------------- |
@@ -32,7 +32,7 @@ No login is needed. Kener reads the public `/api/v2/status.json`, or `/api/v2/co
 
 ## Abacus and other Instatus pages {#instatus}
 
-Abacus Cloud Services (`status.abaservices.ch`) and DeepCloud (`status.deepcloud.swiss`) publish their status with Instatus. Pick them under **Abacus**; for any other Instatus page (its footer reads "Powered by Instatus") pick **Other Instatus page (URL)**. No login is needed: Kener reads the public `/v3/summary.json`, or `/v3/components.json` when a component is set.
+Abacus Cloud Services (`status.abaservices.ch`) and DeepCloud (`status.deepcloud.swiss`) publish their status with Instatus. Pick them under **Abacus**; for any other Instatus page (its footer reads "Powered by Instatus") pick **Other Instatus page (URL)**. No login is needed: Kener reads the public `/v3/summary.json`, or `/v3/components.json` when components are set.
 
 **Swiss21** runs its page on UptimeRobot, which offers no public status API. **Swiss21 (via Abacus status page)** follows the component `Swiss21 Services` of the Abacus page instead.
 
@@ -119,7 +119,7 @@ A visitor who opens a Cloud Service monitor on the status page sees what the pro
 - The provider's **components** with their status; a `?` shows the provider's description
 - **Past incidents** of the last 15 days, by day, with every update and the affected components
 
-For a Statuspage, the list follows the monitor's component when one is set. Instatus does not say which components an incident affects: a monitor that follows one component lists the incidents of the whole page and says so. Instatus shows only the latest update of an active incident and the incidents resolved in the last days. Microsoft 365 lists no fixed components: the page shows the service and each feature group with an open issue, and Microsoft's issues for the service as incidents.
+For a Statuspage, the list shows only the monitor's components when they are set, and the incidents that affect them. Instatus does not say which components an incident affects: a monitor that follows components lists the incidents of the whole page and says so. Instatus shows only the latest update of an active incident and the incidents resolved in the last days. Microsoft 365 lists no fixed components: the page shows the service and each feature group with an open issue, and Microsoft's issues for the service as incidents.
 
 > [!NOTE]
 > The texts come from the provider as they are, usually in English. Microsoft's issues concern your tenant: anyone who can open the status page can read them.
@@ -130,7 +130,7 @@ A timeout, an HTTP error or an unexpected answer records **If the provider canno
 
 | Message                                     | Fix                                                                          |
 | ------------------------------------------- | ---------------------------------------------------------------------------- |
-| `Component "…" not found. Available: …`     | Pick a component from **Load list**.                                         |
+| `Component "…" not found. Available: …`     | Pick the components from **Load list**.                                      |
 | `Environment variable … is not set`         | Add the variable to Kener's environment and restart.                         |
 | `Microsoft sign-in failed: AADSTS…`         | Check tenant ID, client ID and secret. Secrets expire.                       |
 | `Microsoft Graph refused access (HTTP 403)` | Grant `ServiceHealth.Read.All` as application permission with admin consent. |
