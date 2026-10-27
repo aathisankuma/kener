@@ -220,10 +220,14 @@
     <div class="text-muted-foreground flex flex-wrap items-center justify-between gap-2 px-2 text-xs">
       <span>
         {$t("Source")}: {details.provider.label}
-        ({details.provider.kind === "m365" ? "Microsoft 365 Service Health" : "Statuspage"}) · {$formatDate(
-          details.fetchedAt * 1000,
-          dateFormat
-        )}
+        ({details.provider.kind === "m365"
+          ? "Microsoft 365 Service Health"
+          : details.provider.kind === "instatus"
+            ? "Instatus"
+            : "Statuspage"}) · {$formatDate(details.fetchedAt * 1000, dateFormat)}
+        {#if details.incidentsFromPage}
+          · {$t("Incidents and maintenance of the whole %name page.", { name: details.incidentsFromPage })}
+        {/if}
       </span>
       {#if details.provider.pageUrl}
         <a

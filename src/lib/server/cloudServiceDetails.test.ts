@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import axios from "axios";
 import { ClearCloudDetailsCache, GetCloudServiceDetails } from "./cloudServiceDetails";
 import { ClearCloudProviderCache } from "./cloudProviderClient";
+import { ABACUS_COMPONENTS, ABACUS_SUMMARY } from "./instatusFixture";
 
 vi.mock("axios", () => ({ default: vi.fn() }));
 const mockedAxios = vi.mocked(axios);
@@ -218,5 +219,58 @@ describe("GetCloudServiceDetails: Microsoft 365", () => {
     });
     expect(details.incidents[0].updates[0]).toMatchObject({ body: "<p>We're investigating.</p>", isHtml: true });
     expect(details.incidents[1]).toMatchObject({ id: "TM100", resolved: true, impact: "DEGRADED" });
+  });
+});
+
+describe("GetCloudServiceDetails: Instatus", () => {
+  const abacus = () =>
+    mockedAxios.mockImplementation(async (url) => {
+      if (url === "https://status.abaservices.ch/v3/summary.json") return reply(200, ABACUS_SUMMARY);
+      if (url === "https://status.abaservices.ch/v3/components.json") return reply(200, ABACUS_COMPONENTS);
+      return reply(404, null);
+    });
+
+  it("shows the Abacus page's components, incidents and planned maintenance", async () => {
+    abacus();
+    const details = await GetCloudServiceDetails("abacus", { provider: "abacus-cloud" });
+
+    expect(details.provider).toEqual({
+      label: "Abacus Cloud Services",
+      kind: "instatus",
+      pageUrl: "https://status.abaservices.ch",
+    });
+    expect(details.incidentsFromPage).toBeNull();
+    expect(details.components).toHaveLength(7);
+    expect(details.components[3]).toEqual({
+      id: "c-swiss21",
+      name: "Swiss21 Services",
+      description: "Swiss21 cloud apps",
+      status: "DEGRADED",
+      group: "Ökosystem-Services",
+    });
+    expect(details.incidents.map((i) => [i.title, i.resolved, i.impact])).toEqual([
+      ["Swiss21 teilweise nicht erreichbar", false, "DEGRADED"],
+      ["AbaClock langsam", true, "DEGRADED"],
+    ]);
+    expect(details.incidents[0].updates).toEqual([
+      { status: "IDENTIFIED", body: "Die Ursache ist bekannt.", isHtml: false, at: 1793003400 },
+    ]);
+    expect(details.incidents[1].resolvedAt).toBe(1792486800);
+    expect(details.maintenances[0]).toMatchObject({
+      title: "Monatliches Release",
+      scheduledFor: 1793271600,
+      scheduledUntil: 1793275200,
+    });
+  });
+
+  it("shows only Swiss21 for the Swiss21 monitor and says whose incidents are listed", async () => {
+    abacus();
+    const details = await GetCloudServiceDetails("swiss21", {
+      provider: "swiss21",
+      component: "Swiss21 Services",
+    });
+    expect(details.provider.label).toBe("Swiss21 (via Abacus status page)");
+    expect(details.components.map((c) => c.name)).toEqual(["Swiss21 Services"]);
+    expect(details.incidentsFromPage).toBe("Abacus Cloud Services");
   });
 });

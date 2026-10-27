@@ -1,6 +1,6 @@
 ---
 title: Cloud Service Monitor
-description: Follow the official status of Atlassian, Microsoft 365 and other cloud services by picking them from a list
+description: Follow the official status of Atlassian, Microsoft 365, Abacus and other cloud services by picking them from a list
 ---
 
 Cloud Service monitors follow a provider's own status instead of probing your network. Pick the service from a dropdown: Kener reads the provider's status and records **UP**, **DEGRADED**, **DOWN** or **MAINTENANCE**.
@@ -25,6 +25,23 @@ No login is needed. Kener reads the public `/api/v2/status.json`, or `/api/v2/co
 | `maintenance` / `under_maintenance`  | MAINTENANCE   |
 
 **Ignore minor issues** records minor incidents and degraded performance as UP. A provider's page reports problems in every region, so small issues elsewhere would otherwise mark the monitor DEGRADED. It is on for monitors created in the dashboard; turn it off to record every minor issue. Monitors created through the API without `ignoreMinor` record minor issues.
+
+## Abacus and other Instatus pages {#instatus}
+
+Abacus Cloud Services (`status.abaservices.ch`) and DeepCloud (`status.deepcloud.swiss`) publish their status with Instatus. Pick them under **Abacus**; for any other Instatus page (its footer reads "Powered by Instatus") pick **Other Instatus page (URL)**. No login is needed: Kener reads the public `/v3/summary.json`, or `/v3/components.json` when a component is set.
+
+**Swiss21** runs its page on UptimeRobot, which offers no public status API. **Swiss21 (via Abacus status page)** follows the component `Swiss21 Services` of the Abacus page instead.
+
+**Load list** shows the page's components. A name that appears in two groups, like `Kundenportal`, is listed as `Group / Name`.
+
+| Instatus reports         | Kener records                                |
+| ------------------------ | -------------------------------------------- |
+| `UP` / `OPERATIONAL`     | UP                                           |
+| `DEGRADEDPERFORMANCE`    | DEGRADED, or UP with **Ignore minor issues** |
+| `PARTIALOUTAGE`          | DEGRADED                                     |
+| `MAJOROUTAGE`            | DOWN                                         |
+| `UNDERMAINTENANCE`       | MAINTENANCE                                  |
+| `HASISSUES` (whole page) | the worst active incident or component       |
 
 ## Microsoft 365 {#microsoft-365}
 
@@ -75,7 +92,7 @@ A visitor who opens a Cloud Service monitor on the status page sees what the pro
 - The provider's **components** with their status; a `?` shows the provider's description
 - **Past incidents** of the last 15 days, by day, with every update and the affected components
 
-For a Statuspage, the list follows the monitor's component when one is set. Microsoft 365 lists no fixed components: the page shows the service and each feature group with an open issue, and Microsoft's issues for the service as incidents.
+For a Statuspage, the list follows the monitor's component when one is set. Instatus does not say which components an incident affects: a monitor that follows one component lists the incidents of the whole page and says so. Instatus shows only the latest update of an active incident and the incidents resolved in the last days. Microsoft 365 lists no fixed components: the page shows the service and each feature group with an open issue, and Microsoft's issues for the service as incidents.
 
 > [!NOTE]
 > The texts come from the provider as they are, usually in English. Microsoft's issues concern your tenant: anyone who can open the status page can read them.

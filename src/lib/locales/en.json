@@ -165,6 +165,7 @@
     "Get notified about incidents and scheduled maintenance of %name.": "Get notified about incidents and scheduled maintenance of %name.",
     "You now get updates only for %name.": "You now get updates only for %name.",
     "%name was added to your services.": "%name was added to your services.",
-    "You already get updates for %name.": "You already get updates for %name."
+    "You already get updates for %name.": "You already get updates for %name.",
+    "Incidents and maintenance of the whole %name page.": "Incidents and maintenance of the whole %name page."
   }
 }

@@ -22,6 +22,14 @@ import {
   ResolveM365Credentials,
   StatuspageBase,
 } from "./cloudProviderClient.js";
+import {
+  FetchInstatusComponents,
+  FetchInstatusSummary,
+  FindInstatusComponent,
+  MapInstatusStatus,
+  type InstatusIncident,
+  type InstatusMaintenance,
+} from "./instatusClient.js";
 
 /** ISO date -> UTC seconds, or null. */
 function toSeconds(value: unknown): number | null {
@@ -171,6 +179,94 @@ async function statuspageDetails(provider: CloudProvider, data: CloudServiceMoni
   };
 }
 
+// ---------------------------------------------------------------- Instatus
+
+const INSTATUS_DONE = ["resolved", "completed"];
+
+export function NormalizeInstatusIncident(i: InstatusIncident, resolved: boolean): CloudIncident {
+  const startedAt = toSeconds(i.started) ?? 0;
+  const message = String(i.lastUpdate?.message || "").trim();
+  return {
+    id: String(i.id ?? i.name ?? startedAt),
+    title: String(i.name || "Incident"),
+    impact: (MapInstatusStatus(String(i.impact)) ?? GC.DEGRADED) as CloudStatus,
+    status: resolved ? "RESOLVED" : String(i.status || ""),
+    resolved: resolved || INSTATUS_DONE.includes(String(i.status).toLowerCase()),
+    startedAt,
+    resolvedAt: toSeconds(i.resolved),
+    url: i.url || null,
+    affected: [],
+    // The public API gives the latest update only.
+    updates: message
+      ? [
+          {
+            status: String(i.status || ""),
+            body: message,
+            isHtml: false,
+            at: toSeconds(i.lastUpdate?.createdAt) ?? toSeconds(i.updatedAt) ?? startedAt,
+          },
+        ]
+      : [],
+  };
+}
+
+export function NormalizeInstatusMaintenance(m: InstatusMaintenance): CloudMaintenance {
+  const scheduledFor = toSeconds(m.start);
+  const minutes = Number(m.duration);
+  return {
+    id: String(m.id ?? m.name ?? scheduledFor),
+    title: String(m.name || "Maintenance"),
+    impact: GC.MAINTENANCE as CloudStatus,
+    status: String(m.status || ""),
+    resolved: String(m.status).toUpperCase() === "COMPLETED",
+    startedAt: scheduledFor ?? 0,
+    resolvedAt: null,
+    url: m.url || null,
+    affected: [],
+    updates: [],
+    scheduledFor,
+    scheduledUntil:
+      scheduledFor !== null && Number.isFinite(minutes) && minutes > 0 ? scheduledFor + minutes * 60 : null,
+  };
+}
+
+async function instatusDetails(provider: CloudProvider, data: CloudServiceMonitorTypeData): Promise<CloudDetails> {
+  const base = StatuspageBase(provider, data);
+  if (!base) throw new Error("Status page URL is missing or not http(s)");
+  const timeout = data.timeout || 10000;
+  const [summary, all] = await Promise.all([
+    FetchInstatusSummary(base, timeout),
+    FetchInstatusComponents(base, timeout).catch(() => []),
+  ]);
+  const only = (data.component || "").trim();
+  const chosen = only ? FindInstatusComponent(all, only) : null;
+  const shown = only ? (chosen ? [chosen] : []) : all;
+
+  const active = summary.activeIncidents.map((i) => NormalizeInstatusIncident(i, false));
+  const past = summary.recentlyResolvedIncidents.map((i) => NormalizeInstatusIncident(i, true));
+  const seen = new Set(active.map((i) => i.id));
+
+  return {
+    provider: {
+      label: (provider.url ? "" : String(summary.page.name || "").trim()) || provider.label,
+      kind: "instatus",
+      pageUrl: base,
+    },
+    // Instatus does not say which components an incident affects.
+    incidentsFromPage: only ? String(summary.page.name || "").trim() || new URL(base).host : null,
+    components: shown.map((c) => ({
+      id: c.id,
+      name: c.name,
+      description: c.description,
+      status: (MapInstatusStatus(c.status) ?? GC.UP) as CloudStatus,
+      group: c.group,
+    })),
+    incidents: [...active, ...past.filter((i) => !seen.has(i.id))].sort((a, b) => b.startedAt - a.startedAt),
+    maintenances: summary.activeMaintenances.map(NormalizeInstatusMaintenance).filter((m) => !m.resolved),
+    fetchedAt: Math.floor(Date.now() / 1000),
+  };
+}
+
 // ---------------------------------------------------------------- Microsoft 365
 
 interface M365Issue {
@@ -292,7 +388,12 @@ export async function GetCloudServiceDetails(
 
   const provider = GetCloudProvider(data?.provider);
   if (!provider) throw new Error("Cloud Service monitor has no valid provider");
-  const result = provider.kind === "m365" ? m365Details(provider, data) : statuspageDetails(provider, data);
+  const result =
+    provider.kind === "m365"
+      ? m365Details(provider, data)
+      : provider.kind === "instatus"
+        ? instatusDetails(provider, data)
+        : statuspageDetails(provider, data);
   detailsCache.set(cacheKey, { at: Date.now(), data: result });
   result.catch(() => detailsCache.delete(cacheKey));
   return result;

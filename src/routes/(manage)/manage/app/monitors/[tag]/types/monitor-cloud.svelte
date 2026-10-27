@@ -5,13 +5,22 @@
   import { Switch } from "$lib/components/ui/switch/index.js";
   import * as Select from "$lib/components/ui/select/index.js";
   import Loader from "@lucide/svelte/icons/loader";
-  import { CLOUD_PROVIDERS, CLOUD_CUSTOM_M365, CLOUD_CUSTOM_STATUSPAGE, GetCloudProvider } from "$lib/cloudServices.js";
+  import { resolve } from "$app/paths";
+  import clientResolver from "$lib/client/resolver.js";
+  import {
+    CLOUD_PROVIDERS,
+    CLOUD_CUSTOM_INSTATUS,
+    CLOUD_CUSTOM_M365,
+    CLOUD_CUSTOM_STATUSPAGE,
+    GetCloudProvider,
+    IsStatusPageKind
+  } from "$lib/cloudServices.js";
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let { data = $bindable() }: { data: any } = $props();
 
   const STATUS_OPTIONS = ["DEGRADED", "DOWN", "UP"] as const;
-  const GROUPS = ["Atlassian", "Microsoft 365", "Other"] as const;
+  const GROUPS = ["Atlassian", "Microsoft 365", "Abacus", "Other"] as const;
   const WHOLE_PAGE = "__whole_page__";
 
   if (!data.provider) data.provider = "jira";
@@ -22,14 +31,13 @@
   if (data.component === undefined) data.component = "";
 
   let provider = $derived(GetCloudProvider(data.provider));
+  let isCustomPage = $derived(data.provider === CLOUD_CUSTOM_STATUSPAGE || data.provider === CLOUD_CUSTOM_INSTATUS);
   let statuspageBase = $derived(
-    (provider?.url || (data.provider === CLOUD_CUSTOM_STATUSPAGE ? data.statuspageUrl : "") || "")
-      .trim()
-      .replace(/\/+$/, "")
+    (provider?.url || (isCustomPage ? data.statuspageUrl : "") || "").trim().replace(/\/+$/, "")
   );
 
-  // Components are read straight from the public Statuspage API, which allows browser requests.
-  let components = $state<Array<{ id: string; name: string }>>([]);
+  // Components are read by Kener's server: it applies the proxy settings and no CORS rules.
+  let components = $state<string[]>([]);
   let loadingComponents = $state(false);
   let componentsError = $state("");
 
@@ -38,12 +46,14 @@
     loadingComponents = true;
     componentsError = "";
     try {
-      const response = await fetch(`${statuspageBase}/api/v2/components.json`);
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const body = await response.json();
-      components = (Array.isArray(body?.components) ? body.components : [])
-        .filter((c: { name?: string; group?: boolean }) => c.name && !c.group)
-        .map((c: { id: string; name: string }) => ({ id: c.id, name: c.name }));
+      const response = await fetch(clientResolver(resolve, "/manage/api"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "listCloudComponents", data: { typeData: data } })
+      });
+      const result = await response.json();
+      if (result.error) throw new Error(result.error);
+      components = Array.isArray(result.components) ? result.components : [];
       if (components.length === 0) componentsError = "This page lists no components.";
     } catch (e) {
       components = [];
@@ -55,7 +65,7 @@
 
   function selectProvider(id: string) {
     data.provider = id;
-    data.component = "";
+    data.component = GetCloudProvider(id)?.defaultComponent ?? "";
     components = [];
     componentsError = "";
   }
@@ -84,6 +94,7 @@
             {/if}
             {#if group === "Other"}
               <Select.Item value={CLOUD_CUSTOM_STATUSPAGE}>Other Statuspage (URL)…</Select.Item>
+              <Select.Item value={CLOUD_CUSTOM_INSTATUS}>Other Instatus page (URL)…</Select.Item>
             {/if}
           </Select.Group>
         {/each}
@@ -98,13 +109,17 @@
     </p>
   </div>
 
-  {#if provider?.kind === "statuspage"}
-    {#if data.provider === CLOUD_CUSTOM_STATUSPAGE}
+  {#if IsStatusPageKind(provider?.kind)}
+    {#if isCustomPage}
       <div class="flex flex-col gap-2">
-        <Label for="cloud-url">Statuspage URL <span class="text-destructive">*</span></Label>
+        <Label for="cloud-url">Status page URL <span class="text-destructive">*</span></Label>
         <Input id="cloud-url" bind:value={data.statuspageUrl} placeholder="https://status.example.com" />
         <p class="text-muted-foreground text-xs">
-          Any page run on Atlassian Statuspage: it answers at <code>/api/v2/status.json</code>.
+          {#if provider?.kind === "instatus"}
+            Any page run on Instatus ("Powered by Instatus" in its footer): it answers at <code>/v3/summary.json</code>.
+          {:else}
+            Any page run on Atlassian Statuspage: it answers at <code>/api/v2/status.json</code>.
+          {/if}
         </p>
       </div>
     {/if}
@@ -123,8 +138,8 @@
             </Select.Trigger>
             <Select.Content class="max-h-80">
               <Select.Item value={WHOLE_PAGE}>Whole page</Select.Item>
-              {#each components as c (c.id)}
-                <Select.Item value={c.name}>{c.name}</Select.Item>
+              {#each components as name (name)}
+                <Select.Item value={name}>{name}</Select.Item>
               {/each}
             </Select.Content>
           </Select.Root>

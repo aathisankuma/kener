@@ -7,6 +7,7 @@ import CloudServiceCall, {
   MapStatuspageIndicator,
 } from "./cloudServiceCall";
 import type { CloudServiceMonitor } from "../types/monitor";
+import { ABACUS_COMPONENTS, ABACUS_SUMMARY } from "../instatusFixture";
 
 vi.mock("axios", () => ({ default: vi.fn() }));
 const mockedAxios = vi.mocked(axios);
@@ -117,6 +118,54 @@ describe("Statuspage providers", () => {
     const result = await new CloudServiceCall(monitor({ provider: "nope" })).execute();
     expect(result).toMatchObject({ status: "DEGRADED", type: "ERROR" });
     expect(mockedAxios).not.toHaveBeenCalled();
+  });
+});
+
+describe("Instatus providers", () => {
+  const routes = (map: Record<string, unknown>) =>
+    mockedAxios.mockImplementation(async (url) =>
+      typeof url === "string" && url in map ? reply(200, map[url]) : reply(404, null),
+    );
+
+  it("reads a whole Abacus page and rates its issues by the worst component", async () => {
+    routes({
+      "https://status.abaservices.ch/v3/summary.json": ABACUS_SUMMARY,
+      "https://status.abaservices.ch/v3/components.json": ABACUS_COMPONENTS,
+    });
+    const result = await new CloudServiceCall(monitor({ provider: "abacus-cloud" })).execute();
+    expect(result).toMatchObject({ status: "DOWN", type: "REALTIME", raw_status: "HASISSUES" });
+  });
+
+  it("does not read components while the page is up", async () => {
+    routes({ "https://status.deepcloud.swiss/v3/summary.json": { ...ABACUS_SUMMARY, page: { status: "UP" } } });
+    const result = await new CloudServiceCall(monitor({ provider: "deepcloud" })).execute();
+    expect(result.status).toBe("UP");
+    expect(mockedAxios).toHaveBeenCalledTimes(1);
+  });
+
+  it("follows Swiss21 through its component on the Abacus page", async () => {
+    routes({ "https://status.abaservices.ch/v3/components.json": ABACUS_COMPONENTS });
+    const result = await new CloudServiceCall(
+      monitor({ provider: "swiss21", component: "Swiss21 Services" }),
+    ).execute();
+    expect(result).toMatchObject({ status: "DEGRADED", raw_status: "PARTIALOUTAGE" });
+  });
+
+  it("tells repeated component names apart by group", async () => {
+    routes({ "https://status.test/v3/components.json": ABACUS_COMPONENTS });
+    const base = { provider: "instatus-custom", statuspageUrl: "https://status.test/" };
+    const svm = await new CloudServiceCall(
+      monitor({ ...base, component: "Service Management (SVM) / Kundenportal" }),
+    ).execute();
+    expect(svm.status).toBe("DOWN");
+    const missing = await new CloudServiceCall(monitor({ ...base, component: "Nope" })).execute();
+    expect(missing.error_message).toContain("AbaBridge / Kundenportal");
+  });
+
+  it("records the configured status when the page cannot be read", async () => {
+    mockedAxios.mockResolvedValue(reply(502, null));
+    const result = await new CloudServiceCall(monitor({ provider: "abacus-cloud", errorStatus: "DOWN" })).execute();
+    expect(result).toMatchObject({ status: "DOWN", type: "ERROR", error_message: "Instatus answered HTTP 502" });
   });
 });
 
@@ -234,5 +283,6 @@ describe("Service dispatch", () => {
     const { default: Service } = await import("./service");
     const service = new Service({ tag: "cloud-test", monitor_type: "CLOUD", type_data: { provider: "jira" } });
     expect(service.service).toBeInstanceOf(CloudServiceCall);
-  });
+    // Importing every monitor type takes several seconds on a cold start.
+  }, 30000);
 });

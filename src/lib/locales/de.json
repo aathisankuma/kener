@@ -158,6 +158,7 @@
     "Get notified about incidents and scheduled maintenance of %name.": "Erhalten Sie Benachrichtigungen zu Vorfällen und geplanten Wartungen von %name.",
     "You now get updates only for %name.": "Sie erhalten jetzt nur Updates zu %name.",
     "%name was added to your services.": "%name wurde zu Ihren Diensten hinzugefügt.",
-    "You already get updates for %name.": "Sie erhalten bereits Updates zu %name."
+    "You already get updates for %name.": "Sie erhalten bereits Updates zu %name.",
+    "Incidents and maintenance of the whole %name page.": "Vorfälle und Wartungen der ganzen Statusseite von %name."
   }
 }
