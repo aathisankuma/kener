@@ -237,7 +237,7 @@
     getSiteLevelSharingConfig();
   });
 
-  let activeAccordionItem = $derived<string>(isNew ? "general" : "configuration");
+  let activeAccordionItem = $derived<string>("general");
   let cloneDialogOpen = $state(false);
   let cloneTag = $state("");
   let cloneName = $state("");
@@ -376,19 +376,18 @@
         <Accordion.Item value="general">
           <Accordion.Trigger>General Settings</Accordion.Trigger>
           <Accordion.Content class="flex flex-col gap-4 text-balance">
-            <!-- General Settings Card -->
-            <GeneralSettingsCard bind:monitor {typeData} {isNew} />
+            <!-- What the monitor checks comes first; "Save Monitor" saves both cards. -->
+            <MonitorTypeCard
+              bind:monitor
+              bind:typeData
+              bind:typeSettingsValid
+              {availableMonitors}
+              dockerDefaults={data.dockerDefaults}
+              combined={true}
+            />
+            <GeneralSettingsCard bind:monitor {typeData} {isNew} {typeSettingsValid} />
           </Accordion.Content>
         </Accordion.Item>
-        {#if !isNew}
-          <Accordion.Item value="configuration">
-            <Accordion.Trigger>Configuration</Accordion.Trigger>
-            <Accordion.Content class="flex flex-col gap-4 text-balance">
-              <!-- Monitor Type Configuration Card -->
-              <MonitorTypeCard bind:monitor bind:typeData {availableMonitors} dockerDefaults={data.dockerDefaults} />
-            </Accordion.Content>
-          </Accordion.Item>
-        {/if}
         {#if !isNew}
           <Accordion.Item value="calculation">
             <Accordion.Trigger>Uptime Calculation</Accordion.Trigger>
