@@ -30,6 +30,7 @@ import {
   type InstatusIncident,
   type InstatusMaintenance,
 } from "./instatusClient.js";
+import { AzureComponent, AzureIncidents, FetchAzureCurrent, FetchAzureHistory } from "./azureResourceHealth.js";
 
 /** ISO date -> UTC seconds, or null. */
 function toSeconds(value: unknown): number | null {
@@ -267,6 +268,31 @@ async function instatusDetails(provider: CloudProvider, data: CloudServiceMonito
   };
 }
 
+// ---------------------------------------------------------------- Azure
+
+async function azureDetails(provider: CloudProvider, data: CloudServiceMonitorTypeData): Promise<CloudDetails> {
+  const resolved = ResolveM365Credentials(data);
+  if ("error" in resolved) throw new Error(resolved.error);
+  const resourceId = (data.azureResourceId || "").trim();
+  if (!resourceId) throw new Error("Azure resource ID is missing");
+  const timeout = data.timeout || 10000;
+  const [current, history] = await Promise.all([
+    FetchAzureCurrent(resolved.credentials, resourceId, timeout),
+    FetchAzureHistory(resolved.credentials, resourceId, timeout).catch(() => []),
+  ]);
+  return {
+    provider: {
+      label: provider.label,
+      kind: "azure",
+      pageUrl: `https://portal.azure.com/#@/resource${resourceId}/resourceHealth`,
+    },
+    components: [AzureComponent(resourceId, current)],
+    incidents: AzureIncidents(history.length > 0 ? history : [current]),
+    maintenances: [],
+    fetchedAt: Math.floor(Date.now() / 1000),
+  };
+}
+
 // ---------------------------------------------------------------- Microsoft 365
 
 interface M365Issue {
@@ -393,7 +419,9 @@ export async function GetCloudServiceDetails(
       ? m365Details(provider, data)
       : provider.kind === "instatus"
         ? instatusDetails(provider, data)
-        : statuspageDetails(provider, data);
+        : provider.kind === "azure"
+          ? azureDetails(provider, data)
+          : statuspageDetails(provider, data);
   detailsCache.set(cacheKey, { at: Date.now(), data: result });
   result.catch(() => detailsCache.delete(cacheKey));
   return result;

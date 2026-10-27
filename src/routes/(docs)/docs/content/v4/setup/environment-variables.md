@@ -351,7 +351,7 @@ REDIS_URL=redis://localhost:6379
 | `M365_CLIENT_ID`     | Application (client) ID of the app registration    | No       |
 | `M365_CLIENT_SECRET` | Client secret of the app registration              | No       |
 
-**Purpose**: The shared connection for [Cloud Service monitors](/docs/v4/monitors/cloud#microsoft-365) that follow Microsoft 365 services. A monitor whose connection fields are empty uses these. The app needs the application permission `ServiceHealth.Read.All` with admin consent.
+**Purpose**: The shared connection for [Cloud Service monitors](/docs/v4/monitors/cloud#microsoft-365) that follow Microsoft 365 services or [Azure resources](/docs/v4/monitors/cloud#azure). A monitor whose connection fields are empty uses these. For Microsoft 365 the app needs the application permission `ServiceHealth.Read.All` with admin consent; for Azure, the Reader role on the resource.
 
 **Example**:
 

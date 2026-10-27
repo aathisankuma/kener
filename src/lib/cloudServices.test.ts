@@ -26,6 +26,7 @@ describe("CloudServicesInUse", () => {
       { name: "Eigene Seite", monitor_type: "CLOUD", type_data: '{"provider":"statuspage-custom"}' },
       { name: "Website", monitor_type: "API", type_data: '{"provider":"jira"}' },
       { name: "Kaputt", monitor_type: "CLOUD", type_data: "{not json" },
+      { name: "OpenAI prod", monitor_type: "CLOUD", type_data: '{"provider":"azure-openai","azureResourceId":"/x"}' },
     ]);
     expect(Object.fromEntries(used)).toEqual({
       jira: [

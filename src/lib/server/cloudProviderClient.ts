@@ -75,8 +75,12 @@ export function M365CacheKey(c: M365Credentials): string {
   return `${c.tenantId}|${c.clientId}`;
 }
 
-async function M365AccessToken(c: M365Credentials, timeout: number): Promise<string> {
-  const key = M365CacheKey(c);
+const GRAPH_SCOPE = "https://graph.microsoft.com/.default";
+const AZURE_SCOPE = "https://management.azure.com/.default";
+
+/** A token of the app for one API: Microsoft Graph (Microsoft 365) or Azure Resource Manager. */
+async function M365AccessToken(c: M365Credentials, timeout: number, scope = GRAPH_SCOPE): Promise<string> {
+  const key = `${M365CacheKey(c)}|${scope}`;
   const cached = tokenCache.get(key);
   if (cached && cached.expiresAt - 5 * 60 * 1000 > Date.now()) {
     return cached.token;
@@ -91,7 +95,7 @@ async function M365AccessToken(c: M365Credentials, timeout: number): Promise<str
       data: new URLSearchParams({
         client_id: c.clientId,
         client_secret: c.clientSecret,
-        scope: "https://graph.microsoft.com/.default",
+        scope,
         grant_type: "client_credentials",
       }).toString(),
     },
@@ -116,13 +120,40 @@ export async function M365Get(url: string, c: M365Credentials, timeout = 10000):
     headers: { ...options.headers, Authorization: `Bearer ${token}` },
   });
   if (response.status === 401 || response.status === 403) {
-    tokenCache.delete(M365CacheKey(c));
+    tokenCache.delete(`${M365CacheKey(c)}|${GRAPH_SCOPE}`);
     throw new Error(
       `Microsoft Graph refused access (HTTP ${response.status}). Grant the app ServiceHealth.Read.All with admin consent.`,
     );
   }
   if (response.status < 200 || response.status >= 300) {
     throw new Error(`Microsoft Graph answered HTTP ${response.status}`);
+  }
+  return response;
+}
+
+/**
+ * GET an Azure Resource Manager URL with the app's token. The app needs a role that can read the
+ * resource, e.g. Reader. Throws with a readable reason on failure.
+ */
+export async function AzureGet(url: string, c: M365Credentials, timeout = 10000): Promise<AxiosResponse> {
+  const token = await M365AccessToken(c, timeout, AZURE_SCOPE);
+  const options = CloudHttpOptions(timeout);
+  const response: AxiosResponse = await axios(url, {
+    ...options,
+    headers: { ...options.headers, Authorization: `Bearer ${token}` },
+  });
+  const reason = response.data?.error?.message ? `: ${String(response.data.error.message).split("\n")[0]}` : "";
+  if (response.status === 401 || response.status === 403) {
+    tokenCache.delete(`${M365CacheKey(c)}|${AZURE_SCOPE}`);
+    throw new Error(
+      `Azure refused access (HTTP ${response.status}). Give the app the Reader role on the resource${reason}`,
+    );
+  }
+  if (response.status === 404) {
+    throw new Error(`Azure resource not found (HTTP 404). Check the resource ID${reason}`);
+  }
+  if (response.status < 200 || response.status >= 300) {
+    throw new Error(`Azure answered HTTP ${response.status}${reason}`);
   }
   return response;
 }

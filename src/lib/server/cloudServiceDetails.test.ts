@@ -274,3 +274,39 @@ describe("GetCloudServiceDetails: Instatus", () => {
     expect(details.incidentsFromPage).toBe("Abacus Cloud Services");
   });
 });
+
+describe("GetCloudServiceDetails: Azure", () => {
+  it("shows the resource, its current state and its recent outages", async () => {
+    const resource =
+      "/subscriptions/1111/resourceGroups/rg-ai/providers/Microsoft.CognitiveServices/accounts/band-openai";
+    mockedAxios.mockImplementation(async (url) => {
+      if (String(url).includes("login.microsoftonline.com")) return reply(200, { access_token: "t", expires_in: 3600 });
+      if (String(url).includes("/availabilityStatuses/current"))
+        return reply(200, {
+          properties: { availabilityState: "Available", summary: "There aren't any known problems." },
+        });
+      return reply(200, {
+        value: [
+          { id: "now", properties: { availabilityState: "Available", occuredTime: "2026-10-26T10:00:00Z" } },
+          {
+            id: "out",
+            properties: { availabilityState: "Unavailable", title: "Unavailable", occuredTime: "2026-10-26T09:00:00Z" },
+          },
+        ],
+      });
+    });
+    const details = await GetCloudServiceDetails("azure", {
+      provider: "azure-openai",
+      azureResourceId: resource,
+      tenantId: "t1",
+      clientId: "c1",
+      clientSecret: "s1",
+    });
+    expect(details.provider).toMatchObject({ label: "Azure OpenAI", kind: "azure" });
+    expect(details.provider.pageUrl).toContain("portal.azure.com");
+    expect(details.components).toEqual([
+      { id: resource, name: "band-openai", description: "There aren't any known problems.", status: "UP", group: null },
+    ]);
+    expect(details.incidents.map((i) => [i.id, i.resolved])).toEqual([["out", true]]);
+  });
+});

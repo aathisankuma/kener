@@ -49,6 +49,7 @@
   } from "../types/index.js";
   import {
     GetCloudProvider,
+    IsAzureResourceId,
     CLOUD_CUSTOM_INSTATUS,
     CLOUD_CUSTOM_M365,
     CLOUD_CUSTOM_STATUSPAGE
@@ -155,7 +156,7 @@
     GRPC: "gRPC Health",
     PROMETHEUS: "Prometheus",
     DOCKER: "Docker Container",
-    CLOUD: "Cloud Service (Atlassian, Microsoft 365, Abacus, …)"
+    CLOUD: "Cloud Service (Atlassian, Microsoft 365, Azure, Abacus, …)"
   };
 
   // Validation for each monitor type
@@ -329,6 +330,7 @@
           return false;
         // Microsoft 365 credentials may stay empty: the check then uses M365_TENANT_ID,
         // M365_CLIENT_ID and M365_CLIENT_SECRET from the environment.
+        if (provider.kind === "azure" && !IsAzureResourceId(data.azureResourceId)) return false;
         if (provider.kind === "m365" && data.provider === CLOUD_CUSTOM_M365 && !(data.m365Service || "").trim())
           return false;
         if (

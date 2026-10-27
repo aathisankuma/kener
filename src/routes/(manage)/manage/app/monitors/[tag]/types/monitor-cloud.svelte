@@ -14,6 +14,9 @@
     CLOUD_CUSTOM_STATUSPAGE,
     GetCloudProvider,
     CloudServicesInUse,
+    CLOUD_CUSTOM_AZURE,
+    IsAzureResourceId,
+    IsMicrosoftKind,
     IsStatusPageKind
   } from "$lib/cloudServices.js";
   import CheckIcon from "@lucide/svelte/icons/circle-check";
@@ -29,7 +32,7 @@
   } = $props();
 
   const STATUS_OPTIONS = ["DEGRADED", "DOWN", "UP"] as const;
-  const GROUPS = ["Atlassian", "Microsoft 365", "Abacus", "Other"] as const;
+  const GROUPS = ["Atlassian", "Microsoft 365", "Microsoft Azure", "Abacus", "Other"] as const;
   const WHOLE_PAGE = "__whole_page__";
 
   if (!data.provider) data.provider = "jira";
@@ -92,7 +95,7 @@
   }
 
   const secretIsLiteral = $derived(
-    provider?.kind === "m365" && !!data.clientSecret && !/^\$\w+$/.test(String(data.clientSecret).trim())
+    IsMicrosoftKind(provider?.kind) && !!data.clientSecret && !/^\$\w+$/.test(String(data.clientSecret).trim())
   );
 </script>
 
@@ -124,6 +127,9 @@
                 </span>
               </Select.Item>
             {/each}
+            {#if group === "Microsoft Azure"}
+              <Select.Item value={CLOUD_CUSTOM_AZURE}>Other Azure resource…</Select.Item>
+            {/if}
             {#if group === "Microsoft 365"}
               <Select.Item value={CLOUD_CUSTOM_M365}>Other Microsoft 365 service…</Select.Item>
             {/if}
@@ -138,6 +144,8 @@
     <p class="text-muted-foreground text-xs">
       {#if provider?.kind === "m365"}
         Reads this service's health for your Microsoft 365 tenant from Microsoft Graph.
+      {:else if provider?.kind === "azure"}
+        Reads the health of your own Azure resource from Azure Resource Health.
       {:else}
         Reads the provider's official status page{statuspageBase ? ` (${statuspageBase})` : ""}. No login needed.
       {/if}
@@ -217,7 +225,27 @@
         </p>
       </div>
     </div>
-  {:else if provider?.kind === "m365"}
+  {:else if IsMicrosoftKind(provider?.kind)}
+    {#if provider?.kind === "azure"}
+      <div class="flex flex-col gap-2">
+        <Label for="cloud-azure-resource">Resource ID <span class="text-destructive">*</span></Label>
+        <Input
+          id="cloud-azure-resource"
+          bind:value={data.azureResourceId}
+          placeholder="/subscriptions/…/resourceGroups/…/providers/Microsoft.CognitiveServices/accounts/…"
+        />
+        {#if data.azureResourceId && !IsAzureResourceId(data.azureResourceId)}
+          <p class="text-xs text-amber-600 dark:text-amber-400">
+            This does not look like a resource ID. It starts with <code>/subscriptions/</code>.
+          </p>
+        {:else}
+          <p class="text-muted-foreground text-xs">
+            In the Azure portal, open the resource, then <b>Settings → Properties → Resource ID</b>, or
+            <b>JSON View</b> on its Overview page.
+          </p>
+        {/if}
+      </div>
+    {/if}
     {#if data.provider === CLOUD_CUSTOM_M365}
       <div class="flex flex-col gap-2">
         <Label for="cloud-m365-service">Service name or ID <span class="text-destructive">*</span></Label>
@@ -229,13 +257,19 @@
     {/if}
 
     <div class="bg-muted/40 rounded-md border p-3 text-xs">
-      <p class="font-medium">Microsoft 365 connection</p>
+      <p class="font-medium">Microsoft connection</p>
       <p class="text-muted-foreground mt-1">
         Leave these fields empty to use the shared connection from Kener's environment:
         <code>M365_TENANT_ID</code>, <code>M365_CLIENT_ID</code> and <code>M365_CLIENT_SECRET</code>. One app
         registration with the application permission <code>ServiceHealth.Read.All</code> (admin consent) serves every Microsoft
         365 monitor. Fill a field only to use a different app for this monitor.
       </p>
+      {#if provider?.kind === "azure"}
+        <p class="text-muted-foreground mt-1">
+          For Azure, give the same app the <b>Reader</b> role on this resource (or its resource group) under
+          <b>Access control (IAM)</b>.
+        </p>
+      {/if}
     </div>
 
     <div class="grid gap-4 sm:grid-cols-2">

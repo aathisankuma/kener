@@ -140,7 +140,8 @@ export interface CloudServiceMonitorTypeData {
   statuspageUrl?: string; // custom status page base URL ("statuspage-custom", "instatus-custom")
   component?: string; // optional component (Statuspage, Instatus), by name, "Group / Name" or id; empty follows the whole page
   m365Service?: string; // Microsoft 365 service name or id (provider "m365-custom")
-  tenantId?: string; // Microsoft 365: Entra tenant id; secret substitution applies
+  azureResourceId?: string; // Azure: resource ID, /subscriptions/…/resourceGroups/…/providers/…
+  tenantId?: string; // Microsoft 365, Azure: Entra tenant id; secret substitution applies
   clientId?: string; // Microsoft 365: app registration client id; secret substitution applies
   clientSecret?: string; // Microsoft 365: client secret, ideally "$ENV_NAME"; secret substitution applies
   ignoreMinor?: boolean; // Statuspage, Instatus: minor incidents and degraded performance count as UP

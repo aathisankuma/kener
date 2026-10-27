@@ -1,7 +1,8 @@
 import axios from "axios";
 import GC from "../../global-constants.js";
 import type { CloudServiceMonitor, MonitoringResult } from "../types/monitor.js";
-import { GetCloudProvider, type CloudProvider } from "../../cloudServices.js";
+import { GetCloudProvider, IsAzureResourceId, type CloudProvider } from "../../cloudServices.js";
+import { FetchAzureCurrent, MapAzureAvailability } from "../azureResourceHealth.js";
 import {
   CloudHttpOptions,
   ClearCloudProviderCache,
@@ -96,6 +97,7 @@ class CloudServiceCall {
     }
     try {
       if (provider.kind === "m365") return await this.checkM365(provider);
+      if (provider.kind === "azure") return await this.checkAzure();
       if (provider.kind === "instatus") return await this.checkInstatus(provider);
       return await this.checkStatuspage(provider);
     } catch (err: unknown) {
@@ -202,6 +204,29 @@ class CloudServiceCall {
       return this.fail(GC.ERROR, `Unknown page status "${summary.page.status}"`);
     }
     return { status, latency, type: GC.REALTIME, raw_status: String(summary.page.status) };
+  }
+
+  // ---------------------------------------------------------------- Azure
+
+  private async checkAzure(): Promise<MonitoringResult> {
+    const data = this.monitor.type_data;
+    const resourceId = (data.azureResourceId || "").trim();
+    if (!IsAzureResourceId(resourceId)) {
+      return this.fail(GC.ERROR, "Azure resource ID is missing or not /subscriptions/…/providers/…");
+    }
+    const resolved = ResolveM365Credentials(data);
+    if ("error" in resolved) {
+      return this.fail(GC.ERROR, resolved.error);
+    }
+    const started = Date.now();
+    const current = await FetchAzureCurrent(resolved.credentials, resourceId, data.timeout || 10000);
+    const latency = Date.now() - started;
+    const state = String(current.properties?.availabilityState ?? "");
+    const status = MapAzureAvailability(current.properties);
+    if (!status) {
+      return this.fail(GC.ERROR, `Azure reports the resource as "${state || "Unknown"}"`);
+    }
+    return { status, latency, type: GC.REALTIME, raw_status: state };
   }
 
   // ---------------------------------------------------------------- Microsoft 365

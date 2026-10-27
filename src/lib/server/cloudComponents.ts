@@ -9,7 +9,7 @@ import { FetchInstatusComponents, InstatusComponentLabel } from "./instatusClien
 /** Component names to choose from, in the provider's order. Throws with a reason to show. */
 export async function ListCloudComponents(data: CloudServiceMonitorTypeData): Promise<string[]> {
   const provider = GetCloudProvider(data?.provider);
-  if (!provider || provider.kind === "m365") {
+  if (!provider || provider.kind === "m365" || provider.kind === "azure") {
     throw new Error("This service has no components to choose from");
   }
   const base = StatuspageBase(provider, data);
