@@ -24,21 +24,21 @@ Use this flow to add a simple HTTP/website monitor.
 ### Step 1: Create a new monitor {#create-new-monitor}
 
 1. Open **Manage → Monitors**.
-2. Click **New Monitor**.
-3. In **General Settings**, set at least:
-    - **Tag** (unique id, e.g. `homepage`)
-    - **Name** (display name)
-    - **Monitor Type** = API/Website monitor
+2. Click **New Monitor**. The page shows **Monitor Type Configuration** first, then **General Settings**.
+3. Pick the **Monitor Type**, e.g. **API** for a website, and fill in its fields, e.g. the target URL:
 
-### Step 2: Configure website check {#configure-website-check}
+    ```text
+    https://example.com
+    ```
 
-In **Configuration**, set your target URL and check interval/cron.
+    For a [Cloud Service monitor](/docs/v4/monitors/cloud), the name and tag follow the chosen service until you type your own.
 
-Example target URL:
+4. In **General Settings**, set at least the **Name** (display name) and the **Tag** (unique id, e.g. `homepage`).
+5. Click **Create Monitor**. It saves the type and the general settings together.
 
-```text
-https://example.com
-```
+### Step 2: Test the check {#configure-website-check}
+
+Open **Configuration** and click **Test Monitor**. Change the check interval in **General Settings → Cron Schedule**.
 
 ### Step 3: Make it visible on status page {#make-monitor-visible}
 

@@ -301,3 +301,25 @@ export interface CloudDetails {
   /** UTC seconds. */
   fetchedAt: number;
 }
+
+// ---------------------------------------------------------------- New monitors
+
+/** A monitor name for a listed service, e.g. "Swiss21" for "Swiss21 (via Abacus status page)". */
+export function CloudMonitorName(id: string | undefined): string {
+  const provider = CLOUD_PROVIDERS.find((p) => p.id === id);
+  if (!provider) return "";
+  return provider.label.replace(/\s*\(.*\)\s*$/, "").trim();
+}
+
+/** A monitor tag made from a name: lowercase letters, digits and dashes, e.g. "microsoft-teams". */
+export function SuggestMonitorTag(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/ä/g, "ae")
+    .replace(/ö/g, "oe")
+    .replace(/ü/g, "ue")
+    .normalize("NFKD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
