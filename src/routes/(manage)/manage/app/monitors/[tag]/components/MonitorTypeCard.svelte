@@ -63,6 +63,8 @@
     dockerDefaults: DockerConnectionDefaults;
     /** On the new-monitor page: no test or save here; "Create Monitor" saves everything. */
     isNew?: boolean;
+    /** Shown inside General Settings: its "Save Monitor" button saves this card too. */
+    combined?: boolean;
     typeSettingsValid?: boolean;
   }
 
@@ -72,6 +74,7 @@
     availableMonitors,
     dockerDefaults,
     isNew = false,
+    combined = false,
     typeSettingsValid = $bindable(true)
   }: Props = $props();
 
@@ -370,7 +373,8 @@
   }
 
   async function refreshProviderIcon() {
-    if (await useProviderIcon()) await saveTypeSettings();
+    // A new monitor keeps the icon until "Create Monitor" saves everything.
+    if ((await useProviderIcon()) && !isNew) await saveTypeSettings();
   }
 
   async function saveTypeSettings() {
@@ -606,6 +610,11 @@
         </Dialog.Content>
       </Dialog.Root>
     {/if}
+    {#if combined}
+      <p class="text-muted-foreground mr-auto self-center text-xs">
+        <strong>Save Monitor</strong> below saves these settings. Test Monitor checks the saved settings.
+      </p>
+    {/if}
 
     <div class="flex flex-wrap justify-end gap-2">
       {#if monitor.monitor_type === "CLOUD"}
@@ -623,7 +632,7 @@
           Use provider's icon
         </Button>
       {/if}
-      {#if !isNew}
+      {#if !isNew && !combined}
         <Button onclick={saveTypeSettings} disabled={savingType || !isTypeSettingsValid}>
           {#if savingType}
             <Loader class="size-4 animate-spin" />

@@ -27,7 +27,7 @@
   }
 
   let { monitor = $bindable(), typeData, isNew, typeSettingsValid = true }: Props = $props();
-  const blockedByType = $derived(isNew && !!monitor.monitor_type && !typeSettingsValid);
+  const blockedByType = $derived(!!monitor.monitor_type && !typeSettingsValid);
 
   let savingGeneral = $state(false);
   let uploadingImage = $state(false);
@@ -109,8 +109,9 @@
         type_data: JSON.stringify(typeData)
       };
 
-      // A new Cloud Service monitor without an image gets the provider's own icon.
-      if (isNew && monitor.monitor_type === "CLOUD" && !monitor.image) {
+      // A Cloud Service monitor without an image gets the provider's own icon. An uploaded image is
+      // never replaced here; "Use provider's icon" replaces it on request.
+      if (monitor.monitor_type === "CLOUD" && !monitor.image) {
         try {
           const icon = await fetch(clientResolver(resolve, "/manage/api"), {
             method: "POST",
@@ -147,7 +148,7 @@
         toast.success("Monitor created successfully");
         goto(clientResolver(resolve, `/manage/app/monitors/${monitor.tag}`));
       } else {
-        toast.success("General settings saved successfully");
+        toast.success("Monitor saved successfully");
       }
     } catch (e) {
       const message = e instanceof Error ? e.message : "Failed to save general settings";
@@ -313,7 +314,7 @@
       {:else}
         <SaveIcon class="size-4" />
       {/if}
-      {isNew ? "Create Monitor" : "Save General Settings"}
+      {isNew ? "Create Monitor" : "Save Monitor"}
     </Button>
   </Card.Footer>
 </Card.Root>

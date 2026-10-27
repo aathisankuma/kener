@@ -38,7 +38,7 @@ Use this flow to add a simple HTTP/website monitor.
 
 ### Step 2: Test the check {#configure-website-check}
 
-Open **Configuration** and click **Test Monitor**. Change the check interval in **General Settings → Cron Schedule**.
+In **General Settings**, click **Test Monitor**. It checks the saved settings: after a change, click **Save Monitor** first. Change the check interval in **General Settings → Cron Schedule**.
 
 ### Step 3: Make it visible on status page {#make-monitor-visible}
 
