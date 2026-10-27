@@ -279,6 +279,10 @@ export const CreateUpdateMonitor = async (monitor: MonitorInput): Promise<number
     return await db.updateMonitor(monitorData as MonitorRecord);
   } else {
     validateMonitorTag(monitorData.tag);
+    // Say so in words; otherwise the database's unique-constraint error reaches the dashboard.
+    if (await db.getMonitorsByTag(monitorData.tag)) {
+      throw new Error(`A monitor with the tag "${monitorData.tag}" already exists. Choose another tag.`);
+    }
     return await db.insertMonitor(monitorData);
   }
 };

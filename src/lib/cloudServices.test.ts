@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CloudMonitorName, SuggestMonitorTag } from "./cloudServices";
+import { CloudMonitorName, CloudServicesInUse, SuggestMonitorTag, SuggestUniqueMonitorTag } from "./cloudServices";
 
 describe("names for new Cloud Service monitors", () => {
   it("names a monitor after the service without the explanation in brackets", () => {
@@ -14,5 +14,31 @@ describe("names for new Cloud Service monitors", () => {
     expect(SuggestMonitorTag("Exchange Online")).toBe("exchange-online");
     expect(SuggestMonitorTag("Ökosystem / Kundenportal ")).toBe("oekosystem-kundenportal");
     expect(SuggestMonitorTag("Café 2")).toBe("cafe-2");
+  });
+
+  it("skips tags other monitors already use", () => {
+    expect(SuggestUniqueMonitorTag("Jira", ["confluence"])).toBe("jira");
+    expect(SuggestUniqueMonitorTag("Jira", ["jira"])).toBe("jira-2");
+    expect(SuggestUniqueMonitorTag("Jira", ["jira", "jira-2"])).toBe("jira-3");
+  });
+});
+
+describe("CloudServicesInUse", () => {
+  it("lists the monitors that follow each listed service", () => {
+    const used = CloudServicesInUse([
+      { name: "Jira", monitor_type: "CLOUD", type_data: '{"provider":"jira"}' },
+      { name: "Jira Suche", monitor_type: "CLOUD", type_data: '{"provider":"jira","component":" Search "}' },
+      { name: "Swiss21", monitor_type: "CLOUD", type_data: '{"provider":"swiss21","component":"Swiss21 Services"}' },
+      { name: "Eigene Seite", monitor_type: "CLOUD", type_data: '{"provider":"statuspage-custom"}' },
+      { name: "Website", monitor_type: "API", type_data: '{"provider":"jira"}' },
+      { name: "Kaputt", monitor_type: "CLOUD", type_data: "{not json" },
+    ]);
+    expect(Object.fromEntries(used)).toEqual({
+      jira: [
+        { name: "Jira", component: "" },
+        { name: "Jira Suche", component: "Search" },
+      ],
+      swiss21: [{ name: "Swiss21", component: "Swiss21 Services" }],
+    });
   });
 });

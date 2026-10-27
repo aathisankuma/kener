@@ -65,6 +65,8 @@
     isNew?: boolean;
     /** Shown inside General Settings: its "Save Monitor" button saves this card too. */
     combined?: boolean;
+    /** Every monitor, so the Cloud Service list can mark services already followed. */
+    allMonitors?: Array<{ tag: string; name: string; monitor_type: string; type_data?: string | null }>;
     typeSettingsValid?: boolean;
   }
 
@@ -75,6 +77,7 @@
     dockerDefaults,
     isNew = false,
     combined = false,
+    allMonitors = [],
     typeSettingsValid = $bindable(true)
   }: Props = $props();
 
@@ -498,7 +501,7 @@
       {:else if monitor.monitor_type === "DOCKER"}
         <MonitorDocker bind:data={typeData} defaults={dockerDefaults} />
       {:else if monitor.monitor_type === "CLOUD"}
-        <MonitorCloud bind:data={typeData} />
+        <MonitorCloud bind:data={typeData} otherMonitors={allMonitors.filter((m) => m.tag !== monitor.tag)} />
       {:else if monitor.monitor_type === "NONE"}
         <MonitorNone bind:data={typeData} />
       {/if}

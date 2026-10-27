@@ -31,7 +31,7 @@
   import StatusHistoryDaysCard from "./components/StatusHistoryDaysCard.svelte";
   import MonitorSharingOptionsCard from "./components/MonitorSharingOptionsCard.svelte";
   import GC from "$lib/global-constants.js";
-  import { CloudMonitorName, SuggestMonitorTag } from "$lib/cloudServices.js";
+  import { CloudMonitorName, SuggestUniqueMonitorTag } from "$lib/cloudServices.js";
 
   let { params, data }: PageProps = $props();
   const isNew = $derived(params.tag === "new");
@@ -84,6 +84,10 @@
   // Type-specific data
   let typeData = $state<Record<string, unknown>>({});
   let typeSettingsValid = $state(true);
+  // Every monitor, active or not: a new monitor's tag must differ from all of them, and the Cloud
+  // Service list marks the services other monitors already follow.
+  let allMonitors = $state<Array<{ tag: string; name: string; monitor_type: string; type_data?: string | null }>>([]);
+  const existingTags = $derived(allMonitors.map((m) => m.tag));
 
   // New Cloud Service monitor: name and tag follow the chosen service until someone types their own.
   let suggestedName = "";
@@ -97,9 +101,9 @@
     const ownTag = !!monitor.tag && monitor.tag !== suggestedTag;
     if (ownName || ownTag) return;
     monitor.name = name;
-    monitor.tag = SuggestMonitorTag(name);
+    monitor.tag = SuggestUniqueMonitorTag(name, existingTags);
     suggestedName = name;
-    suggestedTag = SuggestMonitorTag(name);
+    suggestedTag = monitor.tag;
   });
 
   // Get pages this monitor is on
@@ -195,6 +199,20 @@
     }
   }
 
+  async function fetchAllMonitors() {
+    try {
+      const response = await fetch(clientResolver(resolve, "/manage/api"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "getMonitors", data: {} })
+      });
+      const result = await response.json();
+      if (Array.isArray(result)) allMonitors = result;
+    } catch {
+      // The server still refuses a taken tag on create.
+    }
+  }
+
   async function fetchPages() {
     try {
       const response = await fetch(clientResolver(resolve, "/manage/api"), {
@@ -233,6 +251,7 @@
   $effect(() => {
     fetchMonitor();
     fetchAvailableMonitors();
+    fetchAllMonitors();
     fetchPages();
     getSiteLevelSharingConfig();
   });
@@ -362,9 +381,10 @@
           bind:typeSettingsValid
           {availableMonitors}
           dockerDefaults={data.dockerDefaults}
+          {allMonitors}
           isNew={true}
         />
-        <GeneralSettingsCard bind:monitor {typeData} {isNew} {typeSettingsValid} />
+        <GeneralSettingsCard bind:monitor {typeData} {isNew} {typeSettingsValid} {existingTags} />
       </div>
     {:else}
       <Accordion.Root
@@ -383,6 +403,7 @@
               bind:typeSettingsValid
               {availableMonitors}
               dockerDefaults={data.dockerDefaults}
+              {allMonitors}
               combined={true}
             />
             <GeneralSettingsCard bind:monitor {typeData} {isNew} {typeSettingsValid} />

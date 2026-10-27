@@ -24,9 +24,12 @@
     isNew: boolean;
     /** False while the monitor type's required fields are missing (new monitors only). */
     typeSettingsValid?: boolean;
+    /** Tags already in use (new monitors only). */
+    existingTags?: string[];
   }
 
-  let { monitor = $bindable(), typeData, isNew, typeSettingsValid = true }: Props = $props();
+  let { monitor = $bindable(), typeData, isNew, typeSettingsValid = true, existingTags = [] }: Props = $props();
+  const tagTaken = $derived(isNew && !!monitor.tag && existingTags.includes(monitor.tag.trim()));
   const blockedByType = $derived(!!monitor.monitor_type && !typeSettingsValid);
 
   let savingGeneral = $state(false);
@@ -172,7 +175,16 @@
       </div>
       <div class="flex flex-col gap-2">
         <Label for="monitor-tag">Tag <span class="text-destructive">*</span></Label>
-        <Input id="monitor-tag" bind:value={monitor.tag} placeholder="my-api-monitor" disabled={!isNew} />
+        <Input
+          id="monitor-tag"
+          bind:value={monitor.tag}
+          placeholder="my-api-monitor"
+          disabled={!isNew}
+          aria-invalid={tagTaken}
+        />
+        {#if tagTaken}
+          <p class="text-destructive text-xs">Another monitor already uses this tag. Choose a different one.</p>
+        {/if}
         <p class="text-muted-foreground mt-1 text-xs">Unique identifier (cannot be changed after creation)</p>
       </div>
     </div>
@@ -308,7 +320,7 @@
     {#if blockedByType}
       <p class="text-muted-foreground mr-auto self-center text-xs">Fill in the monitor type's required fields first.</p>
     {/if}
-    <Button onclick={saveGeneralSettings} disabled={savingGeneral || blockedByType}>
+    <Button onclick={saveGeneralSettings} disabled={savingGeneral || blockedByType || tagTaken}>
       {#if savingGeneral}
         <Loader class="size-4 animate-spin" />
       {:else}

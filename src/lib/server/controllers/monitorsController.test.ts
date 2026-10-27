@@ -34,6 +34,16 @@ beforeEach(() => {
   mockedDb.updateMonitor.mockClear();
 });
 
+describe("monitor save: tag already in use", () => {
+  it("explains a taken tag instead of failing in the database", async () => {
+    mockedDb.getMonitorsByTag.mockResolvedValueOnce({ tag: "jira" } as never);
+    await expect(CreateUpdateMonitor({ tag: "jira", name: "Jira", monitor_type: "CLOUD" })).rejects.toThrow(
+      'A monitor with the tag "jira" already exists. Choose another tag.',
+    );
+    expect(mockedDb.insertMonitor).not.toHaveBeenCalled();
+  });
+});
+
 describe("monitor save: type_data.proxy scheme check", () => {
   // Node silently ignores a proxy URL that is not http(s)://, so a typo would run the check
   // unproxied and look UP. Save is the only place a typo can be caught.
