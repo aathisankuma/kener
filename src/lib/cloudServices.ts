@@ -1,18 +1,22 @@
 // Providers a CLOUD monitor can follow. Safe to import from both server and client.
 //
 // - "statuspage" providers publish an Atlassian Statuspage, whose public JSON API needs no login.
+// - "instatus" providers publish an Instatus page, whose public JSON API (/v3/summary.json,
+//   /v3/components.json) needs no login either.
 // - "m365" providers are Microsoft 365 services, read from the tenant's Service Health in Microsoft
 //   Graph (needs an app registration with the ServiceHealth.Read.All application permission).
 
-export type CloudProviderKind = "statuspage" | "m365";
+export type CloudProviderKind = "statuspage" | "instatus" | "m365";
 
 export interface CloudProvider {
   id: string;
   label: string;
-  group: "Atlassian" | "Microsoft 365" | "Other";
+  group: "Atlassian" | "Microsoft 365" | "Abacus" | "Other";
   kind: CloudProviderKind;
-  /** Statuspage base URL, without a trailing slash. */
+  /** Status page base URL (Statuspage or Instatus), without a trailing slash. */
   url?: string;
+  /** Component picked when this service is chosen, for a service listed on another page. */
+  defaultComponent?: string;
   /** Microsoft Graph service ids and names that identify this service (matched ignoring case). */
   m365Match?: string[];
   /** Web page whose icon is the service's icon. Statuspage providers use their status page. */
@@ -21,8 +25,15 @@ export interface CloudProvider {
 
 /** Provider id for any other Atlassian Statuspage, entered by URL. */
 export const CLOUD_CUSTOM_STATUSPAGE = "statuspage-custom";
+/** Provider id for any other Instatus page, entered by URL. */
+export const CLOUD_CUSTOM_INSTATUS = "instatus-custom";
 /** Provider id for any other Microsoft 365 service, entered by its Graph name or id. */
 export const CLOUD_CUSTOM_M365 = "m365-custom";
+
+/** Provider kinds whose status comes from a public page, so a URL and a component apply. */
+export function IsStatusPageKind(kind: CloudProviderKind | undefined): kind is "statuspage" | "instatus" {
+  return kind === "statuspage" || kind === "instatus";
+}
 
 export const CLOUD_PROVIDERS: CloudProvider[] = [
   // Atlassian
@@ -177,6 +188,33 @@ export const CLOUD_PROVIDERS: CloudProvider[] = [
     iconSite: "https://app.powerbi.com",
   },
 
+  // Abacus and its ecosystem (Instatus pages)
+  {
+    id: "abacus-cloud",
+    label: "Abacus Cloud Services",
+    group: "Abacus",
+    kind: "instatus",
+    url: "https://status.abaservices.ch",
+  },
+  {
+    id: "deepcloud",
+    label: "DeepCloud (DeepBox, DeepSign, …)",
+    group: "Abacus",
+    kind: "instatus",
+    url: "https://status.deepcloud.swiss",
+  },
+  {
+    // status.swiss21.org runs on UptimeRobot, which has no public status API; the Abacus page
+    // lists Swiss21 as one of its components.
+    id: "swiss21",
+    label: "Swiss21 (via Abacus status page)",
+    group: "Abacus",
+    kind: "instatus",
+    url: "https://status.abaservices.ch",
+    defaultComponent: "Swiss21 Services",
+    iconSite: "https://swiss21.org",
+  },
+
   // Other services that publish a Statuspage
   { id: "github", label: "GitHub", group: "Other", kind: "statuspage", url: "https://www.githubstatus.com" },
   {
@@ -192,6 +230,9 @@ export const CLOUD_PROVIDERS: CloudProvider[] = [
 export function GetCloudProvider(id: string | undefined): CloudProvider | undefined {
   if (id === CLOUD_CUSTOM_STATUSPAGE) {
     return { id, label: "Other Statuspage (URL)", group: "Other", kind: "statuspage" };
+  }
+  if (id === CLOUD_CUSTOM_INSTATUS) {
+    return { id, label: "Other Instatus page (URL)", group: "Other", kind: "instatus" };
   }
   if (id === CLOUD_CUSTOM_M365) {
     return { id, label: "Other Microsoft 365 service", group: "Microsoft 365", kind: "m365" };
@@ -249,6 +290,11 @@ export interface CloudMaintenance extends CloudIncident {
 
 export interface CloudDetails {
   provider: { label: string; kind: CloudProviderKind; pageUrl: string | null };
+  /**
+   * Set when the monitor follows one component but the provider does not say which components an
+   * incident affects (Instatus): the name of the page whose incidents are listed.
+   */
+  incidentsFromPage?: string | null;
   components: CloudComponent[];
   incidents: CloudIncident[];
   maintenances: CloudMaintenance[];

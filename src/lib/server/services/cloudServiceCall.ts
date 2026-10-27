@@ -11,6 +11,14 @@ import {
   ResolveM365Credentials,
   StatuspageBase,
 } from "../cloudProviderClient.js";
+import {
+  FetchInstatusComponents,
+  FetchInstatusSummary,
+  FindInstatusComponent,
+  InstatusComponentLabel,
+  InstatusPageStatus,
+  MapInstatusStatus,
+} from "../instatusClient.js";
 
 /** Statuspage page indicator -> Kener status. `ignoreMinor` lets a minor incident read UP. */
 export function MapStatuspageIndicator(indicator: string, ignoreMinor = false): string | null {
@@ -87,7 +95,9 @@ class CloudServiceCall {
       return this.fail(GC.ERROR, "Cloud Service monitor has no valid provider");
     }
     try {
-      return provider.kind === "m365" ? await this.checkM365(provider) : await this.checkStatuspage(provider);
+      if (provider.kind === "m365") return await this.checkM365(provider);
+      if (provider.kind === "instatus") return await this.checkInstatus(provider);
+      return await this.checkStatuspage(provider);
     } catch (err: unknown) {
       const error = err as { code?: string; message?: string };
       const timeout = data.timeout || 10000;
@@ -144,6 +154,46 @@ class CloudServiceCall {
       return this.fail(GC.ERROR, `Unknown component status "${match.status}"`);
     }
     return { status, latency, type: GC.REALTIME, raw_status: String(match.status) };
+  }
+
+  // ---------------------------------------------------------------- Instatus
+
+  private async checkInstatus(provider: CloudProvider): Promise<MonitoringResult> {
+    const data = this.monitor.type_data;
+    const base = StatuspageBase(provider, data);
+    if (!base) {
+      return this.fail(GC.ERROR, "Status page URL is missing or not http(s)");
+    }
+    const timeout = data.timeout || 10000;
+    const ignoreMinor = !!data.ignoreMinor;
+    const component = (data.component || "").trim();
+    const started = Date.now();
+
+    if (component) {
+      const components = await FetchInstatusComponents(base, timeout);
+      const latency = Date.now() - started;
+      const match = FindInstatusComponent(components, component);
+      if (!match) {
+        const names = components.map((c) => InstatusComponentLabel(c, components));
+        return this.fail(GC.ERROR, `Component "${component}" not found. Available: ${names.join(", ") || "none"}`);
+      }
+      const status = MapInstatusStatus(match.status, ignoreMinor);
+      if (!status) {
+        return this.fail(GC.ERROR, `Unknown component status "${match.status}"`);
+      }
+      return { status, latency, type: GC.REALTIME, raw_status: match.status };
+    }
+
+    const summary = await FetchInstatusSummary(base, timeout);
+    // Only a page with issues needs its components to tell how serious they are.
+    const needsComponents = String(summary.page.status).toUpperCase() === "HASISSUES";
+    const components = needsComponents ? await FetchInstatusComponents(base, timeout).catch(() => null) : null;
+    const latency = Date.now() - started;
+    const status = InstatusPageStatus(summary, components, ignoreMinor);
+    if (!status) {
+      return this.fail(GC.ERROR, `Unknown page status "${summary.page.status}"`);
+    }
+    return { status, latency, type: GC.REALTIME, raw_status: String(summary.page.status) };
   }
 
   // ---------------------------------------------------------------- Microsoft 365

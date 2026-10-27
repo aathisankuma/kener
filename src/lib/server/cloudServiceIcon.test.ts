@@ -84,6 +84,8 @@ describe("IconPageFor", () => {
     );
     expect(IconPageFor({ provider: "m365-teams" })).toBe("https://teams.microsoft.com");
     expect(IconPageFor({ provider: "m365-custom" })).toBe("");
+    expect(IconPageFor({ provider: "deepcloud" })).toBe("https://status.deepcloud.swiss");
+    expect(IconPageFor({ provider: "swiss21" })).toBe("https://swiss21.org");
   });
 });
 

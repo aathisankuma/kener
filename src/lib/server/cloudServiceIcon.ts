@@ -3,7 +3,7 @@
 import axios from "axios";
 import sharp from "sharp";
 import GC from "../global-constants.js";
-import { GetCloudProvider } from "../cloudServices.js";
+import { GetCloudProvider, IsStatusPageKind } from "../cloudServices.js";
 import type { CloudServiceMonitorTypeData } from "./types/monitor.js";
 import { CloudHttpOptions, StatuspageBase } from "./cloudProviderClient.js";
 import { uploadImage } from "./controllers/imageController.js";
@@ -112,7 +112,7 @@ export function IconPageFor(data: CloudServiceMonitorTypeData): string {
   const provider = GetCloudProvider(data?.provider);
   if (!provider) return "";
   if (provider.iconSite) return provider.iconSite;
-  return provider.kind === "statuspage" ? StatuspageBase(provider, data) : "";
+  return IsStatusPageKind(provider.kind) ? StatuspageBase(provider, data) : "";
 }
 
 /**
