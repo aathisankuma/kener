@@ -47,6 +47,7 @@ A clear, concise description of the issue that will be visible to users.
     - **Start Date/Time** (entered in local timezone)
 3. Optional:
     - **Global visibility** toggle
+    - **Show at top** for an incident that affects everyone, see [below](#show-at-top)
     - Initial update message
 4. Add affected monitors (optional but recommended).
 5. Click **Create Incident**.
@@ -80,9 +81,20 @@ You can edit:
 - Title
 - Start time
 - Global visibility
+- Show at top and the box colour
 - Affected monitors and impact
 
 Save changes to apply them immediately.
+
+## Show an incident at the top {#show-at-top}
+
+Turn on **Show at top** for an incident that affects everyone, such as a phone or internet outage. The incident then:
+
+- appears in a box at the top of every status page, above the services, with its title and latest update. The box is red for **Down** and orange for **Degraded**;
+- emails every subscriber, including those who chose only some services;
+- links to the service's page when it has exactly one affected monitor, otherwise to the incident's page.
+
+When the incident is resolved, the box turns green and stays for 24 hours. The incident does not need an affected monitor. Use it sparingly: people stop reading a box that is always there.
 
 ## Delete incident {#delete-incident}
 

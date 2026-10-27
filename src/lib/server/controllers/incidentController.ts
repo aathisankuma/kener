@@ -42,6 +42,7 @@ export interface IncidentInput {
   incident_type?: string;
   incident_source?: string;
   is_global?: string;
+  top_impact?: string | null;
 }
 
 interface IncidentUpdateInput {
@@ -51,7 +52,18 @@ interface IncidentUpdateInput {
   status?: string;
   state?: string;
   is_global?: string;
+  top_impact?: string | null;
 }
+
+/**
+ * An incident shown at the top of every status page has DOWN or DEGRADED as top_impact; any
+ * other incident has null. Empty values and "NO" mean null.
+ */
+export const NormalizeTopImpact = (value: unknown): string | null => {
+  if (value === null || value === undefined || value === "" || value === "NO") return null;
+  if (value === GC.DOWN || value === GC.DEGRADED) return value;
+  throw new Error("Show at top must be DOWN, DEGRADED or empty");
+};
 
 export const GetIncidentsOpenHome = async (
   homeIncidentCount: number | null,
@@ -345,6 +357,7 @@ export const CreateIncident = async (data: IncidentInput): Promise<{ incident_id
     incident_type: !!data.incident_type ? data.incident_type : "INCIDENT",
     incident_source: !!data.incident_source ? data.incident_source : "DASHBOARD",
     is_global: data.is_global || "YES",
+    top_impact: NormalizeTopImpact(data.top_impact),
   };
 
   //if endDateTime is provided and it is less than startDateTime, throw error
@@ -380,6 +393,7 @@ export const UpdateIncident = async (incident_id: number, data: IncidentUpdateIn
     state: data.state || incidentExists.state,
     end_date_time: endDateTime,
     is_global: data.is_global !== undefined ? data.is_global : incidentExists.is_global,
+    top_impact: data.top_impact !== undefined ? NormalizeTopImpact(data.top_impact) : incidentExists.top_impact,
   };
 
   return await db.updateIncident(updateObject as IncidentRecord);
@@ -467,7 +481,7 @@ export const UpdateCommentByID = async (
 // choke point; alertingQueue must not push its own incident notifications, or
 // alert-driven incidents would notify twice.
 const notifySubscribersOfComment = async (
-  incident: Pick<IncidentRecord, "id" | "title" | "is_global">,
+  incident: Pick<IncidentRecord, "id" | "title" | "is_global"> & { top_impact?: string | null },
   comment: IncidentCommentRecord,
 ): Promise<void> => {
   try {
@@ -484,8 +498,15 @@ const notifySubscribersOfComment = async (
     } catch (err) {
       console.error(`Error reading monitors of incident ${incident.id} for its subscriber mail:`, err);
     }
-    // Subscribers hear only of incidents a status page shows: global, or with a monitor that is not hidden.
-    if (incident.is_global !== "YES" && impacts?.length === 0) return;
+    // An incident shown at the top concerns everyone: every subscriber hears of it, whatever
+    // monitors they chose, and its top impact counts as well.
+    const atTop = !!incident.top_impact;
+    if (atTop) {
+      monitorTags = null;
+      impacts = [...(impacts ?? []), incident.top_impact!];
+    }
+    // Subscribers hear only of incidents a status page shows: global, at the top, or with a monitor that is not hidden.
+    if (incident.is_global !== "YES" && !atTop && impacts?.length === 0) return;
     const impact = impacts?.includes(GC.DOWN) ? GC.DOWN : impacts?.includes(GC.DEGRADED) ? GC.DEGRADED : "";
     const variables: SubscriptionVariableMap = {
       title: incident.title,

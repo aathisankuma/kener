@@ -212,6 +212,9 @@
     "e.g. Please use the stairs during this time.": "z. B. Bitte in dieser Zeit die Treppe benutzen.",
     "e.g. Technician is informed and arrives at 2 pm.": "z. B. Techniker ist informiert und kommt um 14 Uhr.",
     "e.g. The technician is on site.": "z. B. Der Techniker ist vor Ort.",
-    "Call off": "Absagen"
+    "Call off": "Absagen",
+    "Last 3 months": "Letzte 3 Monate",
+    "Show %count more": "%count weitere anzeigen",
+    "Show less": "Weniger anzeigen"
   }
 }

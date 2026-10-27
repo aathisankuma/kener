@@ -186,6 +186,9 @@
     "e.g. Please use the stairs during this time.": "p. ex. Veuillez utiliser l'escalier pendant ce temps.",
     "e.g. Technician is informed and arrives at 2 pm.": "p. ex. Le technicien est informé et arrive à 14 h.",
     "e.g. The technician is on site.": "p. ex. Le technicien est sur place.",
-    "Call off": "Annuler la maintenance"
+    "Call off": "Annuler la maintenance",
+    "Last 3 months": "3 derniers mois",
+    "Show %count more": "Afficher %count de plus",
+    "Show less": "Afficher moins"
   }
 }

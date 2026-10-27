@@ -6,6 +6,8 @@
   import ThemePlus from "$lib/components/ThemePlus.svelte";
   import IncidentItem from "$lib/components/IncidentItem.svelte";
   import MaintenanceItem from "$lib/components/MaintenanceItem.svelte";
+  import TopIncidents from "$lib/components/TopIncidents.svelte";
+  import PastIncidents from "$lib/components/PastIncidents.svelte";
   import mdToHTML from "$lib/marked.js";
   import clientResolver, { absoluteResolve } from "$lib/client/resolver.js";
   import { resolve } from "$app/paths";
@@ -170,6 +172,7 @@
       </Item.Content>
     </Item.Root>
   </div>
+  <TopIncidents incidents={data.topIncidents} />
   {#if !!data.monitorTags.length}
     <EventsCard statusClass={data.pageStatus.statusClass} statusText={data.pageStatus.statusSummary} />
     {#if showInlineEvents && data.ongoingIncidents && data.ongoingIncidents.length > 0}
@@ -224,4 +227,5 @@
       </div>
     </div>
   {/if}
+  <PastIncidents incidents={data.pastJsmIncidents} />
 </div>

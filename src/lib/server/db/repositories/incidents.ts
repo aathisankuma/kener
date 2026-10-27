@@ -138,6 +138,7 @@ export class IncidentsRepository extends BaseRepository {
       incident_type: data.incident_type,
       incident_source: data.incident_source,
       is_global: data.is_global || "YES",
+      top_impact: data.top_impact ?? null,
     };
 
     if (dbType === "postgresql") {
@@ -236,6 +237,7 @@ export class IncidentsRepository extends BaseRepository {
       status: data.status,
       state: data.state,
       is_global: data.is_global,
+      top_impact: data.top_impact,
       updated_at: this.knex.fn.now(),
     });
   }
@@ -264,6 +266,7 @@ export class IncidentsRepository extends BaseRepository {
         "state",
         "incident_type",
         "is_global",
+        "top_impact",
       )
       .where("id", id)
       .first();
@@ -582,6 +585,99 @@ export class IncidentsRepository extends BaseRepository {
       ...incident,
       comments: commentsByIncidentId.get(incident.id) || [],
     }));
+  }
+
+  /** Incidents with their visible monitors and active comments (newest first), in the order of ids. */
+  private async incidentsWithMonitorsAndComments(ids: number[]): Promise<IncidentForMonitorListWithComments[]> {
+    if (ids.length === 0) return [];
+    const rows = await this.knex("incidents")
+      .select(
+        "incidents.id",
+        "incidents.title",
+        "incidents.start_date_time",
+        "incidents.end_date_time",
+        "incidents.created_at",
+        "incidents.updated_at",
+        "incidents.status",
+        "incidents.state",
+        "incidents.top_impact",
+        "incident_monitors.monitor_impact",
+        "incident_monitors.monitor_tag",
+        "monitors.name as monitor_name",
+        "monitors.image as monitor_image",
+        "monitors.is_hidden as monitor_is_hidden",
+      )
+      .leftJoin("incident_monitors", "incidents.id", "incident_monitors.incident_id")
+      .leftJoin("monitors", "incident_monitors.monitor_tag", "monitors.tag")
+      .whereIn("incidents.id", ids);
+    const topImpact = new Map<number, string | null>(rows.map((r) => [r.id, r.top_impact ?? null]));
+    const byId = new Map(this.groupIncidentsByIdForMonitorList(rows).map((i) => [i.id, i]));
+
+    const comments: IncidentCommentRecord[] = await this.knex("incident_comments")
+      .select("*")
+      .whereIn("incident_id", ids)
+      .andWhere("status", "ACTIVE")
+      .orderBy("commented_at", "desc")
+      .orderBy("id", "desc");
+    const commentsById = new Map<number, IncidentCommentRecord[]>();
+    for (const c of comments) commentsById.set(c.incident_id, [...(commentsById.get(c.incident_id) || []), c]);
+
+    return ids
+      .filter((id) => byId.has(id))
+      .map((id) => ({ ...byId.get(id)!, top_impact: topImpact.get(id) ?? null, comments: commentsById.get(id) || [] }));
+  }
+
+  /**
+   * Incidents shown at the top of every status page: open ones, and resolved ones whose end
+   * is at or after resolvedSince. Newest first.
+   */
+  async getTopIncidents(timestamp: number, resolvedSince: number): Promise<IncidentForMonitorListWithComments[]> {
+    const ids: number[] = await this.knex("incidents")
+      .whereNotNull("top_impact")
+      .andWhere("incident_type", GC.INCIDENT)
+      .andWhere("start_date_time", "<=", timestamp)
+      .andWhere(function () {
+        this.where("state", "!=", GC.RESOLVED).orWhere("end_date_time", ">=", resolvedSince);
+      })
+      .orderBy("start_date_time", "desc")
+      .orderBy("id", "desc")
+      .pluck("id");
+    return this.incidentsWithMonitorsAndComments(ids);
+  }
+
+  /**
+   * Resolved incidents from one source (e.g. JSM) that ended between since and timestamp and
+   * that a page shows: on one of its monitors that is not hidden, or shown at the top. Most
+   * recently ended first.
+   */
+  async getResolvedIncidentsBySource(
+    source: string,
+    monitorTags: string[],
+    since: number,
+    timestamp: number,
+    limit: number,
+  ): Promise<IncidentForMonitorListWithComments[]> {
+    const rows: Array<{ id: number; end_date_time: number }> = await this.knex("incidents")
+      .distinct("incidents.id", "incidents.end_date_time")
+      .leftJoin("incident_monitors", "incidents.id", "incident_monitors.incident_id")
+      .leftJoin("monitors", "incident_monitors.monitor_tag", "monitors.tag")
+      .where("incidents.incident_source", source)
+      .andWhere("incidents.incident_type", GC.INCIDENT)
+      .andWhere("incidents.state", GC.RESOLVED)
+      .andWhere("incidents.end_date_time", ">=", since)
+      .andWhere("incidents.end_date_time", "<=", timestamp)
+      .andWhere(function () {
+        this.whereNotNull("incidents.top_impact");
+        if (monitorTags.length > 0) {
+          this.orWhere((tagged) =>
+            tagged.whereIn("incident_monitors.monitor_tag", monitorTags).andWhere("monitors.is_hidden", "NO"),
+          );
+        }
+      })
+      .orderBy("incidents.end_date_time", "desc")
+      .orderBy("incidents.id", "desc")
+      .limit(limit);
+    return this.incidentsWithMonitorsAndComments(rows.map((r) => r.id));
   }
 
   async getResolvedIncidentsForMonitorList(

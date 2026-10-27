@@ -207,6 +207,8 @@ class DbImpl {
   getAllGlobalOngoingIncidentsWithComments!: IncidentsRepository["getAllGlobalOngoingIncidentsWithComments"];
   getResolvedIncidentsForMonitorList!: IncidentsRepository["getResolvedIncidentsForMonitorList"];
   getResolvedIncidentsForMonitorListWithComments!: IncidentsRepository["getResolvedIncidentsForMonitorListWithComments"];
+  getTopIncidents!: IncidentsRepository["getTopIncidents"];
+  getResolvedIncidentsBySource!: IncidentsRepository["getResolvedIncidentsBySource"];
   getIncidentsForEventsByDateRange!: IncidentsRepository["getIncidentsForEventsByDateRange"];
   getIncidentsForEventsByDateRangeMonitor!: IncidentsRepository["getIncidentsForEventsByDateRangeMonitor"];
   getLastIncidentByMonitorTags!: IncidentsRepository["getLastIncidentByMonitorTags"];
@@ -607,6 +609,8 @@ class DbImpl {
     );
     this.getResolvedIncidentsForMonitorListWithComments =
       this.incidents.getResolvedIncidentsForMonitorListWithComments.bind(this.incidents);
+    this.getTopIncidents = this.incidents.getTopIncidents.bind(this.incidents);
+    this.getResolvedIncidentsBySource = this.incidents.getResolvedIncidentsBySource.bind(this.incidents);
     this.getIncidentsForEventsByDateRange = this.incidents.getIncidentsForEventsByDateRange.bind(this.incidents);
     this.getIncidentsForEventsByDateRangeMonitor = this.incidents.getIncidentsForEventsByDateRangeMonitor.bind(
       this.incidents,

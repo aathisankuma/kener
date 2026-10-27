@@ -90,7 +90,7 @@ Admins can also:
 
 ## When notifications are triggered {#when-notifications-are-triggered}
 
-Kener emails subscribers about an incident or maintenance only when it is global (`is_global = YES`) or affects at least one monitor that is not hidden. See [Monitor visibility](/docs/v4/monitors/visibility#where-each-rule-applies).
+Kener emails subscribers about an incident or maintenance only when it is global (`is_global = YES`), is [shown at the top](/docs/v4/incidents/creating-managing#show-at-top), or affects at least one monitor that is not hidden. An incident shown at the top is emailed to every incident subscriber, whatever services they chose. See [Monitor visibility](/docs/v4/monitors/visibility#where-each-rule-applies).
 
 ### Incident notifications {#incident-notifications}
 

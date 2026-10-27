@@ -356,6 +356,8 @@ export interface IncidentRecord {
   incident_type: string;
   incident_source: string;
   is_global: string;
+  /** DOWN or DEGRADED when the incident is shown at the top of every status page, else null. */
+  top_impact: string | null;
 }
 
 export interface IncidentMonitorImpact {
@@ -375,6 +377,7 @@ export interface IncidentForMonitorList {
   status: string;
   state: string;
   monitors: IncidentMonitorImpact[];
+  top_impact?: string | null;
 }
 
 export interface IncidentForMonitorListWithComments extends IncidentForMonitorList {
@@ -390,6 +393,7 @@ export interface IncidentRecordInsert {
   incident_type?: string;
   incident_source?: string;
   is_global?: string;
+  top_impact?: string | null;
 }
 
 // ============ incident_monitors table ============
