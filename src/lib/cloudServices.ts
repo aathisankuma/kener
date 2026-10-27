@@ -5,13 +5,15 @@
 //   /v3/components.json) needs no login either.
 // - "m365" providers are Microsoft 365 services, read from the tenant's Service Health in Microsoft
 //   Graph (needs an app registration with the ServiceHealth.Read.All application permission).
+// - "azure" providers are one Azure resource, e.g. an Azure OpenAI account, read from Azure Resource
+//   Health (the same app registration, with the Reader role on the resource).
 
-export type CloudProviderKind = "statuspage" | "instatus" | "m365";
+export type CloudProviderKind = "statuspage" | "instatus" | "m365" | "azure";
 
 export interface CloudProvider {
   id: string;
   label: string;
-  group: "Atlassian" | "Microsoft 365" | "Abacus" | "Other";
+  group: "Atlassian" | "Microsoft 365" | "Microsoft Azure" | "Abacus" | "Other";
   kind: CloudProviderKind;
   /** Status page base URL (Statuspage or Instatus), without a trailing slash. */
   url?: string;
@@ -29,6 +31,24 @@ export const CLOUD_CUSTOM_STATUSPAGE = "statuspage-custom";
 export const CLOUD_CUSTOM_INSTATUS = "instatus-custom";
 /** Provider id for any other Microsoft 365 service, entered by its Graph name or id. */
 export const CLOUD_CUSTOM_M365 = "m365-custom";
+
+/** Provider id for any other Azure resource, entered by its resource ID. */
+export const CLOUD_CUSTOM_AZURE = "azure-resource";
+
+/** Provider kinds signed in with the Microsoft app registration (M365_TENANT_ID, …). */
+export function IsMicrosoftKind(kind: CloudProviderKind | undefined): kind is "m365" | "azure" {
+  return kind === "m365" || kind === "azure";
+}
+
+/** An Azure Resource Manager resource ID: /subscriptions/…/resourceGroups/…/providers/…/… */
+export function IsAzureResourceId(value: unknown): boolean {
+  return (
+    typeof value === "string" &&
+    /^\/subscriptions\/[^/]+\/resourceGroups\/[^/]+\/providers\/[^/]+\/[^/]+\/[^/]+(\/[^/]+\/[^/]+)*$/i.test(
+      value.trim(),
+    )
+  );
+}
 
 /** Provider kinds whose status comes from a public page, so a URL and a component apply. */
 export function IsStatusPageKind(kind: CloudProviderKind | undefined): kind is "statuspage" | "instatus" {
@@ -197,6 +217,15 @@ export const CLOUD_PROVIDERS: CloudProvider[] = [
     iconSite: "https://app.powerbi.com",
   },
 
+  // Microsoft Azure: one resource of your subscription, from Azure Resource Health
+  {
+    id: "azure-openai",
+    label: "Azure OpenAI",
+    group: "Microsoft Azure",
+    kind: "azure",
+    iconSite: "https://ai.azure.com",
+  },
+
   // Abacus and its ecosystem (Instatus pages)
   {
     id: "abacus-cloud",
@@ -260,6 +289,15 @@ export function GetCloudProvider(id: string | undefined): CloudProvider | undefi
   }
   if (id === CLOUD_CUSTOM_INSTATUS) {
     return { id, label: "Other Instatus page (URL)", group: "Other", kind: "instatus" };
+  }
+  if (id === CLOUD_CUSTOM_AZURE) {
+    return {
+      id,
+      label: "Other Azure resource",
+      group: "Microsoft Azure",
+      kind: "azure",
+      iconSite: "https://portal.azure.com",
+    };
   }
   if (id === CLOUD_CUSTOM_M365) {
     return { id, label: "Other Microsoft 365 service", group: "Microsoft 365", kind: "m365" };
@@ -376,7 +414,8 @@ export function CloudServicesInUse(
       continue;
     }
     const id = typeof data?.provider === "string" ? data.provider : "";
-    if (!CLOUD_PROVIDERS.some((p) => p.id === id)) continue;
+    // Azure entries stand for whichever resource was entered, so they are never the same service.
+    if (!CLOUD_PROVIDERS.some((p) => p.id === id && p.kind !== "azure")) continue;
     const list = used.get(id) ?? [];
     list.push({ name: m.name, component: typeof data.component === "string" ? data.component.trim() : "" });
     used.set(id, list);

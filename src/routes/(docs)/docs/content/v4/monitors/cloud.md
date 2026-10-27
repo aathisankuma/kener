@@ -7,7 +7,7 @@ Cloud Service monitors follow a provider's own status instead of probing your ne
 
 The list marks a service with a green check when another monitor already follows it, and names that monitor. Choosing the same service and component again shows a warning, since the second monitor would show the same status twice.
 
-Besides Atlassian, Microsoft 365 and Abacus, the list holds widely used services that publish a Statuspage: GitHub, Cloudflare, Zoom, TeamViewer, Canva, OpenAI and Claude. Microsoft 365 Copilot is under **Microsoft 365**.
+Besides Atlassian, Microsoft 365, Azure and Abacus, the list holds widely used services that publish a Statuspage: GitHub, Cloudflare, Zoom, TeamViewer, Canva, OpenAI and Claude. Microsoft 365 Copilot is under **Microsoft 365**.
 
 To also check that _your_ users can reach the service, add an [API monitor](/docs/v4/monitors/api) on your own address and combine both in a [group monitor](/docs/v4/monitors/group).
 
@@ -78,6 +78,29 @@ Monitors that share an app registration share one sign-in and one Graph read per
 
 > [!TIP]
 > Keep the secret in `M365_CLIENT_SECRET`. A secret typed into the monitor's field is stored in Kener's database as is.
+
+## Azure OpenAI and other Azure resources {#azure}
+
+**Azure OpenAI** follows one resource of your own Azure subscription, e.g. the Azure OpenAI account your apps call. Kener reads its [Azure Resource Health](https://learn.microsoft.com/en-us/azure/service-health/resource-health-overview), so it shows problems that affect that resource, not Azure in general. **Other Azure resource** works the same for any resource Resource Health covers, e.g. a virtual machine or an App Service.
+
+1. Use the [Microsoft 365 app registration](#microsoft-365). In the Azure portal, open the resource (or its resource group), go to **Access control (IAM) → Add role assignment**, and give the app the **Reader** role.
+2. Copy the resource's ID: **Settings → Properties → Resource ID**. It starts with `/subscriptions/`.
+3. Create a Cloud Service monitor, pick **Azure OpenAI** under **Microsoft Azure**, and paste the resource ID. Leave the connection fields empty to use `M365_TENANT_ID`, `M365_CLIENT_ID` and `M365_CLIENT_SECRET`.
+4. Run **Test Monitor**.
+
+| Azure reports | Kener records                                  |
+| ------------- | ---------------------------------------------- |
+| `Available`   | UP                                             |
+| `Degraded`    | DEGRADED                                       |
+| `Unavailable` | DOWN, or MAINTENANCE when Azure says "Planned" |
+| `Unknown`     | **If the provider cannot be read**             |
+
+The detail page shows the resource with Azure's explanation and the times it was not available in Azure's recent history.
+
+| Message                               | Fix                                                |
+| ------------------------------------- | -------------------------------------------------- |
+| `Azure refused access (HTTP 403)`     | Give the app the Reader role on the resource.      |
+| `Azure resource not found (HTTP 404)` | Check the resource ID, including the subscription. |
 
 ## Icon {#icon}
 

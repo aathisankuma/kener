@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import axios from "axios";
+import { ClearAzureHealthCache } from "../azureResourceHealth";
 import CloudServiceCall, {
   ClearCloudServiceCache,
   MapM365Status,
@@ -15,6 +16,7 @@ const mockedAxios = vi.mocked(axios);
 beforeEach(() => {
   mockedAxios.mockReset();
   ClearCloudServiceCache();
+  ClearAzureHealthCache();
 });
 afterEach(() => {
   delete process.env.TEST_M365_SECRET;
@@ -116,9 +118,7 @@ describe("Statuspage providers", () => {
       error_message: "Statuspage answered HTTP 503",
     });
 
-    mockedAxios.mockRejectedValue(
-      Object.assign(new Error("timeout of 10000ms exceeded"), { code: "ECONNABORTED" }),
-    );
+    mockedAxios.mockRejectedValue(Object.assign(new Error("timeout of 10000ms exceeded"), { code: "ECONNABORTED" }));
     expect(await new CloudServiceCall(monitor({ errorStatus: "DOWN" })).execute()).toMatchObject({
       status: "DOWN",
       type: "TIMEOUT",
@@ -177,6 +177,64 @@ describe("Instatus providers", () => {
     mockedAxios.mockResolvedValue(reply(502, null));
     const result = await new CloudServiceCall(monitor({ provider: "abacus-cloud", errorStatus: "DOWN" })).execute();
     expect(result).toMatchObject({ status: "DOWN", type: "ERROR", error_message: "Instatus answered HTTP 502" });
+  });
+});
+
+describe("Azure resources", () => {
+  const RESOURCE =
+    "/subscriptions/1111/resourceGroups/rg-ai/providers/Microsoft.CognitiveServices/accounts/band-openai";
+  const signIn = { tenantId: "tenant-az", clientId: "client-az", clientSecret: "s3cret" };
+
+  it("signs in for Azure Resource Manager and reads the resource's health", async () => {
+    mockedAxios.mockImplementation(async (url, config) => {
+      if (String(url).includes("login.microsoftonline.com")) {
+        expect(String((config as { data?: string }).data)).toContain(
+          "scope=https%3A%2F%2Fmanagement.azure.com%2F.default",
+        );
+        return reply(200, { access_token: "arm-token", expires_in: 3600 });
+      }
+      expect(url).toBe(
+        `https://management.azure.com${RESOURCE}/providers/Microsoft.ResourceHealth/availabilityStatuses/current?api-version=2022-10-01`,
+      );
+      return reply(200, { properties: { availabilityState: "Unavailable", reasonType: "Unplanned" } });
+    });
+    const result = await new CloudServiceCall(
+      monitor({ provider: "azure-openai", azureResourceId: RESOURCE, ...signIn }),
+    ).execute();
+    expect(result).toMatchObject({ status: "DOWN", type: "REALTIME", raw_status: "Unavailable" });
+  });
+
+  it("explains a missing Reader role and a wrong resource ID", async () => {
+    mockedAxios.mockImplementation(async (url) =>
+      String(url).includes("login.microsoftonline.com")
+        ? reply(200, { access_token: "t", expires_in: 3600 })
+        : reply(403, { error: { message: "The client does not have authorization." } }),
+    );
+    const denied = await new CloudServiceCall(
+      monitor({ provider: "azure-openai", azureResourceId: RESOURCE, ...signIn }),
+    ).execute();
+    expect(denied.error_message).toContain("Give the app the Reader role on the resource");
+
+    const wrong = await new CloudServiceCall(
+      monitor({ provider: "azure-openai", azureResourceId: "band-openai", ...signIn }),
+    ).execute();
+    expect(wrong.error_message).toContain("Azure resource ID is missing");
+  });
+
+  it("does not guess when Azure reports Unknown", async () => {
+    mockedAxios.mockImplementation(async (url) =>
+      String(url).includes("login.microsoftonline.com")
+        ? reply(200, { access_token: "t", expires_in: 3600 })
+        : reply(200, { properties: { availabilityState: "Unknown" } }),
+    );
+    const result = await new CloudServiceCall(
+      monitor({ provider: "azure-resource", azureResourceId: RESOURCE, ...signIn, errorStatus: "UP" }),
+    ).execute();
+    expect(result).toMatchObject({
+      status: "UP",
+      type: "ERROR",
+      error_message: 'Azure reports the resource as "Unknown"',
+    });
   });
 });
 
