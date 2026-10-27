@@ -4,6 +4,7 @@ import axios from "axios";
 import GC from "../global-constants.js";
 import type { CloudServiceMonitorTypeData } from "./types/monitor.js";
 import {
+  ChosenComponents,
   GetCloudProvider,
   type CloudComponent,
   type CloudDetails,
@@ -86,21 +87,29 @@ interface SpIncident {
   incident_updates?: SpUpdate[];
 }
 
-export function NormalizeStatuspageComponents(raw: SpComponent[], only: string): CloudComponent[] {
+export function NormalizeStatuspageComponents(raw: SpComponent[], only: string | string[]): CloudComponent[] {
   const groups = new Map(raw.filter((c) => c.group).map((c) => [c.id, c.name]));
-  const wanted = only.trim().toLowerCase();
-  return raw
-    .filter((c) => !c.group)
-    .filter((c) => !(c.only_show_if_degraded && String(c.status).toLowerCase() === "operational"))
-    .filter((c) => !wanted || c.id.toLowerCase() === wanted || c.name.trim().toLowerCase() === wanted)
-    .sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
-    .map((c) => ({
-      id: c.id,
-      name: c.name,
-      description: c.description?.trim() || null,
-      status: (MapStatuspageComponent(c.status) ?? GC.UP) as CloudStatus,
-      group: (c.group_id && groups.get(c.group_id)) || null,
-    }));
+  const wanted = (Array.isArray(only) ? only : [only]).map((w) => w.trim().toLowerCase()).filter(Boolean);
+  return (
+    raw
+      .filter((c) => !c.group)
+      // A part the page hides while operational stays hidden, unless the monitor follows it.
+      .filter(
+        (c) => wanted.length > 0 || !(c.only_show_if_degraded && String(c.status).toLowerCase() === "operational"),
+      )
+      .filter(
+        (c) =>
+          wanted.length === 0 || wanted.includes(c.id.toLowerCase()) || wanted.includes(c.name.trim().toLowerCase()),
+      )
+      .sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
+      .map((c) => ({
+        id: c.id,
+        name: c.name,
+        description: c.description?.trim() || null,
+        status: (MapStatuspageComponent(c.status) ?? GC.UP) as CloudStatus,
+        group: (c.group_id && groups.get(c.group_id)) || null,
+      }))
+  );
 }
 
 export function NormalizeStatuspageIncident(i: SpIncident): CloudIncident {
@@ -127,11 +136,11 @@ export function NormalizeStatuspageIncident(i: SpIncident): CloudIncident {
   };
 }
 
-/** Keep incidents that name the chosen component, or name none (they concern the whole page). */
-function affectsComponent(i: SpIncident, only: string): boolean {
-  const wanted = only.trim().toLowerCase();
-  if (!wanted || !i.components || i.components.length === 0) return true;
-  return i.components.some((c) => c.id.toLowerCase() === wanted || c.name.trim().toLowerCase() === wanted);
+/** Keep incidents that name a chosen component, or name none (they concern the whole page). */
+function affectsComponent(i: SpIncident, only: string[]): boolean {
+  const wanted = only.map((w) => w.toLowerCase());
+  if (wanted.length === 0 || !i.components || i.components.length === 0) return true;
+  return i.components.some((c) => wanted.includes(c.id.toLowerCase()) || wanted.includes(c.name.trim().toLowerCase()));
 }
 
 async function statuspageDetails(provider: CloudProvider, data: CloudServiceMonitorTypeData): Promise<CloudDetails> {
@@ -145,7 +154,7 @@ async function statuspageDetails(provider: CloudProvider, data: CloudServiceMoni
   if (summary.status < 200 || summary.status >= 300) {
     throw new Error(`Statuspage answered HTTP ${summary.status}`);
   }
-  const only = data.component || "";
+  const only = ChosenComponents(data);
   const incidents: SpIncident[] =
     history.status >= 200 && history.status < 300 && Array.isArray(history.data?.incidents)
       ? history.data.incidents
@@ -239,9 +248,11 @@ async function instatusDetails(provider: CloudProvider, data: CloudServiceMonito
     FetchInstatusSummary(base, timeout),
     FetchInstatusComponents(base, timeout).catch(() => []),
   ]);
-  const only = (data.component || "").trim();
-  const chosen = only ? FindInstatusComponent(all, only) : null;
-  const shown = only ? (chosen ? [chosen] : []) : all;
+  const only = ChosenComponents(data);
+  const shown =
+    only.length > 0
+      ? only.map((name) => FindInstatusComponent(all, name)).filter((c): c is NonNullable<typeof c> => c !== null)
+      : all;
 
   const active = summary.activeIncidents.map((i) => NormalizeInstatusIncident(i, false));
   const past = summary.recentlyResolvedIncidents.map((i) => NormalizeInstatusIncident(i, true));
@@ -254,7 +265,7 @@ async function instatusDetails(provider: CloudProvider, data: CloudServiceMonito
       pageUrl: base,
     },
     // Instatus does not say which components an incident affects.
-    incidentsFromPage: only ? String(summary.page.name || "").trim() || new URL(base).host : null,
+    incidentsFromPage: only.length > 0 ? String(summary.page.name || "").trim() || new URL(base).host : null,
     components: shown.map((c) => ({
       id: c.id,
       name: c.name,

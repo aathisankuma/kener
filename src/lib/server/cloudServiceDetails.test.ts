@@ -121,6 +121,18 @@ describe("GetCloudServiceDetails: Statuspage", () => {
     expect(details.maintenances).toEqual([]);
   });
 
+  it("shows the incidents of every chosen component", async () => {
+    mockedAxios.mockImplementation(async (url) =>
+      String(url).endsWith("summary.json") ? reply(200, summary) : reply(200, incidents),
+    );
+    const details = await GetCloudServiceDetails("jira-two", {
+      provider: "jira",
+      components: ["Search", "Viewing content"],
+    });
+    expect(details.components.map((c) => c.name)).toEqual(["Viewing content", "Search"]);
+    expect(details.incidents.map((i) => i.id)).toEqual(["i1", "i2"]);
+  });
+
   it("names a custom Statuspage by its own page name", async () => {
     mockedAxios.mockImplementation(async (url) =>
       String(url).endsWith("summary.json")
@@ -261,6 +273,18 @@ describe("GetCloudServiceDetails: Instatus", () => {
       scheduledFor: 1793271600,
       scheduledUntil: 1793275200,
     });
+  });
+
+  it("shows each chosen component", async () => {
+    abacus();
+    const details = await GetCloudServiceDetails("abacus-two", {
+      provider: "abacus-cloud",
+      components: ["AbaClock", "Service Management (SVM) / Kundenportal"],
+    });
+    expect(details.components.map((c) => [c.group, c.name, c.status])).toEqual([
+      ["Zentrale Services", "AbaClock", "UP"],
+      ["Service Management (SVM)", "Kundenportal", "DOWN"],
+    ]);
   });
 
   it("shows only Swiss21 for the Swiss21 monitor and says whose incidents are listed", async () => {
