@@ -7,8 +7,9 @@
  * monitors.read      → getMonitors, getMonitoringDataPaginated
  * monitors.write     → storeMonitorData, updateMonitoringData, deleteMonitor, deleteMonitorData, cloneMonitor, testMonitor, listDockerContainers, fetchCloudServiceIcon, listCloudComponents
  *
- * incidents.read     → getIncidents, getIncident, getComments
- * incidents.write    → createIncident, updateIncident, deleteIncident, addMonitor, removeMonitor, addComment, deleteComment, updateComment
+ * incidents.read     → getIncidents, getIncident, getComments, getJsmTickets
+ * incidents.write    → createIncident, updateIncident, deleteIncident, addMonitor, removeMonitor, addComment, deleteComment, updateComment,
+ *                      linkJsmTicket, moveJsmTicket, unlinkJsmTicket, ignoreJsmTicket, unignoreJsmTicket, syncJsmTickets
  *
  * maintenances.read  → getMaintenances, getMaintenance, getMaintenanceEvents, getMaintenanceEvent, getMaintenanceMonitors
  * maintenances.write → createMaintenance, updateMaintenance, deleteMaintenance, createMaintenanceEvent, updateMaintenanceEvent, updateMaintenanceEventStatus, deleteMaintenanceEvent, addMonitorToMaintenance, removeMonitorFromMaintenance, updateMaintenanceMonitorImpact
@@ -160,6 +161,15 @@ export const ACTION_PERMISSION_MAP: Record<string, string | null> = {
   deleteComment: "incidents.write",
   updateComment: "incidents.write",
 
+  // Jira Service Management tickets linked to incidents
+  getJsmTickets: "incidents.read",
+  linkJsmTicket: "incidents.write",
+  moveJsmTicket: "incidents.write",
+  unlinkJsmTicket: "incidents.write",
+  ignoreJsmTicket: "incidents.write",
+  unignoreJsmTicket: "incidents.write",
+  syncJsmTickets: "incidents.write",
+
   // Maintenances
   getMaintenances: "maintenances.read",
   getMaintenance: "maintenances.read",
@@ -261,6 +271,7 @@ export const ROUTE_PERMISSION_MAP: Record<string, string | null> = {
   // Incidents
   "/(manage)/manage/app/incidents": "incidents.read",
   "/(manage)/manage/app/incidents/[incident_id]": "incidents.read",
+  "/(manage)/manage/app/jsm-tickets": "incidents.read",
 
   // Maintenances
   "/(manage)/manage/app/maintenances": "maintenances.read",

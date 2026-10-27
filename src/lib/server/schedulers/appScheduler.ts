@@ -7,6 +7,7 @@ import { getSchedulers, addJobToSchedulerQueue, removeJobFromSchedulerQueue } fr
 
 import { GetMonitorsParsed } from "../controllers/controller.js";
 import { UpdateMaintenanceEventStatuses } from "../controllers/maintenanceController.js";
+import { SyncJsmIfDue } from "../controllers/jsmController.js";
 
 let appSchedulerQueue: Queue | null = null;
 let worker: Worker | null = null;
@@ -72,6 +73,10 @@ const addWorker = () => {
 
     //we have to update the maintenances events also
     await UpdateMaintenanceEventStatuses();
+
+    // Linked Jira Service Management tickets, at most every 2 minutes. Not awaited: a slow Jira
+    // must not hold up the monitor schedulers; SyncJsmIfDue catches its own errors.
+    void SyncJsmIfDue();
 
     return activeMonitors.length;
   });
