@@ -224,7 +224,17 @@ export const CLOUD_PROVIDERS: CloudProvider[] = [
     kind: "statuspage",
     url: "https://www.cloudflarestatus.com",
   },
-  { id: "zoom", label: "Zoom", group: "Other", kind: "statuspage", url: "https://status.zoom.us" },
+  // status.zoom.us forwards to www.zoomstatus.com.
+  { id: "zoom", label: "Zoom", group: "Other", kind: "statuspage", url: "https://www.zoomstatus.com" },
+  {
+    id: "teamviewer",
+    label: "TeamViewer",
+    group: "Other",
+    kind: "statuspage",
+    url: "https://status.teamviewer.com",
+  },
+  { id: "canva", label: "Canva", group: "Other", kind: "statuspage", url: "https://www.canvastatus.com" },
+  { id: "claude", label: "Claude (Anthropic)", group: "Other", kind: "statuspage", url: "https://status.claude.com" },
 ];
 
 export function GetCloudProvider(id: string | undefined): CloudProvider | undefined {
@@ -322,4 +332,47 @@ export function SuggestMonitorTag(name: string): string {
     .replace(/[̀-ͯ]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
+}
+
+/** SuggestMonitorTag(name), or the same with -2, -3, … when a monitor already has that tag. */
+export function SuggestUniqueMonitorTag(name: string, takenTags: Iterable<string>): string {
+  const taken = new Set(takenTags);
+  const base = SuggestMonitorTag(name);
+  if (!base || !taken.has(base)) return base;
+  let n = 2;
+  while (taken.has(`${base}-${n}`)) n++;
+  return `${base}-${n}`;
+}
+
+/** A monitor that already follows a service. */
+export interface CloudServiceUse {
+  /** Monitor name. */
+  name: string;
+  /** Component it follows, "" for the whole page. */
+  component: string;
+}
+
+/**
+ * Which listed services other monitors already follow, by provider id. Custom pages (by URL or
+ * service name) are left out: the same provider id can stand for different pages there.
+ */
+export function CloudServicesInUse(
+  monitors: Array<{ name: string; monitor_type: string; type_data?: string | null }>,
+): Map<string, CloudServiceUse[]> {
+  const used = new Map<string, CloudServiceUse[]>();
+  for (const m of monitors) {
+    if (m.monitor_type !== "CLOUD" || !m.type_data) continue;
+    let data: { provider?: unknown; component?: unknown };
+    try {
+      data = JSON.parse(m.type_data);
+    } catch {
+      continue;
+    }
+    const id = typeof data?.provider === "string" ? data.provider : "";
+    if (!CLOUD_PROVIDERS.some((p) => p.id === id)) continue;
+    const list = used.get(id) ?? [];
+    list.push({ name: m.name, component: typeof data.component === "string" ? data.component.trim() : "" });
+    used.set(id, list);
+  }
+  return used;
 }

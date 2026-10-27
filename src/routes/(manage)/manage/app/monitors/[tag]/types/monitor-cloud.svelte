@@ -13,11 +13,20 @@
     CLOUD_CUSTOM_M365,
     CLOUD_CUSTOM_STATUSPAGE,
     GetCloudProvider,
+    CloudServicesInUse,
     IsStatusPageKind
   } from "$lib/cloudServices.js";
+  import CheckIcon from "@lucide/svelte/icons/circle-check";
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let { data = $bindable() }: { data: any } = $props();
+  let {
+    data = $bindable(),
+    otherMonitors = []
+  }: {
+    data: any;
+    /** The other monitors, to mark services they already follow. */
+    otherMonitors?: Array<{ name: string; monitor_type: string; type_data?: string | null }>;
+  } = $props();
 
   const STATUS_OPTIONS = ["DEGRADED", "DOWN", "UP"] as const;
   const GROUPS = ["Atlassian", "Microsoft 365", "Abacus", "Other"] as const;
@@ -31,6 +40,18 @@
   if (data.component === undefined) data.component = "";
 
   let provider = $derived(GetCloudProvider(data.provider));
+  const inUse = $derived(CloudServicesInUse(otherMonitors));
+  const usedHere = $derived(inUse.get(data.provider) ?? []);
+  // Same service and same component (or both the whole page): this monitor would be a copy.
+  const duplicate = $derived(
+    usedHere.find(
+      (u) =>
+        u.component.toLowerCase() ===
+        String(data.component || "")
+          .trim()
+          .toLowerCase()
+    )
+  );
   let isCustomPage = $derived(data.provider === CLOUD_CUSTOM_STATUSPAGE || data.provider === CLOUD_CUSTOM_INSTATUS);
   let statuspageBase = $derived(
     (provider?.url || (isCustomPage ? data.statuspageUrl : "") || "").trim().replace(/\/+$/, "")
@@ -87,7 +108,21 @@
           <Select.Group>
             <Select.GroupHeading>{group}</Select.GroupHeading>
             {#each CLOUD_PROVIDERS.filter((p) => p.group === group) as p (p.id)}
-              <Select.Item value={p.id}>{p.label}</Select.Item>
+              {@const users = inUse.get(p.id) ?? []}
+              <Select.Item value={p.id} label={p.label}>
+                <span class="flex w-full items-center justify-between gap-3">
+                  <span>{p.label}</span>
+                  {#if users.length > 0}
+                    <span
+                      class="flex items-center gap-1 text-xs text-green-600 dark:text-green-400"
+                      title={`Already monitored by: ${users.map((u) => u.name).join(", ")}`}
+                    >
+                      <CheckIcon class="size-3.5" />
+                      {users.length === 1 ? users[0].name : `${users.length} monitors`}
+                    </span>
+                  {/if}
+                </span>
+              </Select.Item>
             {/each}
             {#if group === "Microsoft 365"}
               <Select.Item value={CLOUD_CUSTOM_M365}>Other Microsoft 365 service…</Select.Item>
@@ -107,6 +142,18 @@
         Reads the provider's official status page{statuspageBase ? ` (${statuspageBase})` : ""}. No login needed.
       {/if}
     </p>
+    {#if duplicate}
+      <p class="text-xs text-amber-600 dark:text-amber-400">
+        "{duplicate.name}" already follows this service{duplicate.component ? ` (${duplicate.component})` : ""}. A
+        second monitor would show the same status twice.
+      </p>
+    {:else if usedHere.length > 0}
+      <p class="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+        <CheckIcon class="size-3.5" />
+        Already monitored by {usedHere.map((u) => (u.component ? `${u.name} (${u.component})` : u.name)).join(", ")}.
+        Pick another component to follow a different part.
+      </p>
+    {/if}
   </div>
 
   {#if IsStatusPageKind(provider?.kind)}
