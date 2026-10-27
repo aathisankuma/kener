@@ -5,7 +5,9 @@ import {
   GetUsersCount,
   GetUserPasswordHashById,
   CreateFirstUser,
+  GetUserPermissions,
 } from "$lib/server/controllers/userController";
+import { HomePathFor } from "$lib/allPerms";
 import { VerifyPassword, GenerateToken, CookieConfig } from "$lib/server/controllers/commonController";
 import { GetOidcSettings } from "$lib/server/controllers/oidcController";
 import serverResolve from "$lib/server/resolver.js";
@@ -26,7 +28,7 @@ export const load: PageServerLoad = async ({ parent, url }) => {
   const parentData = await parent();
 
   if (!!parentData.loggedInUser && parentData.isSetupComplete) {
-    throw redirect(302, serverResolve("/manage/app/site-configurations"));
+    throw redirect(302, serverResolve(HomePathFor(await GetUserPermissions(parentData.loggedInUser.id))));
   }
 
   const oidcSettings = await GetOidcSettings();
@@ -124,7 +126,7 @@ export const actions: Actions = {
       sameSite: cookieConfig.sameSite,
     });
 
-    throw redirect(302, serverResolve("/manage/app/site-configurations"));
+    throw redirect(302, serverResolve(HomePathFor(await GetUserPermissions(userDB.id))));
   },
   signup: async ({ request, cookies }) => {
     const formData = await request.formData();

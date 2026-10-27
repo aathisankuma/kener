@@ -60,6 +60,15 @@
   const loginDetails = $derived.by((): { label: string; url: string } | null => {
     if (!page.data?.loggedInUser) return null;
 
+    // A service manager has no dashboard: the link leads to their own page.
+    if (page.data.homePath === "/my-services") {
+      const tag = page.params.monitor_tag;
+      if (tag && page.data.myServiceTags?.includes(tag)) {
+        return { label: $t("Report status"), url: clientResolver(resolve, `/my-services#service-${tag}`) };
+      }
+      return { label: $t("My services"), url: clientResolver(resolve, "/my-services") };
+    }
+
     if (page.route.id === "/(kener)/monitors/[monitor_tag]") {
       return {
         label: $t("Edit Monitor"),

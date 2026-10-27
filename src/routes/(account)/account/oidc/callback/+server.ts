@@ -8,6 +8,8 @@ import {
   OidcLoginError,
 } from "$lib/server/controllers/oidcController";
 import serverResolve from "$lib/server/resolver.js";
+import { GetUserPermissions } from "$lib/server/controllers/userController";
+import { HomePathFor } from "$lib/allPerms";
 
 export const GET: RequestHandler = async ({ url, cookies }) => {
   const settings = await GetOidcSettings();
@@ -61,7 +63,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
       sameSite: cookieConfig.sameSite,
     });
 
-    throw redirect(302, serverResolve("/manage/app/site-configurations"));
+    throw redirect(302, serverResolve(HomePathFor(await GetUserPermissions(user.id))));
   } catch (e) {
     if (e && typeof e === "object" && "status" in e) {
       const status = (e as { status: number }).status;

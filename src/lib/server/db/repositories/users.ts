@@ -374,6 +374,51 @@ export class UsersRepository extends BaseRepository {
     return rows.map((r: { id: string }) => r.id);
   }
 
+  // ============ Services a user manages ============
+
+  /** Tags of the monitors a user manages, sorted. */
+  async getMonitorTagsForUser(userId: number): Promise<string[]> {
+    return await this.knex("users_monitors")
+      .where("users_id", userId)
+      .orderBy("monitor_tag", "asc")
+      .pluck("monitor_tag");
+  }
+
+  /** Monitor tags per user, for a list of users. Users without services are left out. */
+  async getMonitorTagsForUsers(userIds: number[]): Promise<Map<number, string[]>> {
+    const result = new Map<number, string[]>();
+    if (userIds.length === 0) return result;
+    const rows: Array<{ users_id: number; monitor_tag: string }> = await this.knex("users_monitors")
+      .whereIn("users_id", userIds)
+      .orderBy("monitor_tag", "asc")
+      .select("users_id", "monitor_tag");
+    for (const row of rows) {
+      const id = Number(row.users_id);
+      const tags = result.get(id) ?? [];
+      tags.push(row.monitor_tag);
+      result.set(id, tags);
+    }
+    return result;
+  }
+
+  /** Replaces the monitors a user manages. */
+  async setMonitorTagsForUser(userId: number, monitorTags: string[]): Promise<void> {
+    const unique = [...new Set(monitorTags)];
+    await this.knex.transaction(async (trx) => {
+      await trx("users_monitors").where("users_id", userId).del();
+      if (unique.length > 0) {
+        await trx("users_monitors").insert(
+          unique.map((monitor_tag) => ({ users_id: userId, monitor_tag, created_at: trx.fn.now() })),
+        );
+      }
+    });
+  }
+
+  /** Forgets a deleted monitor in every user's list. */
+  async deleteUserMonitorsByTag(monitorTag: string): Promise<number> {
+    return await this.knex("users_monitors").where("monitor_tag", monitorTag).del();
+  }
+
   // ============ OIDC ============
 
   async getUserByOidcSub(oidcSub: string): Promise<UserRecordPublic | undefined> {

@@ -144,6 +144,10 @@ class DbImpl {
   addUserToRole!: UsersRepository["addUserToRole"];
   removeUserFromRole!: UsersRepository["removeUserFromRole"];
   getUserPermissionIds!: UsersRepository["getUserPermissionIds"];
+  getMonitorTagsForUser!: UsersRepository["getMonitorTagsForUser"];
+  getMonitorTagsForUsers!: UsersRepository["getMonitorTagsForUsers"];
+  setMonitorTagsForUser!: UsersRepository["setMonitorTagsForUser"];
+  deleteUserMonitorsByTag!: UsersRepository["deleteUserMonitorsByTag"];
   getUserRoleIds!: UsersRepository["getUserRoleIds"];
 
   // ============ OIDC ============
@@ -531,6 +535,10 @@ class DbImpl {
     this.addUserToRole = this.users.addUserToRole.bind(this.users);
     this.removeUserFromRole = this.users.removeUserFromRole.bind(this.users);
     this.getUserPermissionIds = this.users.getUserPermissionIds.bind(this.users);
+    this.getMonitorTagsForUser = this.users.getMonitorTagsForUser.bind(this.users);
+    this.getMonitorTagsForUsers = this.users.getMonitorTagsForUsers.bind(this.users);
+    this.setMonitorTagsForUser = this.users.setMonitorTagsForUser.bind(this.users);
+    this.deleteUserMonitorsByTag = this.users.deleteUserMonitorsByTag.bind(this.users);
     this.getUserRoleIds = this.users.getUserRoleIds.bind(this.users);
 
     // OIDC

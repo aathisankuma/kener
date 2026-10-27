@@ -8,15 +8,18 @@ import { permissions } from "../src/lib/allPerms.ts";
  *
  * Permission mapping derived from src/routes/(manage)/manage/api/+server.ts:
  *
- * admin  → all permissions
- * editor → all except api_keys.delete (AdminCan-only)
- * member → all .read permissions only
+ * admin           → all permissions
+ * editor          → all except api_keys.delete (AdminCan-only)
+ * member          → all .read permissions only
+ * service_manager → only services.manage_assigned: status, incidents and maintenance of the
+ *                   services assigned to the user (users_monitors), on a page of its own
  */
 
 const readonlyRoles = [
   { id: "admin", role_name: "Administrator" },
   { id: "editor", role_name: "Editor" },
   { id: "member", role_name: "Member" },
+  { id: "service_manager", role_name: "Service Manager" },
 ];
 
 const allPermissionIds = permissions.map((p) => p.id);
@@ -26,6 +29,7 @@ const rolePermissions: Record<string, string[]> = {
   admin: allPermissionIds,
   editor: allPermissionIds.filter((id) => id !== "api_keys.delete"),
   member: readPermissionIds,
+  service_manager: ["services.manage_assigned"],
 };
 
 export async function seed(knex: Knex): Promise<void> {

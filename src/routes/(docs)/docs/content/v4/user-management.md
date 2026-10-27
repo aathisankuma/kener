@@ -11,13 +11,14 @@ Kener uses a role-based access control (RBAC) system. Each user can be assigned 
 
 ### Built-in roles {#built-in-roles}
 
-Three readonly roles are seeded automatically:
+Four readonly roles are seeded automatically:
 
-| Role     | Permissions | Notes |
-| -------- | ----------- | ----- |
-| `admin`  | All permissions | Full access including `api_keys.delete` |
-| `editor` | All except `api_keys.delete` | Day-to-day operations |
-| `member` | All `.read` permissions only | View-only access |
+| Role              | Permissions                     | Notes                                                                                              |
+| ----------------- | ------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `admin`           | All permissions                 | Full access including `api_keys.delete`                                                            |
+| `editor`          | All except `api_keys.delete`    | Day-to-day operations                                                                              |
+| `member`          | All `.read` permissions only    | View-only access                                                                                   |
+| `service_manager` | `services.manage_assigned` only | Status, incidents and maintenance of their own services. See [Service managers](#service-managers) |
 
 Built-in roles cannot be edited or deleted.
 
@@ -36,21 +37,22 @@ Custom roles can be edited, deactivated, or deleted. When deleting a custom role
 
 Permissions follow a `domain.action` format:
 
-| Domain | Actions |
-| ------ | ------- |
-| `monitors` | `read`, `write` |
-| `incidents` | `read`, `write` |
-| `maintenances` | `read`, `write` |
-| `pages` | `read`, `write` |
-| `triggers` | `read`, `write` |
-| `alerts` | `read`, `write` |
-| `api_keys` | `read`, `write`, `delete` |
-| `users` | `read`, `write` |
-| `settings` | `read`, `write` |
-| `subscribers` | `read`, `write` |
-| `email_templates` | `read`, `write` |
-| `images` | `write` |
-| `roles` | `read`, `write`, `assign_permissions`, `assign_users` |
+| Domain            | Actions                                               |
+| ----------------- | ----------------------------------------------------- |
+| `monitors`        | `read`, `write`                                       |
+| `incidents`       | `read`, `write`                                       |
+| `maintenances`    | `read`, `write`                                       |
+| `pages`           | `read`, `write`                                       |
+| `triggers`        | `read`, `write`                                       |
+| `alerts`          | `read`, `write`                                       |
+| `api_keys`        | `read`, `write`, `delete`                             |
+| `users`           | `read`, `write`                                       |
+| `settings`        | `read`, `write`                                       |
+| `subscribers`     | `read`, `write`                                       |
+| `email_templates` | `read`, `write`                                       |
+| `images`          | `write`                                               |
+| `roles`           | `read`, `write`, `assign_permissions`, `assign_users` |
+| `services`        | `manage_assigned`                                     |
 
 Permissions are enforced at both the **route level** (page access) and the **action level** (API operations).
 
@@ -63,6 +65,23 @@ From the roles table, click **Permissions** on any role to view or edit its perm
 ### Managing role users {#managing-role-users}
 
 Click **Users** on any role to see assigned users. Users with `roles.assign_users` permission can add or remove users from roles.
+
+## Service managers {#service-managers}
+
+A service manager looks after one or a few services, e.g. the elevator or the coffee machine, without access to the dashboard. They sign in to **My services** (`/my-services`), a page with only their services, and can:
+
+- **Set the status** (Operational, Limited, Out of order, Maintenance) of a service Kener does not check itself, i.e. a monitor of type **None**. Kener turns on **keep the last status** for that monitor on the first change, so the status stays until the next change.
+- **Report a problem**: an incident on that service only, with updates, until they mark it **Problem resolved**. Subscribers of the service get the emails as for any incident.
+- **Plan maintenance** for that service, and call off maintenance that concerns only their services.
+
+They see nothing else: opening the dashboard leads back to **My services**, and every action checks that the service is assigned to them. A service that Kener checks itself (API, Ping, Cloud Service, …) shows its status read-only; problems with it are reported as incidents.
+
+To set one up:
+
+1. Invite the user (or let them sign in with [OIDC](/docs/v4/oidc)) and give them the role **Service Manager**. With OIDC you can map a group to `service_manager`.
+2. In **Manage → Users**, open the user's settings (gear icon), pick their services under **Services this user manages** and click **Update Services**. Several people can share a service.
+
+After signing in, a service manager lands on **My services**. On the status page, the toolbar link reads **My services**, or **Report status** on the page of one of their services.
 
 ## User management {#user-management}
 

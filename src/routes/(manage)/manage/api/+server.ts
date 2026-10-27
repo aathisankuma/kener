@@ -140,6 +140,15 @@ import { TestOidcConnection } from "$lib/server/controllers/oidcController.js";
 import { uploadImage } from "$lib/server/controllers/imageController.js";
 import { FetchCloudServiceIcon } from "$lib/server/cloudServiceIcon.js";
 import { ListCloudComponents } from "$lib/server/cloudComponents.js";
+import {
+  AddMyServiceIncidentUpdate,
+  CancelMyServiceMaintenance,
+  CreateMyServiceIncident,
+  CreateMyServiceMaintenance,
+  GetMyServices,
+  SetMyServiceStatus,
+  SetUserServices,
+} from "$lib/server/controllers/serviceManagerController.js";
 
 export async function POST({ request, cookies }) {
   const payload = await request.json();
@@ -185,6 +194,23 @@ export async function POST({ request, cookies }) {
     } else if (action == "createNewUser") {
       await SendInvitationEmail(data.email, data.role_ids, data.name);
       resp = await GetUserByEmail(data.email);
+    } else if (action == "setUserServices") {
+      resp = { monitor_tags: await SetUserServices(data.user_id, data.monitor_tags) };
+    } else if (action == "getMyServices") {
+      resp = { services: await GetMyServices(userDB.id) };
+    } else if (action == "setMyServiceStatus") {
+      await SetMyServiceStatus(userDB.id, data.monitor_tag, data.status);
+      resp = { success: true };
+    } else if (action == "createMyServiceIncident") {
+      resp = await CreateMyServiceIncident(userDB.id, data);
+    } else if (action == "addMyServiceIncidentUpdate") {
+      await AddMyServiceIncidentUpdate(userDB.id, data);
+      resp = { success: true };
+    } else if (action == "createMyServiceMaintenance") {
+      resp = await CreateMyServiceMaintenance(userDB.id, data);
+    } else if (action == "cancelMyServiceMaintenance") {
+      await CancelMyServiceMaintenance(userDB.id, data.event_id);
+      resp = { success: true };
     } else if (action == "resendInvitation") {
       await ResendInvitationEmail(data.email);
       resp = { success: true };
@@ -212,7 +238,12 @@ export async function POST({ request, cookies }) {
       const users = await GetAllUsersPaginatedDashboard({ page, limit }, hasFilter);
       const totalResult = await GetUsersCount(hasFilter);
       const total = totalResult ? Number(totalResult.count) : 0;
-      resp = { users, total };
+      // The services each user manages (service managers), for the users list.
+      const servicesByUser = await db.getMonitorTagsForUsers(users.map((u: { id: number }) => u.id));
+      resp = {
+        users: users.map((u: { id: number }) => ({ ...u, monitor_tags: servicesByUser.get(u.id) ?? [] })),
+        total,
+      };
     } else if (action === "storeSiteData") {
       resp = await storeSiteData(data);
     } else if (action == "storeMonitorData") {

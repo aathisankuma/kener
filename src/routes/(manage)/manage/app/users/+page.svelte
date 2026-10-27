@@ -4,6 +4,7 @@
   import * as Dialog from "$lib/components/ui/dialog/index.js";
   import * as Sheet from "$lib/components/ui/sheet/index.js";
   import * as Alert from "$lib/components/ui/alert/index.js";
+  import * as Select from "$lib/components/ui/select/index.js";
   import { Checkbox } from "$lib/components/ui/checkbox/index.js";
   import { Button } from "$lib/components/ui/button/index.js";
   import { Input } from "$lib/components/ui/input/index.js";
@@ -39,7 +40,10 @@
   }
 
   interface EditUser extends UserRecordDashboard {
+    /** Services (monitor tags) the user manages as a service manager. */
+    monitor_tags?: string[];
     actions: {
+      updatingServices?: boolean;
       sendingVerificationEmail: boolean;
       resendingInvitation: boolean;
       updatingRole: boolean;
@@ -310,6 +314,58 @@
 
   let activeRoles = $derived(roles.filter((r) => r.status === "ACTIVE"));
 
+  // Services a service manager can be given: every monitor, by name.
+  let monitors = $state<Array<{ tag: string; name: string }>>([]);
+  const monitorName = (tag: string) => monitors.find((m) => m.tag === tag)?.name ?? tag;
+
+  async function fetchMonitors() {
+    if (!hasPermission("monitors.read")) return;
+    try {
+      const response = await fetch(clientResolver(resolve, "/manage/api"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "getMonitors", data: {} })
+      });
+      const result = await response.json();
+      if (Array.isArray(result)) {
+        monitors = result
+          .map((m: { tag: string; name: string }) => ({ tag: m.tag, name: m.name }))
+          .sort((a, b) => a.name.localeCompare(b.name));
+      }
+    } catch {
+      /* the services card then lists no monitors */
+    }
+  }
+
+  async function saveServices() {
+    if (!toEditUser) return;
+    toEditUser.actions.updatingServices = true;
+    manualUpdateError = "";
+    manualSuccess = "";
+    try {
+      const response = await fetch(clientResolver(resolve, "/manage/api"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "setUserServices",
+          data: { user_id: toEditUser.id, monitor_tags: toEditUser.monitor_tags ?? [] }
+        })
+      });
+      const result = await response.json();
+      if (result.error) {
+        manualUpdateError = result.error;
+      } else {
+        toEditUser.monitor_tags = result.monitor_tags;
+        manualSuccess = "Services updated";
+        await fetchUsers();
+      }
+    } catch {
+      manualUpdateError = "Error while updating services";
+    } finally {
+      toEditUser.actions.updatingServices = false;
+    }
+  }
+
   // Fetch roles
   async function fetchRoles() {
     try {
@@ -339,6 +395,7 @@
   onMount(() => {
     fetchUsers();
     fetchRoles();
+    fetchMonitors();
   });
 </script>
 
@@ -443,6 +500,11 @@
                 <Badge variant={getRoleBadgeVariant(user.role_ids)} class="uppercase">
                   {user.role_ids.join(", ")}
                 </Badge>
+                {#if ((user as EditUser).monitor_tags ?? []).length > 0}
+                  <p class="text-muted-foreground mt-1 text-xs">
+                    {((user as EditUser).monitor_tags ?? []).map(monitorName).join(", ")}
+                  </p>
+                {/if}
               </Table.Cell>
               <Table.Cell>
                 {#if user.is_active}
@@ -662,6 +724,51 @@
                   <Spinner class="size-4" />
                 {/if}
                 Update Roles
+              </Button>
+            </Card.Content>
+          </Card.Root>
+
+          <!-- Services the user manages (role Service Manager) -->
+          <Card.Root>
+            <Card.Content class="p-4">
+              <p class="mb-1 text-sm font-medium">Services this user manages</p>
+              <p class="text-muted-foreground mb-3 text-xs">
+                With the role <b>Service Manager</b>, the user signs in to a page with only these services: they can set
+                the status, report problems and plan maintenance, and see nothing else.
+                {#if !toEditUser.role_ids.includes("service_manager")}
+                  This user does not have that role yet.
+                {/if}
+              </p>
+              <Select.Root
+                type="multiple"
+                value={toEditUser.monitor_tags ?? []}
+                onValueChange={(v) => (toEditUser!.monitor_tags = v)}
+              >
+                <Select.Trigger class="w-full" disabled={toEditUser.actions.updatingServices}>
+                  <span class="truncate">
+                    {#if (toEditUser.monitor_tags ?? []).length === 0}
+                      No services
+                    {:else}
+                      {(toEditUser.monitor_tags ?? []).map(monitorName).join(", ")}
+                    {/if}
+                  </span>
+                </Select.Trigger>
+                <Select.Content class="max-h-80">
+                  {#each monitors as monitor (monitor.tag)}
+                    <Select.Item value={monitor.tag} label={monitor.name}>{monitor.name}</Select.Item>
+                  {/each}
+                </Select.Content>
+              </Select.Root>
+              <Button
+                variant="secondary"
+                class="mt-3"
+                disabled={toEditUser.actions.updatingServices}
+                onclick={saveServices}
+              >
+                {#if toEditUser.actions.updatingServices}
+                  <Spinner class="size-4" />
+                {/if}
+                Update Services
               </Button>
             </Card.Content>
           </Card.Root>

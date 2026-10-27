@@ -11,6 +11,9 @@ import {
   HasRequiredEnv,
   IsEmailSetup,
 } from "./controller.js";
+import { GetUserPermissions } from "./userController.js";
+import { HomePathFor } from "../../allPerms.js";
+import db from "../db/db.js";
 import type { EventDisplaySettings, GlobalPageVisibilitySettings, SiteDateTimeFormat } from "$lib/types/site.js";
 import serverResolve from "../resolver.js";
 
@@ -19,6 +22,10 @@ export interface LayoutServerData {
   isSetupComplete: boolean;
   isAdminAccountCreated: boolean;
   loggedInUser: UserRecordPublic | null;
+  /** Where the signed-in user manages things: the dashboard, or "/my-services" for a service manager. */
+  homePath: string | null;
+  /** Monitor tags a signed-in service manager manages; empty for everyone else. */
+  myServiceTags: string[];
   canSeeHiddenMonitors: boolean;
   selectedLang: string;
   siteStatusColors: {
@@ -127,6 +134,9 @@ export async function GetLayoutServerData(cookies: Cookies, request: Request): P
     GetUsersCount(),
   ]);
   const canSeeHiddenMonitors = await CanSeeHiddenMonitors(loggedInUser);
+  const homePath = loggedInUser ? HomePathFor(await GetUserPermissions(loggedInUser.id)) : null;
+  const myServiceTags =
+    loggedInUser && homePath === "/my-services" ? await db.getMonitorTagsForUser(loggedInUser.id) : [];
 
   // Same check as IsSetupComplete, but reuses the site data fetched above
   // instead of querying it a second time on every request
@@ -162,6 +172,8 @@ export async function GetLayoutServerData(cookies: Cookies, request: Request): P
     isSetupComplete,
     isAdminAccountCreated: userCounts ? Number(userCounts.count) > 0 : false,
     loggedInUser,
+    homePath,
+    myServiceTags,
     canSeeHiddenMonitors,
     selectedLang,
     siteStatusColors,
