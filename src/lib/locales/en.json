@@ -219,6 +219,9 @@
     "e.g. Please use the stairs during this time.": "e.g. Please use the stairs during this time.",
     "e.g. Technician is informed and arrives at 2 pm.": "e.g. Technician is informed and arrives at 2 pm.",
     "e.g. The technician is on site.": "e.g. The technician is on site.",
-    "Call off": "Call off"
+    "Call off": "Call off",
+    "Last 3 months": "Last 3 months",
+    "Show %count more": "Show %count more",
+    "Show less": "Show less"
   }
 }

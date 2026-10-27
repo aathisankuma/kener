@@ -28,12 +28,13 @@
   // Choices for new tickets, by ticket key
   let chosenService = $state<Record<string, string>>({});
   let chosenImpact = $state<Record<string, string>>({});
+  let chosenTop = $state<Record<string, boolean>>({});
 
   const IMPACTS = [
     { value: "DOWN", label: "Down" },
     { value: "DEGRADED", label: "Degraded" }
   ];
-  const monitorName = (tag: string | null) => monitors.find((m) => m.tag === tag)?.name ?? tag ?? "—";
+  const monitorName = (tag: string | null) => monitors.find((m) => m.tag === tag)?.name ?? tag ?? "no service";
   const ago = (seconds: number | null) =>
     seconds ? formatDistanceToNow(new Date(seconds * 1000), { addSuffix: true }) : "never";
 
@@ -66,12 +67,13 @@
     try {
       await call(action, payload);
       toast.success(done);
-      await load();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Request failed");
     } finally {
       busy = null;
     }
+    // Also after a failure, so the selects and checkboxes show what is saved again.
+    await load();
   }
 
   async function syncNow() {
@@ -189,11 +191,15 @@
                       bind:value={chosenService[ticket.key]}
                       disabled={!canWrite}
                     >
-                      <option value={undefined}>Choose a service…</option>
+                      <option value={undefined}>No service</option>
                       {#each monitors as monitor (monitor.tag)}
                         <option value={monitor.tag}>{monitor.name}</option>
                       {/each}
                     </select>
+                    <label class="mt-2 flex items-center gap-2 text-xs">
+                      <input type="checkbox" bind:checked={chosenTop[ticket.key]} disabled={!canWrite} />
+                      Show to everyone (top of status page)
+                    </label>
                   </Table.Cell>
                   <Table.Cell>
                     <select
@@ -211,15 +217,19 @@
                     {#if canWrite}
                       <Button
                         size="sm"
-                        disabled={busy !== null || !chosenService[ticket.key]}
+                        disabled={busy !== null || (!chosenService[ticket.key] && !chosenTop[ticket.key])}
+                        title={!chosenService[ticket.key] && !chosenTop[ticket.key]
+                          ? "Choose a service, or show the ticket to everyone"
+                          : undefined}
                         onclick={() =>
                           act(
                             ticket.key,
                             "linkJsmTicket",
                             {
                               issue_key: ticket.key,
-                              monitor_tag: chosenService[ticket.key],
-                              impact: chosenImpact[ticket.key] || "DOWN"
+                              monitor_tag: chosenService[ticket.key] || "",
+                              impact: chosenImpact[ticket.key] || "DOWN",
+                              show_at_top: !!chosenTop[ticket.key]
                             },
                             `${ticket.key} is now on the status page`
                           )}
@@ -300,7 +310,7 @@
                         <select
                           class="border-input bg-background h-9 max-w-56 rounded-md border px-2 text-sm"
                           aria-label="Service"
-                          value={link.monitor_tag}
+                          value={link.monitor_tag ?? ""}
                           disabled={busy !== null}
                           onchange={(e) =>
                             act(
@@ -309,11 +319,13 @@
                               {
                                 issue_key: link.issue_key,
                                 monitor_tag: e.currentTarget.value,
-                                impact: link.monitor_impact || "DOWN"
+                                impact: link.monitor_impact || "DOWN",
+                                show_at_top: link.show_at_top
                               },
-                              `${link.issue_key} moved to ${monitorName(e.currentTarget.value)}`
+                              `${link.issue_key} moved to ${monitorName(e.currentTarget.value || null)}`
                             )}
                         >
+                          <option value="">No service</option>
                           {#each monitors as monitor (monitor.tag)}
                             <option value={monitor.tag}>{monitor.name}</option>
                           {/each}
@@ -329,8 +341,9 @@
                               "moveJsmTicket",
                               {
                                 issue_key: link.issue_key,
-                                monitor_tag: link.monitor_tag,
-                                impact: e.currentTarget.value
+                                monitor_tag: link.monitor_tag ?? "",
+                                impact: e.currentTarget.value,
+                                show_at_top: link.show_at_top
                               },
                               `${link.issue_key} impact changed`
                             )}
@@ -339,9 +352,32 @@
                             <option value={impact.value}>{impact.label}</option>
                           {/each}
                         </select>
+                        <label class="flex items-center gap-2 text-xs">
+                          <input
+                            type="checkbox"
+                            checked={link.show_at_top}
+                            disabled={busy !== null}
+                            onchange={(e) =>
+                              act(
+                                link.issue_key,
+                                "moveJsmTicket",
+                                {
+                                  issue_key: link.issue_key,
+                                  monitor_tag: link.monitor_tag ?? "",
+                                  impact: link.monitor_impact || "DOWN",
+                                  show_at_top: e.currentTarget.checked
+                                },
+                                e.currentTarget.checked
+                                  ? `${link.issue_key} is shown at the top`
+                                  : `${link.issue_key} is no longer at the top`
+                              )}
+                          />
+                          Show to everyone (top of status page)
+                        </label>
                       </div>
                     {:else}
                       {monitorName(link.monitor_tag)} · {link.monitor_impact}
+                      {#if link.show_at_top}<Badge variant="outline" class="ml-1">At top</Badge>{/if}
                     {/if}
                   </Table.Cell>
                   <Table.Cell>

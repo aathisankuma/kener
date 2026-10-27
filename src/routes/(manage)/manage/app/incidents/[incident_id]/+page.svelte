@@ -52,13 +52,15 @@
     status: string;
     state: string;
     is_global: string;
+    top_impact: string | null;
   }>({
     id: 0,
     title: "",
     start_date_time: Math.floor(Date.now() / 1000),
     status: "OPEN",
     state: GC.INVESTIGATING,
-    is_global: "YES"
+    is_global: "YES",
+    top_impact: null
   });
 
   // For datetime inputs (convert to/from local datetime string)
@@ -151,7 +153,8 @@
           start_date_time: result.start_date_time,
           status: result.status,
           state: result.state,
-          is_global: result.is_global || "YES"
+          is_global: result.is_global || "YES",
+          top_impact: result.top_impact ?? null
         };
         // Fetch comments and monitors
         await Promise.all([fetchComments(), fetchIncidentMonitors()]);
@@ -254,7 +257,8 @@
               status: "OPEN",
               state: GC.INVESTIGATING,
               incident_type: GC.INCIDENT,
-              is_global: incident.is_global
+              is_global: incident.is_global,
+              top_impact: incident.top_impact
             }
           })
         });
@@ -312,7 +316,8 @@
               start_date_time: incident.start_date_time,
               end_date_time: null,
               status: "OPEN",
-              is_global: incident.is_global
+              is_global: incident.is_global,
+              top_impact: incident.top_impact
             }
           })
         });
@@ -809,6 +814,39 @@
               incident.is_global = checked ? "YES" : "NO";
             }}
           />
+        </div>
+
+        <!-- Shown at the top of every status page -->
+        <div class="flex flex-col gap-3 rounded-md border p-3">
+          <div class="flex items-center justify-between gap-3">
+            <div class="flex flex-col gap-1">
+              <Label for="show-at-top">Show at top</Label>
+              <p class="text-muted-foreground text-xs">
+                For incidents that affect everyone. Shows the incident in a box at the top of every status page and
+                emails all subscribers. After it is resolved, the box turns green and stays for 24 hours.
+              </p>
+            </div>
+            <Switch
+              id="show-at-top"
+              checked={!!incident.top_impact}
+              onCheckedChange={(checked) => {
+                incident.top_impact = checked ? GC.DOWN : null;
+              }}
+            />
+          </div>
+          {#if incident.top_impact}
+            <div class="flex items-center gap-2">
+              <Label for="top-impact" class="text-xs">Box colour</Label>
+              <select
+                id="top-impact"
+                class="border-input bg-background h-8 rounded-md border px-2 text-sm"
+                bind:value={incident.top_impact}
+              >
+                <option value={GC.DOWN}>Red: down</option>
+                <option value={GC.DEGRADED}>Orange: degraded</option>
+              </select>
+            </div>
+          {/if}
         </div>
 
         <!-- First Comment (only for new) -->

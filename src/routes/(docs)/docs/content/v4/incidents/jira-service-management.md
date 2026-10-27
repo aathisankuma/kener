@@ -9,7 +9,7 @@ Kener can turn a Jira Service Management (JSM) ticket into an incident and keep 
 
 1. In Jira, add Kener's account (for example `status@yourcompany.com`) as **request participant** (German: _Anfrageteilnehmer_) on a ticket that affects everyone.
 2. In Kener, open **JSM Tickets** in the admin sidebar. The ticket appears under **New tickets**.
-3. Pick the affected service and the impact (**Down** or **Degraded**), then click **Link**. Kener creates an incident on that service, titled with the ticket's summary.
+3. Pick the affected service and the impact (**Down** or **Degraded**), then click **Link**. Kener creates an incident on that service, titled with the ticket's summary. For a problem that affects everyone, tick **Show to everyone**: the incident is [shown at the top](/docs/v4/incidents/creating-managing#show-at-top) of every status page. With this ticked, the service is optional.
 4. Every 2 minutes Kener reads the linked tickets and posts each new **reply to customers** as an incident update. Internal comments are never read.
 
 The ticket's status sets the incident state:
@@ -21,6 +21,8 @@ The ticket's status sets the incident state:
 | Done                    | Resolved       |
 
 When a ticket is reopened, the incident reopens. Kener keeps reading a ticket for 7 days after it is done.
+
+Resolved incidents from JSM tickets of the last 3 months are listed under **Past Incidents** at the bottom of each status page that shows them. Unlinking a ticket keeps its incident in the list.
 
 > [!IMPORTANT]
 > Every reply to customers written after linking is shown on the status page. Link a separate outage ticket that you write for the public, not a customer's own support ticket. Replies written before linking are not copied.
@@ -41,7 +43,8 @@ Users need `incidents.read` to see the page and `incidents.write` to link, move,
 
 ## Manage linked tickets {#manage}
 
-- **Move**: change the service or impact of a linked ticket. The incident moves to the new service.
+- **Move**: change the service or impact of a linked ticket. The incident moves to the new service. Choose **No service** only for a ticket shown to everyone.
+- **Show to everyone**: put a linked ticket's incident at the top of every status page, or take it away.
 - **Unlink**: stop updating the incident. The incident and its updates stay.
 - **Ignore**: hide a shared ticket from **New tickets**. **Restore** brings it back.
 - **Sync now**: read all linked tickets at once instead of waiting.

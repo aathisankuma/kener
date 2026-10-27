@@ -64,6 +64,7 @@ import { seed as seedSiteData } from "../../../../seeds/site_data";
 import * as manageApi from "../../../routes/(manage)/manage/api/+server";
 import { DeleteIncident } from "./incidentController";
 import { SyncJsmTickets } from "./jsmController";
+import { GetTopAndPastIncidents, TOP_RESOLVED_KEEP_S } from "./dashboardController";
 
 const migrations = import.meta.glob<Knex.Migration>("/migrations/*.ts", { eager: true });
 const knex = (db as unknown as { knex: Knex }).knex;
@@ -245,8 +246,126 @@ describe("linking", () => {
     ).toBe("IT-1 is already linked");
     expect(
       (await call(admin, "linkJsmTicket", { issue_key: "IT-2", monitor_tag: "", impact: "DOWN" })).body.error,
-    ).toBe("Please choose a service");
+    ).toBe("Choose a service, or show the ticket to everyone");
     expect(Number((await knex("incidents").count({ n: "*" }).first())?.n)).toBe(1);
+  });
+});
+
+describe("showing a ticket to everyone", () => {
+  it("links a ticket without a service at the top, and emails every subscriber", async () => {
+    const linked = await call(admin, "linkJsmTicket", {
+      issue_key: "IT-2",
+      monitor_tag: "",
+      impact: "DEGRADED",
+      show_at_top: true,
+    });
+    expect(linked.status).toBe(200);
+    const id = linked.body.incident_id;
+    expect(await knex("incidents").where({ id }).first()).toMatchObject({
+      incident_source: "JSM",
+      top_impact: "DEGRADED",
+      is_global: "NO",
+    });
+    expect(await knex("incident_monitors").where({ incident_id: id })).toEqual([]);
+    // No monitor filter: every subscriber hears of it.
+    expect(subscriberQueue.push.mock.calls[0][2]).toBeNull();
+    expect(subscriberQueue.push.mock.calls[0][0]).toMatchObject({ incident_impact: "DEGRADED" });
+    const linkedRow = (await call(admin, "getJsmTickets")).body.linked[0];
+    expect(linkedRow).toMatchObject({ issue_key: "IT-2", monitor_tag: null, show_at_top: true });
+  });
+
+  it("puts a linked ticket at the top and takes it away again", async () => {
+    const id = (await call(admin, "linkJsmTicket", { issue_key: "IT-1", monitor_tag: "printer", impact: "DOWN" })).body
+      .incident_id;
+    await call(admin, "moveJsmTicket", {
+      issue_key: "IT-1",
+      monitor_tag: "printer",
+      impact: "DOWN",
+      show_at_top: true,
+    });
+    expect((await knex("incidents").where({ id }).first()).top_impact).toBe("DOWN");
+
+    // Without a service it must stay at the top.
+    expect(
+      (await call(admin, "moveJsmTicket", { issue_key: "IT-1", monitor_tag: "", impact: "DOWN", show_at_top: false }))
+        .body.error,
+    ).toBe("Choose a service, or show the ticket to everyone");
+    await call(admin, "moveJsmTicket", { issue_key: "IT-1", monitor_tag: "", impact: "DOWN", show_at_top: true });
+    expect(await knex("incident_monitors").where({ incident_id: id })).toEqual([]);
+
+    await call(admin, "moveJsmTicket", { issue_key: "IT-1", monitor_tag: "vpn", impact: "DOWN", show_at_top: false });
+    expect((await knex("incidents").where({ id }).first()).top_impact).toBeNull();
+    expect(await knex("incident_monitors").where({ incident_id: id }).pluck("monitor_tag")).toEqual(["vpn"]);
+  });
+});
+
+describe("the top of the status page and its past incidents", () => {
+  const DAY = 86400;
+  const incident = async (row: Record<string, unknown>, monitorTag?: string) => {
+    const id = await insert("incidents", {
+      start_date_time: NOW - 2 * DAY,
+      status: "OPEN",
+      incident_type: "INCIDENT",
+      is_global: "NO",
+      incident_source: "JSM",
+      ...row,
+    });
+    if (monitorTag)
+      await knex("incident_monitors").insert({ incident_id: id, monitor_tag: monitorTag, monitor_impact: "DOWN" });
+    await knex("incident_comments").insert({
+      incident_id: id,
+      comment: `Update on ${row.title}`,
+      state: row.state,
+      commented_at: (row.end_date_time as number) ?? NOW - DAY,
+      status: "ACTIVE",
+    });
+    return id;
+  };
+
+  it("shows open and recently resolved top incidents, and past JSM incidents the page may show", async () => {
+    await knex("monitors").where({ tag: "vpn" }).update({ is_hidden: "YES" });
+    const open = await incident({ title: "Telefonie", state: "IDENTIFIED", top_impact: "DOWN" });
+    const onPrinter = await incident({ title: "Drucker", state: "INVESTIGATING", top_impact: "DEGRADED" }, "printer");
+    const justResolved = await incident({
+      title: "Internet",
+      state: "RESOLVED",
+      end_date_time: NOW - 3600,
+      top_impact: "DOWN",
+    });
+    const longResolved = await incident({
+      title: "WLAN",
+      state: "RESOLVED",
+      end_date_time: NOW - TOP_RESOLVED_KEEP_S - 60,
+      top_impact: "DOWN",
+    });
+    const pastOnService = await incident(
+      { title: "Druckerstau", state: "RESOLVED", end_date_time: NOW - 10 * DAY },
+      "printer",
+    );
+    await incident({ title: "Geheim", state: "RESOLVED", end_date_time: NOW - DAY }, "vpn");
+    await incident(
+      { title: "Uralt", state: "RESOLVED", end_date_time: NOW - 100 * DAY, start_date_time: NOW - 101 * DAY },
+      "printer",
+    );
+    await incident(
+      { title: "Vom Dashboard", state: "RESOLVED", end_date_time: NOW - DAY, incident_source: "DASHBOARD" },
+      "printer",
+    );
+    await incident({ title: "Normal offen", state: "INVESTIGATING" }, "printer");
+
+    const { topIncidents, pastJsmIncidents } = await GetTopAndPastIncidents(["printer"], NOW);
+
+    expect(topIncidents.map((i) => [i.title, i.state, i.top_impact, i.href]).sort()).toEqual(
+      [
+        ["Telefonie", "IDENTIFIED", "DOWN", `/incidents/${open}`],
+        ["Drucker", "INVESTIGATING", "DEGRADED", "/monitors/printer"],
+        ["Internet", "RESOLVED", "DOWN", `/incidents/${justResolved}`],
+      ].sort(),
+    );
+    expect(topIncidents.find((i) => i.id === onPrinter)?.latest?.comment).toBe("Update on Drucker");
+    // Off the top after 24 hours, then in the past list; the hidden service's incident never.
+    expect(pastJsmIncidents.map((i) => i.id)).toEqual([longResolved, pastOnService]);
+    expect(pastJsmIncidents[1].monitorNames).toEqual(["Windows Print Server"]);
   });
 });
 

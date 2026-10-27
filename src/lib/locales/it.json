@@ -186,6 +186,9 @@
     "e.g. Please use the stairs during this time.": "ad es. In questo periodo usate le scale.",
     "e.g. Technician is informed and arrives at 2 pm.": "ad es. Il tecnico è informato e arriva alle 14.",
     "e.g. The technician is on site.": "ad es. Il tecnico è sul posto.",
-    "Call off": "Annulla la manutenzione"
+    "Call off": "Annulla la manutenzione",
+    "Last 3 months": "Ultimi 3 mesi",
+    "Show %count more": "Mostra altri %count",
+    "Show less": "Mostra meno"
   }
 }

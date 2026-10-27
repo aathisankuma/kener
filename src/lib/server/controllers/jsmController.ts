@@ -14,7 +14,13 @@ import {
   ParseTicketKey,
   type JsmTicket,
 } from "../jsmClient.js";
-import { AddIncidentComment, AddIncidentMonitor, CreateIncident, RemoveIncidentMonitor } from "./incidentController.js";
+import {
+  AddIncidentComment,
+  AddIncidentMonitor,
+  CreateIncident,
+  RemoveIncidentMonitor,
+  UpdateIncident,
+} from "./incidentController.js";
 import type { JsmLinkRecord } from "../db/repositories/jsmLinks.js";
 
 export const JSM_IMPACTS = [GC.DOWN, GC.DEGRADED] as const;
@@ -31,6 +37,8 @@ export interface JsmLinkedTicket {
   incident_state: string | null;
   monitor_tag: string | null;
   monitor_impact: string | null;
+  /** Shown in the box at the top of every status page. */
+  show_at_top: boolean;
   last_synced_at: number | null;
   last_error: string | null;
 }
@@ -67,9 +75,14 @@ function requireImpact(impact: unknown): string {
   return String(impact);
 }
 
-async function requireMonitor(tag: unknown): Promise<string> {
+/** The chosen service, or null for none. Without a service the ticket must be shown at the top. */
+async function chosenMonitor(tag: unknown, showAtTop: boolean): Promise<string | null> {
   const monitorTag = String(tag ?? "").trim();
-  if (!monitorTag || !(await db.getMonitorByTag(monitorTag))) throw new Error("Please choose a service");
+  if (!monitorTag) {
+    if (!showAtTop) throw new Error("Choose a service, or show the ticket to everyone");
+    return null;
+  }
+  if (!(await db.getMonitorByTag(monitorTag))) throw new Error(`There is no service with the tag ${monitorTag}`);
   return monitorTag;
 }
 
@@ -102,6 +115,7 @@ export const GetJsmOverview = async (): Promise<JsmOverview> => {
       incident_state: incident?.state ?? null,
       monitor_tag: link.monitor_tag,
       monitor_impact: link.monitor_impact,
+      show_at_top: !!incident?.top_impact,
       last_synced_at: link.last_synced_at,
       last_error: link.last_error,
     });
@@ -122,16 +136,19 @@ export const GetJsmOverview = async (): Promise<JsmOverview> => {
 };
 
 /**
- * Creates an incident for a shared ticket on the chosen service and links them. Replies already
- * in the ticket are not copied: only replies written from now on reach the status page.
+ * Creates an incident for a shared ticket on the chosen service, at the top of every status
+ * page, or both, and links them. Replies already in the ticket are not copied: only replies
+ * written from now on reach the status page.
  */
 export const LinkJsmTicket = async (data: {
   issue_key: unknown;
-  monitor_tag: unknown;
+  monitor_tag?: unknown;
   impact: unknown;
+  show_at_top?: unknown;
 }): Promise<{ incident_id: number }> => {
   const key = requireKey(data.issue_key);
-  const monitorTag = await requireMonitor(data.monitor_tag);
+  const showAtTop = data.show_at_top === true;
+  const monitorTag = await chosenMonitor(data.monitor_tag, showAtTop);
   const impact = requireImpact(data.impact);
   const existing = await db.getJsmLinkByKey(key);
   if (existing?.status === "LINKED") throw new Error(`${key} is already linked`);
@@ -146,8 +163,10 @@ export const LinkJsmTicket = async (data: {
     start_date_time: Math.min(ticket.createdAt || now, now),
     state: GC.INVESTIGATING,
     is_global: "NO",
+    incident_source: "JSM",
+    top_impact: showAtTop ? impact : null,
   });
-  await AddIncidentMonitor(incident_id, monitorTag, impact);
+  if (monitorTag) await AddIncidentMonitor(incident_id, monitorTag, impact);
   await AddIncidentComment(incident_id, ticket.summary, state, now);
 
   const row = {
@@ -166,17 +185,29 @@ export const LinkJsmTicket = async (data: {
   return { incident_id };
 };
 
-/** Moves a linked ticket's incident to another service, e.g. after picking the wrong one. */
-export const MoveJsmTicket = async (data: { issue_key: unknown; monitor_tag: unknown; impact: unknown }) => {
+/**
+ * Moves a linked ticket's incident to another service or to none, changes its impact, or puts
+ * it at the top of every status page or takes it away. Leaving show_at_top out keeps it as is.
+ */
+export const MoveJsmTicket = async (data: {
+  issue_key: unknown;
+  monitor_tag?: unknown;
+  impact: unknown;
+  show_at_top?: unknown;
+}) => {
   const key = requireKey(data.issue_key);
-  const monitorTag = await requireMonitor(data.monitor_tag);
-  const impact = requireImpact(data.impact);
   const link = await db.getJsmLinkByKey(key);
   if (!link || link.status !== "LINKED" || !link.incident_id) throw new Error(`${key} is not linked`);
+  const incident = await db.getIncidentById(link.incident_id);
+  const showAtTop = typeof data.show_at_top === "boolean" ? data.show_at_top : !!incident?.top_impact;
+  const monitorTag = await chosenMonitor(data.monitor_tag, showAtTop);
+  const impact = requireImpact(data.impact);
+
   if (link.monitor_tag && link.monitor_tag !== monitorTag) {
     await RemoveIncidentMonitor(link.incident_id, link.monitor_tag);
   }
-  await AddIncidentMonitor(link.incident_id, monitorTag, impact);
+  if (monitorTag) await AddIncidentMonitor(link.incident_id, monitorTag, impact);
+  await UpdateIncident(link.incident_id, { top_impact: showAtTop ? impact : null });
   await db.updateJsmLink(key, { monitor_tag: monitorTag, monitor_impact: impact });
 };
 

@@ -6,6 +6,8 @@
   import ThemePlus from "$lib/components/ThemePlus.svelte";
   import IncidentItem from "$lib/components/IncidentItem.svelte";
   import MaintenanceItem from "$lib/components/MaintenanceItem.svelte";
+  import TopIncidents from "$lib/components/TopIncidents.svelte";
+  import PastIncidents from "$lib/components/PastIncidents.svelte";
   import NotificationsList from "$lib/components/NotificationsList.svelte";
   import mdToHTML from "$lib/marked.js";
   import clientResolver, { absoluteResolve } from "$lib/client/resolver.js";
@@ -171,6 +173,7 @@
       </Item.Content>
     </Item.Root>
   </div>
+  <TopIncidents incidents={data.topIncidents} />
   <div class="grid grid-cols-1 gap-4 sm:grid-cols-16">
     <div class="col-span-1 flex flex-col gap-3 sm:gap-4 {!showInlineEvents ? 'sm:col-span-16' : 'sm:col-span-11'}">
       {#if !!data.monitorTags.length}
@@ -235,4 +238,5 @@
       </div>
     {/if}
   </div>
+  <PastIncidents incidents={data.pastJsmIncidents} />
 </div>

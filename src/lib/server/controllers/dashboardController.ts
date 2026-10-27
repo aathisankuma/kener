@@ -149,8 +149,83 @@ export interface PageNavItem {
   page_logo: string | null;
 }
 
+/** How long a resolved incident stays in the box at the top of the page. */
+export const TOP_RESOLVED_KEEP_S = 24 * 60 * 60;
+/** How far back the list of past Jira Service Management incidents reaches. */
+export const JSM_HISTORY_DAYS = 90;
+export const JSM_HISTORY_LIMIT = 50;
+
+/** An incident in the box at the top of a status page. */
+export interface TopIncident {
+  id: number;
+  title: string;
+  state: string;
+  top_impact: string;
+  start_date_time: number;
+  end_date_time: number | null;
+  /** Where the box leads: the service's page when the incident has exactly one, else the incident's page. */
+  href: string;
+  monitorNames: string[];
+  latest: { comment: string; state: string; commented_at: number } | null;
+}
+
+/** A resolved incident in the list of past incidents at the bottom of a status page. */
+export interface PastIncident {
+  id: number;
+  title: string;
+  start_date_time: number;
+  end_date_time: number;
+  monitorNames: string[];
+}
+
+const ToTopIncident = (incident: IncidentForMonitorListWithComments): TopIncident => {
+  const latest = incident.comments[0];
+  return {
+    id: incident.id,
+    title: incident.title,
+    state: incident.state,
+    top_impact: incident.top_impact || GC.DOWN,
+    start_date_time: incident.start_date_time,
+    end_date_time: incident.end_date_time,
+    href:
+      incident.monitors.length === 1 ? `/monitors/${incident.monitors[0].monitor_tag}` : `/incidents/${incident.id}`,
+    monitorNames: incident.monitors.map((m) => m.monitor_name),
+    latest: latest ? { comment: latest.comment, state: latest.state, commented_at: latest.commented_at } : null,
+  };
+};
+
+/**
+ * The incidents for the top of a status page (open, or resolved within the last 24 hours) and
+ * the Jira Service Management incidents of the last 3 months that the page shows. An incident
+ * still at the top is left out of the past list.
+ */
+export const GetTopAndPastIncidents = async (
+  monitorTags: string[],
+  nowTs: number,
+): Promise<{ topIncidents: TopIncident[]; pastJsmIncidents: PastIncident[] }> => {
+  const [top, past] = await Promise.all([
+    db.getTopIncidents(nowTs, nowTs - TOP_RESOLVED_KEEP_S),
+    db.getResolvedIncidentsBySource("JSM", monitorTags, nowTs - JSM_HISTORY_DAYS * 86400, nowTs, JSM_HISTORY_LIMIT),
+  ]);
+  const topIds = new Set(top.map((i) => i.id));
+  return {
+    topIncidents: top.map(ToTopIncident),
+    pastJsmIncidents: past
+      .filter((i) => !topIds.has(i.id))
+      .map((i) => ({
+        id: i.id,
+        title: i.title,
+        start_date_time: i.start_date_time,
+        end_date_time: i.end_date_time ?? i.start_date_time,
+        monitorNames: i.monitors.map((m) => m.monitor_name),
+      })),
+  };
+};
+
 export interface PageDashboardData {
   pageStatus: { statusSummary: string; statusClass: string };
+  topIncidents: TopIncident[];
+  pastJsmIncidents: PastIncident[];
   ongoingIncidents: IncidentForMonitorListWithComments[];
   ongoingMaintenances: MaintenanceEventsMonitorList[];
   upcomingMaintenances: MaintenanceEventsMonitorList[];
@@ -355,9 +430,13 @@ export const GetPageDashboardData = async (
     }
   }
 
+  const { topIncidents, pastJsmIncidents } = await GetTopAndPastIncidents(monitorTags, nowTs);
+
   if (monitorTags.length === 0) {
     return {
       pageStatus: BuildPageStatus([], nowTs),
+      topIncidents,
+      pastJsmIncidents,
       ongoingIncidents: [],
       ongoingMaintenances: [],
       upcomingMaintenances: [],
@@ -406,9 +485,14 @@ export const GetPageDashboardData = async (
     monitorGroupMembersByTag[monitor.tag] = groupData.monitors.map((member) => member.tag);
   }
 
+  // An incident at the top is shown there only.
+  const topIds = new Set(topIncidents.map((i) => i.id));
+
   return {
     pageStatus,
-    ongoingIncidents,
+    topIncidents,
+    pastJsmIncidents,
+    ongoingIncidents: ongoingIncidents.filter((i) => !topIds.has(i.id)),
     ongoingMaintenances,
     upcomingMaintenances,
     monitorTags,
