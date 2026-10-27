@@ -61,9 +61,19 @@
     typeData: any;
     availableMonitors: MonitorRecord[];
     dockerDefaults: DockerConnectionDefaults;
+    /** On the new-monitor page: no test or save here; "Create Monitor" saves everything. */
+    isNew?: boolean;
+    typeSettingsValid?: boolean;
   }
 
-  let { monitor = $bindable(), typeData = $bindable(), availableMonitors, dockerDefaults }: Props = $props();
+  let {
+    monitor = $bindable(),
+    typeData = $bindable(),
+    availableMonitors,
+    dockerDefaults,
+    isNew = false,
+    typeSettingsValid = $bindable(true)
+  }: Props = $props();
 
   const GROUP_MIN_MONITORS = 2;
   const GROUP_MIN_TIMEOUT_MS = 1000;
@@ -328,6 +338,11 @@
     }
   });
 
+  // The new-monitor page creates the monitor with "Create Monitor" and needs to know this is valid.
+  $effect(() => {
+    typeSettingsValid = isTypeSettingsValid;
+  });
+
   let fetchingIcon = $state(false);
 
   /** Downloads the provider's own icon into Kener's images and puts it in the monitor's image. */
@@ -420,7 +435,14 @@
 <Card.Root>
   <Card.Header>
     <Card.Title>Monitor Type Configuration</Card.Title>
-    <Card.Description>Configure how this monitor checks your service</Card.Description>
+    <Card.Description>
+      {#if isNew}
+        Choose what this monitor checks. The list shows every type, e.g. Cloud Service for Atlassian, Microsoft 365 and
+        Abacus.
+      {:else}
+        Configure how this monitor checks your service
+      {/if}
+    </Card.Description>
   </Card.Header>
   <Card.Content class="space-y-4">
     <div class="flex flex-col gap-2">
@@ -479,100 +501,111 @@
     </div>
   </Card.Content>
   <Card.Footer class=" flex justify-between gap-2">
-    <Dialog.Root
-      onOpenChange={(e) => {
-        if (e) testMonitor();
-      }}
-    >
-      <Dialog.Trigger>
-        {#snippet child({ props })}
-          <Button {...props} variant="secondary">
-            <PlayIcon class="size-4" />
-            Test Monitor
-          </Button>
-        {/snippet}
-      </Dialog.Trigger>
-      <Dialog.Content>
-        <Dialog.Header>
-          <Dialog.Title>
-            {#if testingMonitor}
-              Running Test
-            {:else if testResult}
-              Test Result
-            {:else}
+    {#if isNew}
+      <p class="text-muted-foreground text-xs">
+        {#if monitor.monitor_type && !isTypeSettingsValid}
+          Fill in the required fields above.
+        {:else}
+          Saved together with the general settings when you click <strong>Create Monitor</strong>. Test it after
+          creating.
+        {/if}
+      </p>
+    {:else}
+      <Dialog.Root
+        onOpenChange={(e) => {
+          if (e) testMonitor();
+        }}
+      >
+        <Dialog.Trigger>
+          {#snippet child({ props })}
+            <Button {...props} variant="secondary">
+              <PlayIcon class="size-4" />
               Test Monitor
-            {/if}
-          </Dialog.Title>
-        </Dialog.Header>
-        <div class="kener-manage flex flex-col justify-center gap-2">
-          {#if testingMonitor}
-            <div class="flex flex-col items-center gap-2 py-8">
-              <Loader class="size-8 animate-spin" />
-              <p class="text-muted-foreground mt-4 text-center">Please wait while the test is being performed...</p>
-            </div>
-          {:else if testResult}
-            <div class="mt-4 flex flex-col gap-4">
-              {#if testResult.error_message}
-                <div class="bg-destructive/10 text-destructive rounded-md p-3 text-sm font-medium">
-                  {testResult.error_message}
-                </div>
+            </Button>
+          {/snippet}
+        </Dialog.Trigger>
+        <Dialog.Content>
+          <Dialog.Header>
+            <Dialog.Title>
+              {#if testingMonitor}
+                Running Test
+              {:else if testResult}
+                Test Result
+              {:else}
+                Test Monitor
               {/if}
-              <div class="grid grid-cols-2 gap-4">
-                <div class="rounded-lg border p-4 text-center">
-                  <div class="text-muted-foreground text-xs uppercase">Status</div>
-                  <div class="mt-1 text-2xl font-bold text-{testResult.status.toLowerCase()}">
-                    {testResult.status}
-                  </div>
-                </div>
-                <div class="rounded-lg border p-4 text-center">
-                  <div class="text-muted-foreground text-xs uppercase">Latency (milliseconds)</div>
-                  <div class="mt-1 truncate text-2xl font-bold">
-                    {testResult.latency}
-                  </div>
-                </div>
+            </Dialog.Title>
+          </Dialog.Header>
+          <div class="kener-manage flex flex-col justify-center gap-2">
+            {#if testingMonitor}
+              <div class="flex flex-col items-center gap-2 py-8">
+                <Loader class="size-8 animate-spin" />
+                <p class="text-muted-foreground mt-4 text-center">Please wait while the test is being performed...</p>
               </div>
-              {#if monitor.monitor_type === "SSL" && testResult.expiry_at}
-                <div class="rounded-lg border p-4 text-center">
-                  <div class="text-muted-foreground text-xs uppercase">Expires At</div>
-                  <div class="mt-1 text-sm font-semibold break-all">
-                    {new Date(testResult.expiry_at).toLocaleString(undefined, {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      second: "2-digit"
-                    })}
+            {:else if testResult}
+              <div class="mt-4 flex flex-col gap-4">
+                {#if testResult.error_message}
+                  <div class="bg-destructive/10 text-destructive rounded-md p-3 text-sm font-medium">
+                    {testResult.error_message}
                   </div>
-                </div>
-              {/if}
-              {#if monitor.monitor_type === "SSL" && (testResult.issuer_cn || testResult.issuer_o)}
+                {/if}
                 <div class="grid grid-cols-2 gap-4">
                   <div class="rounded-lg border p-4 text-center">
-                    <div class="text-muted-foreground text-xs uppercase">Issued By (CN)</div>
-                    <div class="mt-1 text-sm font-semibold break-all">
-                      {testResult.issuer_cn || "—"}
+                    <div class="text-muted-foreground text-xs uppercase">Status</div>
+                    <div class="mt-1 text-2xl font-bold text-{testResult.status.toLowerCase()}">
+                      {testResult.status}
                     </div>
                   </div>
                   <div class="rounded-lg border p-4 text-center">
-                    <div class="text-muted-foreground text-xs uppercase">Issued By (O)</div>
-                    <div class="mt-1 text-sm font-semibold break-all">
-                      {testResult.issuer_o || "—"}
+                    <div class="text-muted-foreground text-xs uppercase">Latency (milliseconds)</div>
+                    <div class="mt-1 truncate text-2xl font-bold">
+                      {testResult.latency}
                     </div>
                   </div>
                 </div>
-              {/if}
-              <div class="flex justify-end">
-                <Button variant="outline" size="sm" onclick={testMonitor} disabled={testingMonitor}>
-                  <PlayIcon class="size-3" />
-                  Run Test Again
-                </Button>
+                {#if monitor.monitor_type === "SSL" && testResult.expiry_at}
+                  <div class="rounded-lg border p-4 text-center">
+                    <div class="text-muted-foreground text-xs uppercase">Expires At</div>
+                    <div class="mt-1 text-sm font-semibold break-all">
+                      {new Date(testResult.expiry_at).toLocaleString(undefined, {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        second: "2-digit"
+                      })}
+                    </div>
+                  </div>
+                {/if}
+                {#if monitor.monitor_type === "SSL" && (testResult.issuer_cn || testResult.issuer_o)}
+                  <div class="grid grid-cols-2 gap-4">
+                    <div class="rounded-lg border p-4 text-center">
+                      <div class="text-muted-foreground text-xs uppercase">Issued By (CN)</div>
+                      <div class="mt-1 text-sm font-semibold break-all">
+                        {testResult.issuer_cn || "—"}
+                      </div>
+                    </div>
+                    <div class="rounded-lg border p-4 text-center">
+                      <div class="text-muted-foreground text-xs uppercase">Issued By (O)</div>
+                      <div class="mt-1 text-sm font-semibold break-all">
+                        {testResult.issuer_o || "—"}
+                      </div>
+                    </div>
+                  </div>
+                {/if}
+                <div class="flex justify-end">
+                  <Button variant="outline" size="sm" onclick={testMonitor} disabled={testingMonitor}>
+                    <PlayIcon class="size-3" />
+                    Run Test Again
+                  </Button>
+                </div>
               </div>
-            </div>
-          {/if}
-        </div>
-      </Dialog.Content>
-    </Dialog.Root>
+            {/if}
+          </div>
+        </Dialog.Content>
+      </Dialog.Root>
+    {/if}
 
     <div class="flex flex-wrap justify-end gap-2">
       {#if monitor.monitor_type === "CLOUD"}
@@ -590,14 +623,16 @@
           Use provider's icon
         </Button>
       {/if}
-      <Button onclick={saveTypeSettings} disabled={savingType || !isTypeSettingsValid}>
-        {#if savingType}
-          <Loader class="size-4 animate-spin" />
-        {:else}
-          <SaveIcon class="size-4" />
-        {/if}
-        Save Monitor Type Settings
-      </Button>
+      {#if !isNew}
+        <Button onclick={saveTypeSettings} disabled={savingType || !isTypeSettingsValid}>
+          {#if savingType}
+            <Loader class="size-4 animate-spin" />
+          {:else}
+            <SaveIcon class="size-4" />
+          {/if}
+          Save Monitor Type Settings
+        </Button>
+      {/if}
     </div>
   </Card.Footer>
 </Card.Root>

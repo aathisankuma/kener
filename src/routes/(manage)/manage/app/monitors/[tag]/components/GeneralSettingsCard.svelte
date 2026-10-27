@@ -22,9 +22,12 @@
     monitor: MonitorRecord;
     typeData: Record<string, unknown>;
     isNew: boolean;
+    /** False while the monitor type's required fields are missing (new monitors only). */
+    typeSettingsValid?: boolean;
   }
 
-  let { monitor = $bindable(), typeData, isNew }: Props = $props();
+  let { monitor = $bindable(), typeData, isNew, typeSettingsValid = true }: Props = $props();
+  const blockedByType = $derived(isNew && !!monitor.monitor_type && !typeSettingsValid);
 
   let savingGeneral = $state(false);
   let uploadingImage = $state(false);
@@ -105,6 +108,23 @@
         ...monitor,
         type_data: JSON.stringify(typeData)
       };
+
+      // A new Cloud Service monitor without an image gets the provider's own icon.
+      if (isNew && monitor.monitor_type === "CLOUD" && !monitor.image) {
+        try {
+          const icon = await fetch(clientResolver(resolve, "/manage/api"), {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "fetchCloudServiceIcon", data: { typeData } })
+          }).then((r) => r.json());
+          if (icon?.url) {
+            monitor.image = icon.url;
+            payload.image = icon.url;
+          }
+        } catch {
+          /* no icon: the monitor shows its initials */
+        }
+      }
 
       // Include default uptime settings when creating a new monitor
       if (isNew) {
@@ -284,7 +304,10 @@
     </div>
   </Card.Content>
   <Card.Footer class="flex justify-end">
-    <Button onclick={saveGeneralSettings} disabled={savingGeneral}>
+    {#if blockedByType}
+      <p class="text-muted-foreground mr-auto self-center text-xs">Fill in the monitor type's required fields first.</p>
+    {/if}
+    <Button onclick={saveGeneralSettings} disabled={savingGeneral || blockedByType}>
       {#if savingGeneral}
         <Loader class="size-4 animate-spin" />
       {:else}
