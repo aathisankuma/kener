@@ -16,6 +16,7 @@
   import CodeIcon from "@lucide/svelte/icons/code";
   import ChartSplineIcon from "@lucide/svelte/icons/chart-spline";
   import CloudAlertIcon from "@lucide/svelte/icons/cloud-alert";
+  import TicketIcon from "@lucide/svelte/icons/ticket";
   import House from "@lucide/svelte/icons/house";
   import BadgeIcon from "@lucide/svelte/icons/id-card";
   import ClockAlertIcon from "@lucide/svelte/icons/clock-alert";
@@ -48,6 +49,7 @@
     { title: "Monitors", url: "/manage/app/monitors", icon: BlendIcon },
     { title: "Monitoring Data", url: "/manage/app/monitoring-data", icon: DatabaseIcon },
     { title: "Incidents", url: "/manage/app/incidents", icon: CloudAlertIcon },
+    { title: "JSM Tickets", url: "/manage/app/jsm-tickets", icon: TicketIcon },
     { title: "Maintenances", url: "/manage/app/maintenances", icon: ClockAlertIcon },
     { title: "Alerts", url: "/manage/app/alerts", icon: SirenIcon },
     { title: "Subscriptions", url: "/manage/app/subscriptions", icon: BellIcon },
@@ -75,7 +77,7 @@
   let pageTitle = $derived(navItems.find((item) => page.url.pathname.startsWith(item.url))?.title || "Dashboard");
 </script>
 
-<ModeWatcher defaultMode={data.defaultSiteTheme as 'light' | 'dark' | 'system'} />
+<ModeWatcher defaultMode={data.defaultSiteTheme as "light" | "dark" | "system"} />
 <Toaster />
 
 <svelte:head>

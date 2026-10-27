@@ -196,6 +196,10 @@
                         {
                           "title": "Incident Updates",
                           "content": "v4/incidents/updates"
+                        },
+                        {
+                          "title": "Jira Service Management",
+                          "content": "v4/incidents/jira-service-management"
                         }
                       ]
                     },

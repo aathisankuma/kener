@@ -361,6 +361,24 @@ M365_CLIENT_ID=00000000-0000-0000-0000-000000000000
 M365_CLIENT_SECRET=your-client-secret
 ```
 
+### Jira Service Management Connection {#jira-service-management-connection}
+
+| Variable        | Description                                                                   | Required |
+| :-------------- | :---------------------------------------------------------------------------- | :------- |
+| `JSM_BASE_URL`  | Address of your Jira site, for example `https://yourcompany.atlassian.net`    | No       |
+| `JSM_EMAIL`     | Email of the customer account Kener signs in as (Atlassian Cloud only)        | No       |
+| `JSM_API_TOKEN` | API token of that account (Cloud), or its personal access token (Data Center) | No       |
+
+**Purpose**: Lets Kener follow [Jira Service Management tickets](/docs/v4/incidents/jira-service-management) that its account is a request participant on. Leave `JSM_EMAIL` empty on Data Center: the token is then sent as a bearer token.
+
+**Example**:
+
+```bash
+JSM_BASE_URL=https://yourcompany.atlassian.net
+JSM_EMAIL=status@example.com
+JSM_API_TOKEN=your-api-token
+```
+
 ## Custom Environment Variables {#custom-variables}
 
 Beyond built-in variables, Kener supports custom environment variables for use in monitors and alert triggers. This keeps sensitive credentials secure and out of your configuration.

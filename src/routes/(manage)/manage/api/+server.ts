@@ -141,6 +141,15 @@ import { uploadImage } from "$lib/server/controllers/imageController.js";
 import { FetchCloudServiceIcon } from "$lib/server/cloudServiceIcon.js";
 import { ListCloudComponents } from "$lib/server/cloudComponents.js";
 import {
+  GetJsmOverview,
+  IgnoreJsmTicket,
+  LinkJsmTicket,
+  MoveJsmTicket,
+  SyncJsmTickets,
+  UnignoreJsmTicket,
+  UnlinkJsmTicket,
+} from "$lib/server/controllers/jsmController.js";
+import {
   AddMyServiceIncidentUpdate,
   CancelMyServiceMaintenance,
   CreateMyServiceIncident,
@@ -343,6 +352,24 @@ export async function POST({ request, cookies }) {
       resp = await UpdateCommentStatusByID(data.incident_id, data.comment_id, "INACTIVE");
     } else if (action == "updateComment") {
       resp = await UpdateCommentByID(data.incident_id, data.comment_id, data.comment, data.state, data.commented_at);
+    } else if (action == "getJsmTickets") {
+      resp = await GetJsmOverview();
+    } else if (action == "linkJsmTicket") {
+      resp = await LinkJsmTicket(data);
+    } else if (action == "moveJsmTicket") {
+      await MoveJsmTicket(data);
+      resp = { success: true };
+    } else if (action == "unlinkJsmTicket") {
+      await UnlinkJsmTicket(data.issue_key);
+      resp = { success: true };
+    } else if (action == "ignoreJsmTicket") {
+      await IgnoreJsmTicket(data.issue_key);
+      resp = { success: true };
+    } else if (action == "unignoreJsmTicket") {
+      await UnignoreJsmTicket(data.issue_key);
+      resp = { success: true };
+    } else if (action == "syncJsmTickets") {
+      resp = await SyncJsmTickets();
     } else if (action == "testTrigger") {
       const trigger = await GetTriggerByID(data.trigger_id);
       const siteData = await GetAllSiteData();

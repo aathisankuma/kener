@@ -14,6 +14,7 @@ import { PagesRepository } from "./repositories/pages.js";
 import { MaintenancesRepository } from "./repositories/maintenances.js";
 import { MonitorAlertConfigRepository } from "./repositories/monitorAlertConfig.js";
 import { SubscriptionSystemRepository } from "./repositories/subscriptionSystem.js";
+import { JsmLinksRepository } from "./repositories/jsmLinks.js";
 import { EmailTemplateConfigRepository } from "./repositories/emailTemplateConfig.js";
 
 // Re-export types from base
@@ -46,6 +47,7 @@ class DbImpl {
   private maintenances!: MaintenancesRepository;
   private monitorAlertConfig!: MonitorAlertConfigRepository;
   private subscriptionSystem!: SubscriptionSystemRepository;
+  private jsmLinks!: JsmLinksRepository;
   private emailTemplateConfig!: EmailTemplateConfigRepository;
 
   // Method bindings - declared with definite assignment assertion
@@ -357,6 +359,13 @@ class DbImpl {
   getMonitorAlertsV2Paginated!: MonitorAlertConfigRepository["getMonitorAlertsV2Paginated"];
 
   // ============ Subscription System V2 (subscriber_users, subscriber_methods, user_subscriptions_v2) ============
+  getJsmLinks!: JsmLinksRepository["getJsmLinks"];
+  getJsmLinkByKey!: JsmLinksRepository["getJsmLinkByKey"];
+  insertJsmLink!: JsmLinksRepository["insertJsmLink"];
+  updateJsmLink!: JsmLinksRepository["updateJsmLink"];
+  deleteJsmLink!: JsmLinksRepository["deleteJsmLink"];
+  deleteJsmLinksByIncidentId!: JsmLinksRepository["deleteJsmLinksByIncidentId"];
+  getJsmLinksToSync!: JsmLinksRepository["getJsmLinksToSync"];
   createSubscriberUser!: SubscriptionSystemRepository["createSubscriberUser"];
   getSubscriberUserById!: SubscriptionSystemRepository["getSubscriberUserById"];
   getSubscriberUserByEmail!: SubscriptionSystemRepository["getSubscriberUserByEmail"];
@@ -413,6 +422,7 @@ class DbImpl {
     this.maintenances = new MaintenancesRepository(this.knex);
     this.monitorAlertConfig = new MonitorAlertConfigRepository(this.knex);
     this.subscriptionSystem = new SubscriptionSystemRepository(this.knex);
+    this.jsmLinks = new JsmLinksRepository(this.knex);
     this.emailTemplateConfig = new EmailTemplateConfigRepository(this.knex);
 
     // Bind methods after repositories are initialized
@@ -818,6 +828,13 @@ class DbImpl {
 
   private bindSubscriptionSystemMethods(): void {
     // Subscriber Users
+    this.getJsmLinks = this.jsmLinks.getJsmLinks.bind(this.jsmLinks);
+    this.getJsmLinkByKey = this.jsmLinks.getJsmLinkByKey.bind(this.jsmLinks);
+    this.insertJsmLink = this.jsmLinks.insertJsmLink.bind(this.jsmLinks);
+    this.updateJsmLink = this.jsmLinks.updateJsmLink.bind(this.jsmLinks);
+    this.deleteJsmLink = this.jsmLinks.deleteJsmLink.bind(this.jsmLinks);
+    this.deleteJsmLinksByIncidentId = this.jsmLinks.deleteJsmLinksByIncidentId.bind(this.jsmLinks);
+    this.getJsmLinksToSync = this.jsmLinks.getJsmLinksToSync.bind(this.jsmLinks);
     this.createSubscriberUser = this.subscriptionSystem.createSubscriberUser.bind(this.subscriptionSystem);
     this.getSubscriberUserById = this.subscriptionSystem.getSubscriberUserById.bind(this.subscriptionSystem);
     this.getSubscriberUserByEmail = this.subscriptionSystem.getSubscriberUserByEmail.bind(this.subscriptionSystem);

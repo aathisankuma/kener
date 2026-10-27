@@ -620,6 +620,9 @@ export const DeleteIncident = async (incident_id: number): Promise<{ success: bo
   // Delete incident comments permanently
   await db.deleteIncidentCommentsByIncidentID(incident_id);
 
+  // A linked Jira Service Management ticket stops updating a deleted incident
+  await db.deleteJsmLinksByIncidentId(incident_id);
+
   // Delete the incident
   await db.deleteIncident(incident_id);
 
