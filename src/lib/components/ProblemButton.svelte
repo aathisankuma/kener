@@ -37,12 +37,12 @@
 </script>
 
 <div
-  class="problem-button relative z-10 mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs"
+  class="problem-button relative z-10 mt-1 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs"
   data-testid="problem-button"
 >
   {#if status === "sent"}
-    <span class="text-up inline-flex items-center gap-1 font-medium">
-      <Check class="size-3.5" />
+    <span class="sent inline-flex items-center gap-1.5 text-sm font-semibold">
+      <Check class="size-4" />
       {$t("Thanks, reported")}
     </span>
     {#if info.helpUrl}
@@ -51,13 +51,8 @@
       </a>
     {/if}
   {:else}
-    <button
-      type="button"
-      class="text-muted-foreground hover:text-down hover:border-down inline-flex items-center gap-1 rounded-full border px-2 py-0.5 transition-colors disabled:opacity-60"
-      onclick={report}
-      disabled={status === "sending"}
-    >
-      <CircleAlert class="size-3.5" />
+    <button type="button" class="report-btn" onclick={report} disabled={status === "sending"}>
+      <CircleAlert class="size-4" />
       {$t("Not working")}
     </button>
     {#if status === "error"}
@@ -72,3 +67,35 @@
     </span>
   {/if}
 </div>
+
+<style>
+  .report-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border: 1px solid var(--down);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--down);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.2;
+    cursor: pointer;
+    transition:
+      background-color 0.15s,
+      color 0.15s;
+  }
+  .report-btn:hover,
+  .report-btn:focus-visible {
+    background: var(--down);
+    color: #fff;
+  }
+  .report-btn:disabled {
+    opacity: 0.6;
+    cursor: progress;
+  }
+  .sent {
+    color: var(--up);
+  }
+</style>
