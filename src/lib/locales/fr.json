@@ -195,6 +195,7 @@
     "Need personal help? Open a ticket": "Besoin d'aide personnelle ? Ouvrir un ticket",
     "1 report in the last minutes": "1 signalement ces dernières minutes",
     "%count reports in the last minutes": "%count signalements ces dernières minutes",
-    "Could not send the report": "Le signalement n'a pas pu être envoyé"
+    "Could not send the report": "Le signalement n'a pas pu être envoyé",
+    "Sign in to report a problem": "Se connecter pour signaler un problème"
   }
 }

@@ -157,6 +157,7 @@ import {
   SaveUptimeReportSettings,
   SendUptimeReport,
   ParseRecipients,
+  IsSsoEnabled,
 } from "$lib/server/controllers/reportsController.js";
 import {
   AddMyServiceIncidentUpdate,
@@ -362,12 +363,13 @@ export async function POST({ request, cookies }) {
     } else if (action == "updateComment") {
       resp = await UpdateCommentByID(data.incident_id, data.comment_id, data.comment, data.state, data.commented_at);
     } else if (action == "getReportSettings") {
-      const [problem, uptime, overview] = await Promise.all([
+      const [problem, uptime, overview, ssoEnabled] = await Promise.all([
         GetProblemReportSettings(),
         GetUptimeReportSettings(),
         GetProblemReportOverview(),
+        IsSsoEnabled(),
       ]);
-      resp = { problem, uptime, overview };
+      resp = { problem, uptime, overview, ssoEnabled };
     } else if (action == "saveProblemReportSettings") {
       resp = await SaveProblemReportSettings(data);
     } else if (action == "saveUptimeReportSettings") {

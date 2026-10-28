@@ -12,16 +12,17 @@ Staff press **Not working** on a service. Kener counts each browser once per ser
 1. Open **Monitors**, pick the service, and open **"Not working" Button**. Turn on **Show the button on the status page** and save. The button is off for every service until you turn it on.
 2. Open **Reports** and fill in the **"Not working" button** card:
 
-| Setting                               | Default | Meaning                                                                     |
-| :------------------------------------ | :------ | :-------------------------------------------------------------------------- |
-| Email these addresses                 | none    | One per line. Without addresses, reports are counted but nobody is emailed. |
-| When … people report within … minutes | 3, 15   | Different browsers that must report the service within that time.           |
-| Show staff how many reported          | on      | Shows "3 reports in the last minutes" next to the button.                   |
-| Link for personal help                | none    | Shown after reporting, for example your service desk portal.                |
+| Setting                               | Default  | Meaning                                                                                                                                                                                    |
+| :------------------------------------ | :------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Email these addresses                 | none     | One per line. Without addresses, reports are counted but nobody is emailed.                                                                                                                |
+| When … people report within … minutes | 3, 15    | Different browsers that must report the service within that time.                                                                                                                          |
+| Show staff how many reported          | on       | Shows "3 reports in the last minutes" next to the button.                                                                                                                                  |
+| Link for personal help                | none     | Shown after reporting, for example your service desk portal.                                                                                                                               |
+| Who can report                        | Everyone | **Everyone**, **only people signed in to Kener**, or **only people signed in with SSO** ([OpenID Connect](/docs/v4/oidc)). Others see "Sign in to report a problem" instead of the button. |
 
 The button appears on the status page and on the service's page. It never appears for a [hidden](/docs/v4/monitors/visibility) service.
 
-Kener recognises a browser by an anonymous random id in a cookie, not by its address, because everyone in an office shares one address. Kener stores only a hash of that id. Reports older than 180 days are deleted.
+Kener recognises a signed-in person by their account, so each person counts once on any device. Anyone else is recognised by an anonymous random id in a cookie, not by their address, because everyone in an office shares one address. Kener stores only a hash of the account or id. Reports older than 180 days are deleted.
 
 ## Monthly uptime report {#monthly-uptime-report}
 

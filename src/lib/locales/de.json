@@ -221,6 +221,7 @@
     "Need personal help? Open a ticket": "Brauchst du persönlich Hilfe? Ticket erstellen",
     "1 report in the last minutes": "1 Meldung in den letzten Minuten",
     "%count reports in the last minutes": "%count Meldungen in den letzten Minuten",
-    "Could not send the report": "Meldung konnte nicht gesendet werden"
+    "Could not send the report": "Meldung konnte nicht gesendet werden",
+    "Sign in to report a problem": "Zum Melden anmelden"
   }
 }

@@ -13,7 +13,7 @@ import sendEmail from "../notification/email_notification.js";
 import { IsEmailSetup } from "./emailController.js";
 import { GetAllSiteData } from "./siteDataController.js";
 import { siteDataToVariables } from "../notification/notification_utils.js";
-import type { MonitorRecord } from "../types/db.js";
+import type { MonitorRecord, UserRecordPublic } from "../types/db.js";
 
 // ============ Settings ============
 
@@ -27,7 +27,12 @@ export interface ProblemReportSettings {
   showCount: boolean;
   /** Where staff ask for personal help, e.g. the service desk portal. */
   helpUrl: string;
+  /** Who may press the button: anyone, anyone signed in, or only users who sign in with SSO. */
+  whoCanReport: WhoCanReport;
 }
+
+export const WHO_CAN_REPORT = ["everyone", "signed_in", "sso"] as const;
+export type WhoCanReport = (typeof WHO_CAN_REPORT)[number];
 
 export interface UptimeReportSettings {
   enabled: boolean;
@@ -45,6 +50,7 @@ export const DEFAULT_PROBLEM_SETTINGS: ProblemReportSettings = {
   windowMinutes: 15,
   showCount: true,
   helpUrl: "",
+  whoCanReport: "everyone",
 };
 
 export const DEFAULT_UPTIME_REPORT_SETTINGS: UptimeReportSettings = {
@@ -112,6 +118,9 @@ export async function SaveProblemReportSettings(data: Record<string, unknown>): 
     windowMinutes: wholeNumber(data.windowMinutes, "Minutes", 5, 1440),
     showCount: data.showCount !== false,
     helpUrl,
+    whoCanReport: (WHO_CAN_REPORT as readonly string[]).includes(String(data.whoCanReport))
+      ? (data.whoCanReport as WhoCanReport)
+      : "everyone",
   };
   await writeSetting(PROBLEM_KEY, settings);
   return settings;
@@ -152,15 +161,30 @@ export function ProblemButtonEnabled(monitor: Pick<MonitorRecord, "monitor_setti
   }
 }
 
+/** Whether this viewer may press the button. */
+export function CanReport(
+  settings: Pick<ProblemReportSettings, "whoCanReport">,
+  user: UserRecordPublic | null,
+): boolean {
+  if (settings.whoCanReport === "everyone") return true;
+  if (!user) return false;
+  return settings.whoCanReport === "signed_in" || user.auth_provider === GC.AUTH_PROVIDER_OIDC;
+}
+
 /** What a status page needs to show the button: the count per service, or null when hidden. */
 export interface ProblemButtonData {
   /** Services with the button, and how many reported each within the window. */
   counts: Record<string, number>;
   showCount: boolean;
   helpUrl: string;
+  /** False: the viewer sees a sign-in link instead of the button. */
+  canReport: boolean;
 }
 
-export async function GetProblemButtonData(enabledTags: string[]): Promise<ProblemButtonData | null> {
+export async function GetProblemButtonData(
+  enabledTags: string[],
+  user: UserRecordPublic | null = null,
+): Promise<ProblemButtonData | null> {
   if (enabledTags.length === 0) return null;
   const settings = await GetProblemReportSettings();
   const since = GetNowTimestampUTC() - settings.windowMinutes * 60;
@@ -169,6 +193,7 @@ export async function GetProblemButtonData(enabledTags: string[]): Promise<Probl
     counts: Object.fromEntries(enabledTags.map((tag) => [tag, counted[tag] ?? 0])),
     showCount: settings.showCount,
     helpUrl: settings.helpUrl,
+    canReport: CanReport(settings, user),
   };
 }
 
@@ -207,6 +232,8 @@ export async function ReportProblem(input: {
   monitorTag: string;
   browserId: string;
   ip: string;
+  /** The signed-in user, if any; then each person counts once, whatever browser they use. */
+  user?: UserRecordPublic | null;
 }): Promise<{ count: number; alreadyReported: boolean; alerted: boolean }> {
   const monitor = await db.getMonitorByTag(input.monitorTag);
   if (!monitor || monitor.status !== "ACTIVE" || monitor.is_hidden === "YES" || !ProblemButtonEnabled(monitor)) {
@@ -216,10 +243,17 @@ export async function ReportProblem(input: {
   if (tooManyFrom(input.ip, now)) throw new ProblemReportError("Too many reports, please try again later", 429);
 
   const settings = await GetProblemReportSettings();
+  if (!CanReport(settings, input.user ?? null)) {
+    throw new ProblemReportError(
+      settings.whoCanReport === "sso" ? "Sign in with SSO to report a problem" : "Sign in to report a problem",
+      401,
+    );
+  }
   const since = now - settings.windowMinutes * 60;
+  const identity = input.user ? `user:${input.user.id}` : input.browserId;
   const reporter = crypto
     .createHash("sha256")
-    .update(`${process.env.KENER_SECRET_KEY ?? ""}:${input.browserId}`)
+    .update(`${process.env.KENER_SECRET_KEY ?? ""}:${identity}`)
     .digest("hex");
 
   const alreadyReported = await db.hasProblemReport(monitor.tag, reporter, since);
@@ -483,4 +517,14 @@ export async function SendUptimeReportIfDue(): Promise<void> {
 /** For tests: forget when the report was last checked. */
 export function ResetUptimeReportCheck(): void {
   lastCheck = 0;
+}
+
+/** Whether sign-in with SSO (OpenID Connect) is switched on. */
+export async function IsSsoEnabled(): Promise<boolean> {
+  try {
+    const row = await db.getSiteDataByKey("oidcSettings");
+    return !!JSON.parse(row?.value || "{}").enabled;
+  } catch {
+    return false;
+  }
 }

@@ -495,6 +495,7 @@ export const GetPageDashboardData = async (
     parsedMonitors
       .filter((m) => m.is_hidden !== "YES" && m.monitor_settings_json?.problem_button === true)
       .map((m) => m.tag),
+    layoutData.loggedInUser,
   );
 
   return {
