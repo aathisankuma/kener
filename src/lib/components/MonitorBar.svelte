@@ -129,7 +129,8 @@
         {#if data.description}
           <Item.Description class="line-clamp-2 wrap-break-word">{data.description}</Item.Description>
         {/if}
-        {#if page.data.problemButton?.counts?.[tag] !== undefined}
+        {#if !grid && page.data.problemButton?.counts?.[tag] !== undefined}
+          <!-- Rows: below the name (and a status shown next to it). -->
           <ProblemButton {tag} info={page.data.problemButton} />
         {/if}
       </Item.Content>
@@ -163,6 +164,12 @@
           </div>
         </Item.Title>
       </Item.Content>
+      {#if grid && page.data.problemButton?.counts?.[tag] !== undefined}
+        <!-- Grids and cards: its own row, below the status. -->
+        <div class="problem-row basis-full">
+          <ProblemButton {tag} info={page.data.problemButton} />
+        </div>
+      {/if}
     </Item.Root>
     {#if !compact}
       <div class="mx-auto flex w-full flex-col gap-1 px-4">
@@ -191,3 +198,11 @@
     {/if}
   {/if}
 </div>
+
+<style>
+  /* Card layouts that turn the item into a grid (icon | name over status) put the button in the
+     text column, below the status. Where the item is a flex row this has no effect. */
+  :global([data-slot="item"] > .problem-row) {
+    grid-column: 2;
+  }
+</style>
