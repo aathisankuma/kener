@@ -52,7 +52,7 @@
     {/if}
   {:else}
     <button type="button" class="report-btn" onclick={report} disabled={status === "sending"}>
-      <CircleAlert class="size-4" />
+      <CircleAlert class="size-3.5" />
       {$t("Not working")}
     </button>
     {#if status === "error"}
@@ -72,13 +72,13 @@
   .report-btn {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
+    gap: 4px;
+    padding: 3px 8px;
     border: 1px solid var(--down);
-    border-radius: 6px;
+    border-radius: 4px;
     background: transparent;
     color: var(--down);
-    font-size: 13px;
+    font-size: 11px;
     font-weight: 600;
     line-height: 1.2;
     cursor: pointer;
