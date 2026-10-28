@@ -50,6 +50,10 @@
         {$t("Need personal help? Open a ticket")}
       </a>
     {/if}
+  {:else if !info.canReport}
+    <a class="sign-in" href={clientResolver(resolve, "/account/signin")}>
+      {$t("Sign in to report a problem")}
+    </a>
   {:else}
     <button type="button" class="report-btn" onclick={report} disabled={status === "sending"}>
       <CircleAlert class="size-3.5" />
@@ -97,5 +101,11 @@
   }
   .sent {
     color: var(--up);
+  }
+  .sign-in {
+    color: var(--down);
+    font-size: 11px;
+    text-decoration: underline;
+    text-underline-offset: 2px;
   }
 </style>

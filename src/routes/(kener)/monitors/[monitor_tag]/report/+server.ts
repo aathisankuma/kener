@@ -5,6 +5,7 @@ import { json } from "@sveltejs/kit";
 import crypto from "node:crypto";
 import type { RequestHandler } from "./$types";
 import { ProblemReportError, ReportProblem } from "$lib/server/controllers/reportsController.js";
+import { GetLoggedInSession } from "$lib/server/controllers/userController.js";
 
 const COOKIE = "kener-reporter";
 
@@ -21,7 +22,8 @@ export const POST: RequestHandler = async ({ params, cookies, getClientAddress }
     /* no address behind some proxies */
   }
   try {
-    const result = await ReportProblem({ monitorTag: params.monitor_tag, browserId, ip });
+    const user = await GetLoggedInSession(cookies);
+    const result = await ReportProblem({ monitorTag: params.monitor_tag, browserId, ip, user });
     return json({ count: result.count, alreadyReported: result.alreadyReported });
   } catch (e) {
     if (e instanceof ProblemReportError) return json({ error: e.message }, { status: e.status });

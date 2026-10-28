@@ -228,6 +228,7 @@
     "Need personal help? Open a ticket": "Need personal help? Open a ticket",
     "1 report in the last minutes": "1 report in the last minutes",
     "%count reports in the last minutes": "%count reports in the last minutes",
-    "Could not send the report": "Could not send the report"
+    "Could not send the report": "Could not send the report",
+    "Sign in to report a problem": "Sign in to report a problem"
   }
 }

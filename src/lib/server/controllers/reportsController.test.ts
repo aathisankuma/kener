@@ -179,8 +179,40 @@ describe('the "not working" button', () => {
       counts: { jira: 1 },
       showCount: true,
       helpUrl: "",
+      canReport: true,
     });
     expect(await GetProblemButtonData([])).toBeNull();
+  });
+
+  it("lets only signed-in people report when set, counting each person once", async () => {
+    await SaveProblemReportSettings({ recipients: "", threshold: 3, windowMinutes: 15, whoCanReport: "signed_in" });
+    await expect(report("a")).rejects.toThrow("Sign in to report a problem");
+    const anna = { id: 7, auth_provider: "local" } as never;
+    expect(await ReportProblem({ monitorTag: "jira", browserId: "laptop", ip: "10.0.0.1", user: anna })).toMatchObject({
+      count: 1,
+      alreadyReported: false,
+    });
+    // Same person on her phone: still one report.
+    expect(await ReportProblem({ monitorTag: "jira", browserId: "phone", ip: "10.0.0.2", user: anna })).toMatchObject({
+      count: 1,
+      alreadyReported: true,
+    });
+    expect((await GetProblemButtonData(["jira"], null))?.canReport).toBe(false);
+    expect((await GetProblemButtonData(["jira"], anna))?.canReport).toBe(true);
+  });
+
+  it("lets only people signed in with SSO report when set", async () => {
+    await SaveProblemReportSettings({ recipients: "", threshold: 3, windowMinutes: 15, whoCanReport: "sso" });
+    const local = { id: 7, auth_provider: "local" } as never;
+    const sso = { id: 8, auth_provider: "oidc" } as never;
+    await expect(ReportProblem({ monitorTag: "jira", browserId: "a", ip: "10.0.0.1", user: local })).rejects.toThrow(
+      "Sign in with SSO to report a problem",
+    );
+    expect(await ReportProblem({ monitorTag: "jira", browserId: "b", ip: "10.0.0.1", user: sso })).toMatchObject({
+      count: 1,
+    });
+    expect((await GetProblemButtonData(["jira"], local))?.canReport).toBe(false);
+    expect((await GetProblemButtonData(["jira"], sso))?.canReport).toBe(true);
   });
 
   it("checks the settings", async () => {

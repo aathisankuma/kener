@@ -36,6 +36,8 @@
   let windowMinutes = $state(15);
   let showCount = $state(true);
   let helpUrl = $state("");
+  let whoCanReport = $state<"everyone" | "signed_in" | "sso">("everyone");
+  let ssoEnabled = $state(false);
 
   // Monthly report
   let reportEnabled = $state(false);
@@ -68,6 +70,7 @@
     windowMinutes = problem.windowMinutes;
     showCount = problem.showCount;
     helpUrl = problem.helpUrl;
+    whoCanReport = problem.whoCanReport;
     reportEnabled = uptime.enabled;
     reportRecipients = uptime.recipients.join("\n");
     // Never saved: suggest the browser's time zone.
@@ -83,6 +86,7 @@
     try {
       const result = await call("getReportSettings");
       apply(result.problem, result.uptime);
+      ssoEnabled = result.ssoEnabled === true;
       overview = result.overview;
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not load the settings");
@@ -200,6 +204,28 @@
               />
               <p class="text-muted-foreground text-xs">Shown after reporting, e.g. your service desk portal.</p>
             </div>
+            <div class="space-y-2">
+              <Label for="who-can-report">Who can report</Label>
+              <select
+                id="who-can-report"
+                class="border-input bg-background h-9 w-full rounded-md border px-2 text-sm"
+                bind:value={whoCanReport}
+                disabled={!canWrite}
+              >
+                <option value="everyone">Everyone who opens the status page</option>
+                <option value="signed_in">Only people signed in to Kener</option>
+                <option value="sso">Only people signed in with SSO</option>
+              </select>
+              <p class="text-muted-foreground text-xs">
+                Others see "Sign in to report a problem" instead of the button. Signed-in people count once each,
+                whatever browser they use.
+              </p>
+              {#if whoCanReport === "sso" && !ssoEnabled}
+                <p class="text-destructive text-xs">
+                  SSO is not switched on yet (OpenID Connect), so nobody can report until it is.
+                </p>
+              {/if}
+            </div>
           </div>
         </div>
 
@@ -254,7 +280,7 @@
               run(
                 "problem",
                 "saveProblemReportSettings",
-                { recipients: problemRecipients, threshold, windowMinutes, showCount, helpUrl },
+                { recipients: problemRecipients, threshold, windowMinutes, showCount, helpUrl, whoCanReport },
                 () => "Saved"
               )}
           >

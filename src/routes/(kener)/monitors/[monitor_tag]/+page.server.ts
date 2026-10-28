@@ -92,7 +92,7 @@ export const load: PageServerLoad = async ({ params, parent }) => {
   }
   const problemButton =
     monitor.is_hidden !== "YES" && monitor.monitor_settings_json?.problem_button === true
-      ? await GetProblemButtonData([monitor.tag])
+      ? await GetProblemButtonData([monitor.tag], parentData.loggedInUser)
       : null;
 
   return {
