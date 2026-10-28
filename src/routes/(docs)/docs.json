@@ -234,6 +234,10 @@
                       "content": "v4/subscriptions"
                     },
                     {
+                      "title": "Reports",
+                      "content": "v4/reports"
+                    },
+                    {
                       "title": "RSS Feed",
                       "content": "v4/rss-feed"
                     },

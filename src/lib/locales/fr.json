@@ -189,6 +189,12 @@
     "Call off": "Annuler la maintenance",
     "Last 3 months": "3 derniers mois",
     "Show %count more": "Afficher %count de plus",
-    "Show less": "Afficher moins"
+    "Show less": "Afficher moins",
+    "Not working": "Ne fonctionne pas",
+    "Thanks, reported": "Merci, c'est signalé",
+    "Need personal help? Open a ticket": "Besoin d'aide personnelle ? Ouvrir un ticket",
+    "1 report in the last minutes": "1 signalement ces dernières minutes",
+    "%count reports in the last minutes": "%count signalements ces dernières minutes",
+    "Could not send the report": "Le signalement n'a pas pu être envoyé"
   }
 }

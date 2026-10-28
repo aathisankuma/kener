@@ -107,6 +107,8 @@ export interface MonitorSettings {
     mobile: number;
   };
   sharing_options?: MonitorSharingOptions;
+  /** Shows the "not working" button on the status page for this monitor. */
+  problem_button?: boolean;
 }
 
 export interface TimestampStatusCount {

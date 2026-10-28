@@ -18,6 +18,7 @@ import type { GroupMonitorTypeData } from "../types/monitor.js";
 import GC from "../../global-constants.js";
 import type { LayoutServerData } from "./layoutController.js";
 import type { NotificationEvent } from "../../types/notifications.js";
+import { GetProblemButtonData, type ProblemButtonData } from "./reportsController.js";
 
 export type { NotificationEvent };
 
@@ -226,6 +227,8 @@ export interface PageDashboardData {
   pageStatus: { statusSummary: string; statusClass: string };
   topIncidents: TopIncident[];
   pastJsmIncidents: PastIncident[];
+  /** The "not working" button: services that have it, with their report counts. */
+  problemButton: ProblemButtonData | null;
   ongoingIncidents: IncidentForMonitorListWithComments[];
   ongoingMaintenances: MaintenanceEventsMonitorList[];
   upcomingMaintenances: MaintenanceEventsMonitorList[];
@@ -437,6 +440,7 @@ export const GetPageDashboardData = async (
       pageStatus: BuildPageStatus([], nowTs),
       topIncidents,
       pastJsmIncidents,
+      problemButton: null,
       ongoingIncidents: [],
       ongoingMaintenances: [],
       upcomingMaintenances: [],
@@ -487,11 +491,17 @@ export const GetPageDashboardData = async (
 
   // An incident at the top is shown there only.
   const topIds = new Set(topIncidents.map((i) => i.id));
+  const problemButton = await GetProblemButtonData(
+    parsedMonitors
+      .filter((m) => m.is_hidden !== "YES" && m.monitor_settings_json?.problem_button === true)
+      .map((m) => m.tag),
+  );
 
   return {
     pageStatus,
     topIncidents,
     pastJsmIncidents,
+    problemButton,
     ongoingIncidents: ongoingIncidents.filter((i) => !topIds.has(i.id)),
     ongoingMaintenances,
     upcomingMaintenances,

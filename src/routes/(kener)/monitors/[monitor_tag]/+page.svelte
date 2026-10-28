@@ -12,6 +12,7 @@
   import trackEvent from "$lib/beacon";
   import IncidentItem from "$lib/components/IncidentItem.svelte";
   import MaintenanceItem from "$lib/components/MaintenanceItem.svelte";
+  import ProblemButton from "$lib/components/ProblemButton.svelte";
   import { page } from "$app/state";
   import { GetSslSecurityState, SslSecurityLabelKey, SslSecurityTextClass, FormatSslRemaining } from "$lib/clientTools";
   import { getSslNowMs } from "$lib/client/sslClock.svelte";
@@ -101,6 +102,9 @@
               {/if}
             </Item.Description>
           </h2>
+        {/if}
+        {#if data.problemButton}
+          <ProblemButton tag={data.monitorTag} info={data.problemButton} />
         {/if}
       </Item.Content>
     </Item.Root>

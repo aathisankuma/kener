@@ -150,6 +150,15 @@ import {
   UnlinkJsmTicket,
 } from "$lib/server/controllers/jsmController.js";
 import {
+  GetProblemReportOverview,
+  GetProblemReportSettings,
+  GetUptimeReportSettings,
+  SaveProblemReportSettings,
+  SaveUptimeReportSettings,
+  SendUptimeReport,
+  ParseRecipients,
+} from "$lib/server/controllers/reportsController.js";
+import {
   AddMyServiceIncidentUpdate,
   CancelMyServiceMaintenance,
   CreateMyServiceIncident,
@@ -352,6 +361,19 @@ export async function POST({ request, cookies }) {
       resp = await UpdateCommentStatusByID(data.incident_id, data.comment_id, "INACTIVE");
     } else if (action == "updateComment") {
       resp = await UpdateCommentByID(data.incident_id, data.comment_id, data.comment, data.state, data.commented_at);
+    } else if (action == "getReportSettings") {
+      const [problem, uptime, overview] = await Promise.all([
+        GetProblemReportSettings(),
+        GetUptimeReportSettings(),
+        GetProblemReportOverview(),
+      ]);
+      resp = { problem, uptime, overview };
+    } else if (action == "saveProblemReportSettings") {
+      resp = await SaveProblemReportSettings(data);
+    } else if (action == "saveUptimeReportSettings") {
+      resp = await SaveUptimeReportSettings(data);
+    } else if (action == "sendUptimeReportNow") {
+      resp = await SendUptimeReport(data?.recipients ? ParseRecipients(data.recipients) : undefined);
     } else if (action == "getJsmTickets") {
       resp = await GetJsmOverview();
     } else if (action == "linkJsmTicket") {

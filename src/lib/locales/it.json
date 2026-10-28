@@ -189,6 +189,12 @@
     "Call off": "Annulla la manutenzione",
     "Last 3 months": "Ultimi 3 mesi",
     "Show %count more": "Mostra altri %count",
-    "Show less": "Mostra meno"
+    "Show less": "Mostra meno",
+    "Not working": "Non funziona",
+    "Thanks, reported": "Grazie, segnalato",
+    "Need personal help? Open a ticket": "Serve aiuto personale? Apri un ticket",
+    "1 report in the last minutes": "1 segnalazione negli ultimi minuti",
+    "%count reports in the last minutes": "%count segnalazioni negli ultimi minuti",
+    "Could not send the report": "Impossibile inviare la segnalazione"
   }
 }
