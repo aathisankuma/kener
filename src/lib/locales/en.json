@@ -222,6 +222,12 @@
     "Call off": "Call off",
     "Last 3 months": "Last 3 months",
     "Show %count more": "Show %count more",
-    "Show less": "Show less"
+    "Show less": "Show less",
+    "Not working": "Not working",
+    "Thanks, reported": "Thanks, reported",
+    "Need personal help? Open a ticket": "Need personal help? Open a ticket",
+    "1 report in the last minutes": "1 report in the last minutes",
+    "%count reports in the last minutes": "%count reports in the last minutes",
+    "Could not send the report": "Could not send the report"
   }
 }

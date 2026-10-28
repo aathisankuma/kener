@@ -215,6 +215,12 @@
     "Call off": "Absagen",
     "Last 3 months": "Letzte 3 Monate",
     "Show %count more": "%count weitere anzeigen",
-    "Show less": "Weniger anzeigen"
+    "Show less": "Weniger anzeigen",
+    "Not working": "Funktioniert nicht",
+    "Thanks, reported": "Danke, gemeldet",
+    "Need personal help? Open a ticket": "Brauchst du persönlich Hilfe? Ticket erstellen",
+    "1 report in the last minutes": "1 Meldung in den letzten Minuten",
+    "%count reports in the last minutes": "%count Meldungen in den letzten Minuten",
+    "Could not send the report": "Meldung konnte nicht gesendet werden"
   }
 }

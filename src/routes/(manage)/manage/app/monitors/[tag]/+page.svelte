@@ -30,6 +30,7 @@
   import MonitorRecentLogs from "./components/MonitorRecentLogs.svelte";
   import StatusHistoryDaysCard from "./components/StatusHistoryDaysCard.svelte";
   import MonitorSharingOptionsCard from "./components/MonitorSharingOptionsCard.svelte";
+  import ProblemButtonCard from "./components/ProblemButtonCard.svelte";
   import GC from "$lib/global-constants.js";
   import { CloudMonitorName, SuggestMonitorTag } from "$lib/cloudServices.js";
 
@@ -456,6 +457,14 @@
               <!-- Monitor Sharing Options Card -->
 
               <MonitorSharingOptionsCard bind:monitor {typeData} {subMenuOptions} />
+            </Accordion.Content>
+          </Accordion.Item>
+        {/if}
+        {#if !isNew}
+          <Accordion.Item value="problem-button">
+            <Accordion.Trigger>"Not working" Button</Accordion.Trigger>
+            <Accordion.Content class="flex flex-col gap-4 text-balance">
+              <ProblemButtonCard bind:monitor {typeData} />
             </Accordion.Content>
           </Accordion.Item>
         {/if}

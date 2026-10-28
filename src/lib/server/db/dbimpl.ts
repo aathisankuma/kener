@@ -15,6 +15,7 @@ import { MaintenancesRepository } from "./repositories/maintenances.js";
 import { MonitorAlertConfigRepository } from "./repositories/monitorAlertConfig.js";
 import { SubscriptionSystemRepository } from "./repositories/subscriptionSystem.js";
 import { JsmLinksRepository } from "./repositories/jsmLinks.js";
+import { ProblemReportsRepository } from "./repositories/problemReports.js";
 import { EmailTemplateConfigRepository } from "./repositories/emailTemplateConfig.js";
 
 // Re-export types from base
@@ -48,6 +49,7 @@ class DbImpl {
   private monitorAlertConfig!: MonitorAlertConfigRepository;
   private subscriptionSystem!: SubscriptionSystemRepository;
   private jsmLinks!: JsmLinksRepository;
+  private problemReports!: ProblemReportsRepository;
   private emailTemplateConfig!: EmailTemplateConfigRepository;
 
   // Method bindings - declared with definite assignment assertion
@@ -368,6 +370,14 @@ class DbImpl {
   deleteJsmLink!: JsmLinksRepository["deleteJsmLink"];
   deleteJsmLinksByIncidentId!: JsmLinksRepository["deleteJsmLinksByIncidentId"];
   getJsmLinksToSync!: JsmLinksRepository["getJsmLinksToSync"];
+  insertProblemReport!: ProblemReportsRepository["insertProblemReport"];
+  hasProblemReport!: ProblemReportsRepository["hasProblemReport"];
+  countProblemReporters!: ProblemReportsRepository["countProblemReporters"];
+  wasProblemAlertSent!: ProblemReportsRepository["wasProblemAlertSent"];
+  markProblemReportAlerted!: ProblemReportsRepository["markProblemReportAlerted"];
+  getProblemReportSummary!: ProblemReportsRepository["getProblemReportSummary"];
+  deleteProblemReportsBefore!: ProblemReportsRepository["deleteProblemReportsBefore"];
+  deleteProblemReportsByTag!: ProblemReportsRepository["deleteProblemReportsByTag"];
   createSubscriberUser!: SubscriptionSystemRepository["createSubscriberUser"];
   getSubscriberUserById!: SubscriptionSystemRepository["getSubscriberUserById"];
   getSubscriberUserByEmail!: SubscriptionSystemRepository["getSubscriberUserByEmail"];
@@ -425,6 +435,7 @@ class DbImpl {
     this.monitorAlertConfig = new MonitorAlertConfigRepository(this.knex);
     this.subscriptionSystem = new SubscriptionSystemRepository(this.knex);
     this.jsmLinks = new JsmLinksRepository(this.knex);
+    this.problemReports = new ProblemReportsRepository(this.knex);
     this.emailTemplateConfig = new EmailTemplateConfigRepository(this.knex);
 
     // Bind methods after repositories are initialized
@@ -839,6 +850,14 @@ class DbImpl {
     this.deleteJsmLink = this.jsmLinks.deleteJsmLink.bind(this.jsmLinks);
     this.deleteJsmLinksByIncidentId = this.jsmLinks.deleteJsmLinksByIncidentId.bind(this.jsmLinks);
     this.getJsmLinksToSync = this.jsmLinks.getJsmLinksToSync.bind(this.jsmLinks);
+    this.insertProblemReport = this.problemReports.insertProblemReport.bind(this.problemReports);
+    this.hasProblemReport = this.problemReports.hasProblemReport.bind(this.problemReports);
+    this.countProblemReporters = this.problemReports.countProblemReporters.bind(this.problemReports);
+    this.wasProblemAlertSent = this.problemReports.wasProblemAlertSent.bind(this.problemReports);
+    this.markProblemReportAlerted = this.problemReports.markProblemReportAlerted.bind(this.problemReports);
+    this.getProblemReportSummary = this.problemReports.getProblemReportSummary.bind(this.problemReports);
+    this.deleteProblemReportsBefore = this.problemReports.deleteProblemReportsBefore.bind(this.problemReports);
+    this.deleteProblemReportsByTag = this.problemReports.deleteProblemReportsByTag.bind(this.problemReports);
     this.createSubscriberUser = this.subscriptionSystem.createSubscriberUser.bind(this.subscriptionSystem);
     this.getSubscriberUserById = this.subscriptionSystem.getSubscriberUserById.bind(this.subscriptionSystem);
     this.getSubscriberUserByEmail = this.subscriptionSystem.getSubscriberUserByEmail.bind(this.subscriptionSystem);

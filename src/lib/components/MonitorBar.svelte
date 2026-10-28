@@ -17,6 +17,7 @@
   } from "$lib/clientTools.js";
   import { getSslNowMs } from "$lib/client/sslClock.svelte";
   import GroupMonitorPopover from "./GroupMonitorPopover.svelte";
+  import ProblemButton from "./ProblemButton.svelte";
   import { t } from "$lib/stores/i18n";
   import { page } from "$app/state";
 
@@ -127,6 +128,9 @@
         </Item.Title>
         {#if data.description}
           <Item.Description class="line-clamp-2 wrap-break-word">{data.description}</Item.Description>
+        {/if}
+        {#if page.data.problemButton?.counts?.[tag] !== undefined}
+          <ProblemButton {tag} info={page.data.problemButton} />
         {/if}
       </Item.Content>
 

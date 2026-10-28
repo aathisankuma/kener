@@ -14,6 +14,7 @@ import GC from "$lib/global-constants.js";
 import { GetStatusColor, GetStatusSummary, ParseLatency, ResolveSslExpiresAtMs } from "$lib/clientTools";
 import { AttachSslCacheFields, GetMonitorsParsed } from "$lib/server/controllers/monitorsController";
 import type { GroupMonitorTypeData } from "$lib/server/types/monitor";
+import { GetProblemButtonData } from "$lib/server/controllers/reportsController";
 
 export const load: PageServerLoad = async ({ params, parent }) => {
   const { monitor_tag } = params;
@@ -89,8 +90,14 @@ export const load: PageServerLoad = async ({ params, parent }) => {
       ? monitor.monitor_settings_json.monitor_status_history_days.mobile || GC.DEFAULT_STATUS_HISTORY_DAYS_MOBILE
       : monitor.monitor_settings_json.monitor_status_history_days.desktop || GC.DEFAULT_STATUS_HISTORY_DAYS_DESKTOP;
   }
+  const problemButton =
+    monitor.is_hidden !== "YES" && monitor.monitor_settings_json?.problem_button === true
+      ? await GetProblemButtonData([monitor.tag])
+      : null;
+
   return {
     ...{
+      problemButton,
       monitorTag: monitor_tag,
       monitorName: monitor.name,
       monitorImage: monitor.image,

@@ -33,6 +33,10 @@
  * settings.read      → getAllSiteData, getSiteDataByKey, getSubscriptionsConfig
  * settings.write     → storeSiteData, updateSubscriptionsConfig
  *
+ * Reports ("not working" button, monthly uptime report)
+ * settings.read      → getReportSettings
+ * settings.write     → saveProblemReportSettings, saveUptimeReportSettings, sendUptimeReportNow
+ *
  * subscribers.read   → getSubscribersByMethod, getSubscriberWithSubscriptions, getSubscriberCountsByMethod, getAdminSubscribers
  * subscribers.write  → deleteUserSubscription, updateUserSubscriptionStatus, adminUpdateSubscriptionStatus, adminDeleteSubscriber, adminAddSubscriber
  *
@@ -119,6 +123,10 @@ export const ACTION_PERMISSION_MAP: Record<string, string | null> = {
   getSubscriptionsConfig: "settings.read",
   storeSiteData: "settings.write",
   updateSubscriptionsConfig: "settings.write",
+  getReportSettings: "settings.read",
+  saveProblemReportSettings: "settings.write",
+  saveUptimeReportSettings: "settings.write",
+  sendUptimeReportNow: "settings.write",
 
   // Users
   getUsers: "users.read",
@@ -304,6 +312,7 @@ export const ROUTE_PERMISSION_MAP: Record<string, string | null> = {
   "/(manage)/manage/app/captcha-providers": "settings.read",
   "/(manage)/manage/app/badges": "settings.read",
   "/(manage)/manage/app/embed": "settings.read",
+  "/(manage)/manage/app/reports": "settings.read",
 
   // Subscribers
   "/(manage)/manage/app/subscriptions": "subscribers.read",
