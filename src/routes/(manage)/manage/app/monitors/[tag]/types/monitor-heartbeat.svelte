@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tm, tmStatus } from "$lib/uiLocale.svelte";
   import { Input } from "$lib/components/ui/input/index.js";
   import { Label } from "$lib/components/ui/label/index.js";
   import { Button } from "$lib/components/ui/button/index.js";
@@ -24,7 +25,7 @@
   let heartbeatUrl = $derived(
     tag
       ? window.location.origin + clientResolve(resolve, `/ext/heartbeat/${tag}/${data.secretString}`)
-      : "Save the monitor first to get the heartbeat URL"
+      : tm("Save the monitor first to get the heartbeat URL")
   );
 
   function refreshSecret() {
@@ -38,8 +39,8 @@
       <InputGroup.Root>
         <InputGroup.Addon>
           <InputGroup.Text>
-            <span class="text-degraded">DEGRADED</span>
-            if no heartbeat received for
+            <span class="text-degraded">{tmStatus("DEGRADED")}</span>
+            {tm("if no heartbeat received for")}
           </InputGroup.Text>
         </InputGroup.Addon>
         <InputGroup.Input
@@ -52,13 +53,16 @@
           <InputGroup.Text>minutes</InputGroup.Text>
         </InputGroup.Addon>
       </InputGroup.Root>
-      <p class="text-muted-foreground mt-1 text-xs">Mark as DEGRADED if no heartbeat received for this many minutes</p>
+      <p class="text-muted-foreground mt-1 text-xs">
+        {tm("Mark as DEGRADED if no heartbeat received for this many minutes")}
+      </p>
     </div>
     <div class="flex flex-col">
       <InputGroup.Root>
         <InputGroup.Addon>
           <InputGroup.Text>
-            <span class="text-down">DOWN</span> if no heartbeat received for
+            <span class="text-down">{tmStatus("DOWN")}</span>
+            {tm("if no heartbeat received for")}
           </InputGroup.Text>
         </InputGroup.Addon>
         <InputGroup.Input class="text-right" id="hb-down" bind:value={data.downRemainingMinutes} placeholder="10" />
@@ -66,12 +70,14 @@
           <InputGroup.Text>minutes</InputGroup.Text>
         </InputGroup.Addon>
       </InputGroup.Root>
-      <p class="text-muted-foreground mt-1 text-xs">Mark as DOWN if no heartbeat received for this many minutes</p>
+      <p class="text-muted-foreground mt-1 text-xs">
+        {tm("Mark as DOWN if no heartbeat received for this many minutes")}
+      </p>
     </div>
   </div>
 
   <div class="flex flex-col gap-2">
-    <Label for="hb-secret">Heartbeat secret <span class="text-destructive">*</span></Label>
+    <Label for="hb-secret">{tm("Heartbeat secret")} <span class="text-destructive">*</span></Label>
     <div>
       <InputGroup.Root>
         <InputGroup.Input
@@ -81,7 +87,7 @@
           aria-describedby="hb-secret-rule"
         />
         <InputGroup.Addon align="inline-end">
-          <InputGroup.Button variant="secondary" onclick={refreshSecret}>New URL</InputGroup.Button>
+          <InputGroup.Button variant="secondary" onclick={refreshSecret}>{tm("New URL")}</InputGroup.Button>
         </InputGroup.Addon>
       </InputGroup.Root>
       <p id="hb-secret-rule" class={["mt-1 text-xs", secretValid ? "text-muted-foreground" : "text-destructive"]}>
@@ -91,7 +97,7 @@
   </div>
 
   <div class="flex flex-col gap-2">
-    <Label for="hb-url">Heartbeat URL</Label>
+    <Label for="hb-url">{tm("Heartbeat URL")}</Label>
     <div>
       <div class="flex items-center gap-2">
         <InputGroup.Root>
@@ -108,7 +114,9 @@
           </InputGroup.Addon>
         </InputGroup.Root>
       </div>
-      <p class="text-muted-foreground mt-1 text-xs">Send a GET or POST request to this URL to record a heartbeat</p>
+      <p class="text-muted-foreground mt-1 text-xs">
+        {tm("Send a GET or POST request to this URL to record a heartbeat")}
+      </p>
     </div>
   </div>
 </div>

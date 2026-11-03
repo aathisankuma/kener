@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tm, tmh } from "$lib/uiLocale.svelte";
   import { Button } from "$lib/components/ui/button/index.js";
   import { Label } from "$lib/components/ui/label/index.js";
   import * as Card from "$lib/components/ui/card/index.js";
@@ -137,20 +138,20 @@
   let testResult = $state<MonitoringResult | null>(null);
 
   const monitorTypeLabels: Record<MonitorType, string> = {
-    API: "HTTP/API",
-    PING: "Ping",
-    TCP: "TCP Port",
-    DNS: "DNS",
-    NONE: "Manual",
-    GROUP: "Group",
-    SSL: "SSL Certificate",
-    SQL: "Database",
-    HEARTBEAT: "Heartbeat",
-    GAMEDIG: "Game Server",
-    GRPC: "gRPC Health",
-    PROMETHEUS: "Prometheus",
-    DOCKER: "Docker Container",
-    CLOUD: "Cloud Service (Atlassian, Microsoft 365, Azure, Abacus, …)"
+    API: tm("HTTP/API"),
+    PING: tm("Ping"),
+    TCP: tm("TCP Port"),
+    DNS: tm("DNS"),
+    NONE: tm("Manual"),
+    GROUP: tm("Group"),
+    SSL: tm("SSL Certificate"),
+    SQL: tm("Database"),
+    HEARTBEAT: tm("Heartbeat"),
+    GAMEDIG: tm("Game Server"),
+    GRPC: tm("gRPC Health"),
+    PROMETHEUS: tm("Prometheus"),
+    DOCKER: tm("Docker Container"),
+    CLOUD: tm("Cloud Service (Atlassian, Microsoft 365, Azure, Abacus, …)")
   };
 
   // Validation for each monitor type
@@ -354,13 +355,13 @@
       });
       const result = await response.json();
       if (result.error || !result.url) {
-        toast.info(result.error || "No icon found. Upload an image under General Settings.");
+        toast.info(result.error || tm("No icon found. Upload an image under General Settings."));
         return false;
       }
       monitor.image = result.url;
       return true;
     } catch {
-      toast.info("No icon found. Upload an image under General Settings.");
+      toast.info(tm("No icon found. Upload an image under General Settings."));
       return false;
     } finally {
       fetchingIcon = false;
@@ -396,10 +397,10 @@
       if (result.error) {
         toast.error(result.error);
       } else {
-        toast.success("Monitor type settings saved successfully");
+        toast.success(tm("Monitor type settings saved successfully"));
       }
     } catch (e) {
-      const message = e instanceof Error ? e.message : "Failed to save monitor type settings";
+      const message = e instanceof Error ? e.message : tm("Failed to save monitor type settings");
       toast.error(message);
     } finally {
       savingType = false;
@@ -424,7 +425,7 @@
       const result = await response.json();
       testResult = result;
     } catch (e) {
-      testResult = { error_message: "Failed to test monitor", status: "NO_DATA", latency: 0, type: "error" };
+      testResult = { error_message: tm("Failed to test monitor"), status: "NO_DATA", latency: 0, type: "error" };
     } finally {
       testingMonitor = false;
     }
@@ -433,19 +434,20 @@
 
 <Card.Root>
   <Card.Header>
-    <Card.Title>Monitor Type Configuration</Card.Title>
+    <Card.Title>{tm("Monitor Type Configuration")}</Card.Title>
     <Card.Description>
       {#if isNew}
-        Choose what this monitor checks. The list shows every type, e.g. Cloud Service for Atlassian, Microsoft 365 and
-        Abacus.
+        {tm(
+          "Choose what this monitor checks. The list shows every type, e.g. Cloud Service for Atlassian, Microsoft 365 and Abacus."
+        )}
       {:else}
-        Configure how this monitor checks your service
+        {tm("Configure how this monitor checks your service")}
       {/if}
     </Card.Description>
   </Card.Header>
   <Card.Content class="space-y-4">
     <div class="flex flex-col gap-2">
-      <Label for="monitor-type">Monitor Type</Label>
+      <Label for="monitor-type">{tm("Monitor Type")}</Label>
       <Select.Root
         type="single"
         value={monitor.monitor_type}
@@ -503,10 +505,13 @@
     {#if isNew}
       <p class="text-muted-foreground text-xs">
         {#if monitor.monitor_type && !isTypeSettingsValid}
-          Fill in the required fields above.
+          {tm("Fill in the required fields above.")}
         {:else}
-          Saved together with the general settings when you click <strong>Create Monitor</strong>. Test it after
-          creating.
+          <span
+            >{@html tmh(
+              "Saved together with the general settings when you click **Create Monitor**. Test it after creating."
+            )}</span
+          >
         {/if}
       </p>
     {:else}
@@ -519,7 +524,7 @@
           {#snippet child({ props })}
             <Button {...props} variant="secondary">
               <PlayIcon class="size-4" />
-              Test Monitor
+              {tm("Test Monitor")}
             </Button>
           {/snippet}
         </Dialog.Trigger>
@@ -527,11 +532,11 @@
           <Dialog.Header>
             <Dialog.Title>
               {#if testingMonitor}
-                Running Test
+                {tm("Running Test")}
               {:else if testResult}
-                Test Result
+                {tm("Test Result")}
               {:else}
-                Test Monitor
+                {tm("Test Monitor")}
               {/if}
             </Dialog.Title>
           </Dialog.Header>
@@ -539,7 +544,9 @@
             {#if testingMonitor}
               <div class="flex flex-col items-center gap-2 py-8">
                 <Loader class="size-8 animate-spin" />
-                <p class="text-muted-foreground mt-4 text-center">Please wait while the test is being performed...</p>
+                <p class="text-muted-foreground mt-4 text-center">
+                  {tm("Please wait while the test is being performed...")}
+                </p>
               </div>
             {:else if testResult}
               <div class="mt-4 flex flex-col gap-4">
@@ -550,13 +557,13 @@
                 {/if}
                 <div class="grid grid-cols-2 gap-4">
                   <div class="rounded-lg border p-4 text-center">
-                    <div class="text-muted-foreground text-xs uppercase">Status</div>
+                    <div class="text-muted-foreground text-xs uppercase">{tm("Status")}</div>
                     <div class="mt-1 text-2xl font-bold text-{testResult.status.toLowerCase()}">
                       {testResult.status}
                     </div>
                   </div>
                   <div class="rounded-lg border p-4 text-center">
-                    <div class="text-muted-foreground text-xs uppercase">Latency (milliseconds)</div>
+                    <div class="text-muted-foreground text-xs uppercase">{tm("Latency (milliseconds)")}</div>
                     <div class="mt-1 truncate text-2xl font-bold">
                       {testResult.latency}
                     </div>
@@ -564,7 +571,7 @@
                 </div>
                 {#if monitor.monitor_type === "SSL" && testResult.expiry_at}
                   <div class="rounded-lg border p-4 text-center">
-                    <div class="text-muted-foreground text-xs uppercase">Expires At</div>
+                    <div class="text-muted-foreground text-xs uppercase">{tm("Expires At")}</div>
                     <div class="mt-1 text-sm font-semibold break-all">
                       {new Date(testResult.expiry_at).toLocaleString(undefined, {
                         year: "numeric",
@@ -580,13 +587,13 @@
                 {#if monitor.monitor_type === "SSL" && (testResult.issuer_cn || testResult.issuer_o)}
                   <div class="grid grid-cols-2 gap-4">
                     <div class="rounded-lg border p-4 text-center">
-                      <div class="text-muted-foreground text-xs uppercase">Issued By (CN)</div>
+                      <div class="text-muted-foreground text-xs uppercase">{tm("Issued By (CN)")}</div>
                       <div class="mt-1 text-sm font-semibold break-all">
                         {testResult.issuer_cn || "—"}
                       </div>
                     </div>
                     <div class="rounded-lg border p-4 text-center">
-                      <div class="text-muted-foreground text-xs uppercase">Issued By (O)</div>
+                      <div class="text-muted-foreground text-xs uppercase">{tm("Issued By (O)")}</div>
                       <div class="mt-1 text-sm font-semibold break-all">
                         {testResult.issuer_o || "—"}
                       </div>
@@ -596,7 +603,7 @@
                 <div class="flex justify-end">
                   <Button variant="outline" size="sm" onclick={testMonitor} disabled={testingMonitor}>
                     <PlayIcon class="size-3" />
-                    Run Test Again
+                    {tm("Run Test Again")}
                   </Button>
                 </div>
               </div>
@@ -607,7 +614,7 @@
     {/if}
     {#if combined}
       <p class="text-muted-foreground mr-auto self-center text-xs">
-        <strong>Save Monitor</strong> below saves these settings. Test Monitor checks the saved settings.
+        <span>{@html tmh("**Save Monitor** below saves these settings. Test Monitor checks the saved settings.")}</span>
       </p>
     {/if}
 
@@ -617,14 +624,14 @@
           variant="outline"
           onclick={refreshProviderIcon}
           disabled={fetchingIcon || savingType || !isTypeSettingsValid}
-          title="Download the service's official icon and use it as this monitor's image"
+          title={tm("Download the service's official icon and use it as this monitor's image")}
         >
           {#if fetchingIcon}
             <Loader class="size-4 animate-spin" />
           {:else}
             <ImageIcon class="size-4" />
           {/if}
-          Use provider's icon
+          {tm("Use provider's icon")}
         </Button>
       {/if}
       {#if !isNew && !combined}
@@ -634,7 +641,7 @@
           {:else}
             <SaveIcon class="size-4" />
           {/if}
-          Save Monitor Type Settings
+          {tm("Save Monitor Type Settings")}
         </Button>
       {/if}
     </div>

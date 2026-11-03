@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tm } from "$lib/uiLocale.svelte";
   import { Badge } from "$lib/components/ui/badge/index.js";
   import { Button } from "$lib/components/ui/button/index.js";
   import { Input } from "$lib/components/ui/input/index.js";
@@ -35,9 +36,9 @@
   const limit = 10;
 
   const statusOptions = [
-    { value: "ALL", label: "All Status" },
-    { value: "ACTIVE", label: "Active" },
-    { value: "INACTIVE", label: "Inactive" }
+    { value: "ALL", label: tm("All Status") },
+    { value: "ACTIVE", label: tm("Active") },
+    { value: "INACTIVE", label: tm("Inactive") }
   ];
 
   const totalCount = $derived(monitors.length);
@@ -92,7 +93,7 @@
         monitors = result;
       }
     } catch (e) {
-      error = e instanceof Error ? e.message : "Failed to fetch monitors";
+      error = e instanceof Error ? e.message : tm("Failed to fetch monitors");
     } finally {
       loading = false;
     }
@@ -120,12 +121,18 @@
       if (result.error) {
         throw new Error(result.error);
       }
-      const stateLabel =
-        field === "status" ? (next === "ACTIVE" ? "active" : "inactive") : next === "YES" ? "hidden" : "visible";
-      toast.success(`${monitor.name} is now ${stateLabel}`);
+      const message =
+        field === "status"
+          ? next === "ACTIVE"
+            ? tm("%name is now active", { name: monitor.name })
+            : tm("%name is now inactive", { name: monitor.name })
+          : next === "YES"
+            ? tm("%name is now hidden", { name: monitor.name })
+            : tm("%name is now visible", { name: monitor.name });
+      toast.success(message);
     } catch (e) {
       monitor[field] = previous;
-      toast.error(e instanceof Error ? e.message : "Failed to update monitor");
+      toast.error(e instanceof Error ? e.message : tm("Failed to update monitor"));
     } finally {
       delete toggling[key];
     }
@@ -142,7 +149,7 @@
       <div class="flex items-center gap-2">
         <Button variant={showFilters ? "default" : "outline"} size="sm" onclick={() => (showFilters = !showFilters)}>
           <FilterIcon class="size-4" />
-          Filters
+          {tm("Filters")}
           {#if hasActiveFilters}
             <Badge variant="secondary" class="ml-1 px-1.5 py-0 text-[10px]">ON</Badge>
           {/if}
@@ -153,18 +160,18 @@
       </div>
       <Button class="cursor-pointer" href={clientResolver(resolve, "/manage/app/monitors/new")}>
         <Plus class="size-4" />
-        New Monitor
+        {tm("New Monitor")}
       </Button>
     </div>
 
     {#if showFilters}
       <div class="bg-muted/50 flex flex-wrap items-end gap-3 rounded-lg border p-3">
         <div class="flex flex-col gap-1">
-          <span class="text-muted-foreground text-xs font-medium">Search</span>
-          <Input type="text" placeholder="Search by name or tag..." bind:value={searchQuery} class="w-60" />
+          <span class="text-muted-foreground text-xs font-medium">{tm("Search")}</span>
+          <Input type="text" placeholder={tm("Search by name or tag...")} bind:value={searchQuery} class="w-60" />
         </div>
         <div class="flex flex-col gap-1">
-          <span class="text-muted-foreground text-xs font-medium">Status</span>
+          <span class="text-muted-foreground text-xs font-medium">{tm("Status")}</span>
           <Select.Root
             type="single"
             value={statusFilter}
@@ -173,7 +180,7 @@
             }}
           >
             <Select.Trigger class="w-40">
-              {statusOptions.find((o) => o.value === statusFilter)?.label || "All Status"}
+              {statusOptions.find((o) => o.value === statusFilter)?.label || tm("All Status")}
             </Select.Trigger>
             <Select.Content>
               {#each statusOptions as option (option.value)}
@@ -184,12 +191,12 @@
         </div>
         <Button size="sm" onclick={applyFilters}>
           <SearchIcon class="size-4" />
-          Search
+          {tm("Search")}
         </Button>
         {#if hasActiveFilters}
           <Button variant="ghost" size="sm" onclick={clearFilters}>
             <XIcon class="size-4" />
-            Clear
+            {tm("Clear")}
           </Button>
         {/if}
       </div>
@@ -202,7 +209,7 @@
           <Spinner />
         </Item.Media>
         <Item.Content>
-          <Item.Title class="line-clamp-1">Loading Monitors....</Item.Title>
+          <Item.Title class="line-clamp-1">{tm("Loading Monitors....")}</Item.Title>
         </Item.Content>
         <Item.Content class="flex-none justify-end"></Item.Content>
       </Item.Root>
@@ -212,18 +219,18 @@
       {error}
     </div>
   {:else if monitors.length === 0}
-    <div class="text-muted-foreground py-8 text-center">No monitors found.</div>
+    <div class="text-muted-foreground py-8 text-center">{tm("No monitors found.")}</div>
   {:else}
     <div class="ktable rounded-xl border">
       <Table.Root>
         <Table.Header>
           <Table.Row>
-            <Table.Head class="w-[300px]">Monitor</Table.Head>
-            <Table.Head class="w-[180px]">Tag</Table.Head>
-            <Table.Head class="w-[130px]">Type</Table.Head>
-            <Table.Head class="w-[120px]">Status</Table.Head>
-            <Table.Head class="w-[120px]">Visible</Table.Head>
-            <Table.Head class="w-[180px]">Cron</Table.Head>
+            <Table.Head class="w-[300px]">{tm("Monitor")}</Table.Head>
+            <Table.Head class="w-[180px]">{tm("Tag")}</Table.Head>
+            <Table.Head class="w-[130px]">{tm("Type")}</Table.Head>
+            <Table.Head class="w-[120px]">{tm("Status")}</Table.Head>
+            <Table.Head class="w-[120px]">{tm("Visible")}</Table.Head>
+            <Table.Head class="w-[180px]">{tm("Cron")}</Table.Head>
             <Table.Head class="w-[120px] text-right"></Table.Head>
           </Table.Row>
         </Table.Header>
@@ -258,7 +265,7 @@
                     onCheckedChange={(checked) => toggleMonitorField(data, "status", checked)}
                   />
                   <span class="text-muted-foreground text-xs">
-                    {(data.status || "INACTIVE") === "ACTIVE" ? "Active" : "Inactive"}
+                    {(data.status || "INACTIVE") === "ACTIVE" ? tm("Active") : tm("Inactive")}
                   </span>
                 </div>
               </Table.Cell>
@@ -271,7 +278,7 @@
                     onCheckedChange={(checked) => toggleMonitorField(data, "is_hidden", checked)}
                   />
                   <span class="text-muted-foreground text-xs">
-                    {data.is_hidden === "YES" ? "Hidden" : "Visible"}
+                    {data.is_hidden === "YES" ? "Hidden" : tm("Visible")}
                   </span>
                 </div>
               </Table.Cell>
@@ -281,7 +288,7 @@
               <Table.Cell class="text-right">
                 <Button variant="outline" size="sm" href={clientResolver(resolve, `/manage/app/monitors/${data.tag}`)}>
                   <SettingsIcon class="mr-1 size-4" />
-                  Configure
+                  {tm("Configure")}
                 </Button>
               </Table.Cell>
             </Table.Row>
@@ -294,7 +301,11 @@
     {#if totalPages > 0}
       <div class="flex items-center justify-between">
         <p class="text-muted-foreground text-sm">
-          Showing {(pageNo - 1) * limit + 1} - {Math.min(pageNo * limit, totalCount)} of {totalCount} monitors
+          {tm("Showing %from - %to of %total monitors", {
+            from: (pageNo - 1) * limit + 1,
+            to: Math.min(pageNo * limit, totalCount),
+            total: totalCount
+          })}
         </p>
         {#if totalPages > 1}
           <div class="flex items-center gap-2">

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tm, tmh } from "$lib/uiLocale.svelte";
   import { Input } from "$lib/components/ui/input/index.js";
   import { Label } from "$lib/components/ui/label/index.js";
   import { Textarea } from "$lib/components/ui/textarea/index.js";
@@ -22,14 +23,14 @@
   const formData = data as unknown as DockerMonitorTypeData;
 
   const CONNECTION_TYPES = {
-    socket: { label: "Unix socket", addressLabel: "Socket path", placeholder: DOCKER_DEFAULT_SOCKET_PATH },
-    tcp: { label: "TCP (no encryption)", addressLabel: "Daemon address", placeholder: "10.0.0.5:2375" },
-    tls: { label: "TCP with TLS", addressLabel: "Daemon address", placeholder: "docker.example.com:2376" }
+    socket: { label: tm("Unix socket"), addressLabel: tm("Socket path"), placeholder: DOCKER_DEFAULT_SOCKET_PATH },
+    tcp: { label: tm("TCP (no encryption)"), addressLabel: tm("Daemon address"), placeholder: "10.0.0.5:2375" },
+    tls: { label: tm("TCP with TLS"), addressLabel: tm("Daemon address"), placeholder: "docker.example.com:2376" }
   } as const;
 
   const CHECK_TYPE_LABELS: Record<string, string> = {
     container: "Container",
-    daemon: "Docker daemon (ping only)"
+    daemon: tm("Docker daemon (ping only)")
   };
 
   function defaultDaemon(connectionType: string) {
@@ -80,10 +81,10 @@
       const result = await response.json();
       if (result?.error) throw new Error(result.error);
       containers = result;
-      if (containers.length === 0) toast.info("No containers found on this daemon");
+      if (containers.length === 0) toast.info(tm("No containers found on this daemon"));
     } catch (e) {
       containers = [];
-      toast.error(e instanceof Error ? e.message : "Failed to list containers");
+      toast.error(e instanceof Error ? e.message : tm("Failed to list containers"));
     } finally {
       loadingContainers = false;
     }
@@ -93,7 +94,7 @@
 <div class="space-y-4">
   <div class="grid grid-cols-3 gap-4">
     <div class="flex flex-col gap-2">
-      <Label for="docker-connection-type">Connection</Label>
+      <Label for="docker-connection-type">{tm("Connection")}</Label>
       <Select.Root type="single" value={formData.connectionType} onValueChange={selectConnectionType}>
         <Select.Trigger id="docker-connection-type" class="w-full">
           {CONNECTION_TYPES[formData.connectionType].label}
@@ -117,13 +118,16 @@
     </div>
   </div>
   <p class="text-muted-foreground text-xs">
-    Whoever can reach the Docker socket is root on that host. Prefer a read-only socket proxy over mounting the socket
-    directly, and never expose <code>tcp</code> without TLS outside a trusted network.
+    <span
+      >{@html tmh(
+        "Whoever can reach the Docker socket is root on that host. Prefer a read-only socket proxy over mounting the socket directly, and never expose `tcp` without TLS outside a trusted network."
+      )}</span
+    >
   </p>
 
   {#if formData.connectionType === "tls"}
     <div class="flex flex-col gap-2">
-      <Label for="docker-tls-ca">CA certificate</Label>
+      <Label for="docker-tls-ca">{tm("CA certificate")}</Label>
       <Textarea
         id="docker-tls-ca"
         bind:value={formData.tlsCa}
@@ -134,7 +138,7 @@
     </div>
     <div class="grid grid-cols-2 gap-4">
       <div class="flex flex-col gap-2">
-        <Label for="docker-tls-cert">Client certificate</Label>
+        <Label for="docker-tls-cert">{tm("Client certificate")}</Label>
         <Textarea
           id="docker-tls-cert"
           bind:value={formData.tlsCert}
@@ -144,7 +148,7 @@
         />
       </div>
       <div class="flex flex-col gap-2">
-        <Label for="docker-tls-key">Client key</Label>
+        <Label for="docker-tls-key">{tm("Client key")}</Label>
         <Textarea
           id="docker-tls-key"
           bind:value={formData.tlsKey}
@@ -155,14 +159,16 @@
       </div>
     </div>
     <p class="text-muted-foreground text-xs">
-      Paste PEM, or reference an environment variable such as <code>$DOCKER_TLS_KEY</code> to keep the key out of the database.
-      Leave all three empty for a daemon behind a TLS proxy that does not ask for a client certificate. The certificate and
-      key go together.
+      <span
+        >{@html tmh(
+          "Paste PEM, or reference an environment variable such as `$DOCKER_TLS_KEY` to keep the key out of the database. Leave all three empty for a daemon behind a TLS proxy that does not ask for a client certificate. The certificate and key go together."
+        )}</span
+      >
     </p>
   {/if}
 
   <div class="flex flex-col gap-2">
-    <Label for="docker-check-type">What to check</Label>
+    <Label for="docker-check-type">{tm("What to check")}</Label>
     <Select.Root
       type="single"
       value={formData.checkType}
@@ -180,13 +186,13 @@
       </Select.Content>
     </Select.Root>
     <p class="text-muted-foreground text-xs">
-      Daemon checks only verify that the Docker Engine API answers. Use this as a parent monitor for a host.
+      {tm("Daemon checks only verify that the Docker Engine API answers. Use this as a parent monitor for a host.")}
     </p>
   </div>
 
   {#if formData.checkType === "container"}
     <div class="flex flex-col gap-2">
-      <Label for="docker-container">Container Name or ID <span class="text-destructive">*</span></Label>
+      <Label for="docker-container">{tm("Container Name or ID")} <span class="text-destructive">*</span></Label>
       <div class="flex gap-2">
         <Input id="docker-container" bind:value={formData.containerName} placeholder="my-app" />
         <Button variant="secondary" disabled={!formData.daemon?.trim() || loadingContainers} onclick={loadContainers}>
@@ -195,7 +201,7 @@
           {:else}
             <RefreshCwIcon class="size-4" />
           {/if}
-          Browse
+          {tm("Browse")}
         </Button>
       </div>
       {#if containers.length > 0}
@@ -210,15 +216,17 @@
         </div>
       {/if}
       <p class="text-muted-foreground text-xs">
-        The container is resolved on every check, so it survives recreation as long as the name stays the same. A
-        running container is UP unless its <code>HEALTHCHECK</code> says otherwise; restarting or starting is DEGRADED; paused,
-        stopped, unhealthy, or missing is DOWN.
+        <span
+          >{@html tmh(
+            "The container is resolved on every check, so it survives recreation as long as the name stays the same. A running container is UP unless its `HEALTHCHECK` says otherwise; restarting or starting is DEGRADED; paused, stopped, unhealthy, or missing is DOWN."
+          )}</span
+        >
       </p>
     </div>
   {/if}
 
   <div class="flex flex-col gap-2">
-    <Label for="docker-timeout">Timeout (ms)</Label>
+    <Label for="docker-timeout">{tm("Timeout (ms)")}</Label>
     <Input
       id="docker-timeout"
       type="number"

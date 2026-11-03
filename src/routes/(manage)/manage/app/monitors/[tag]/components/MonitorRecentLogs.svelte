@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tm, tmStatus } from "$lib/uiLocale.svelte";
   import { Badge } from "$lib/components/ui/badge/index.js";
   import { Spinner } from "$lib/components/ui/spinner/index.js";
   import * as Card from "$lib/components/ui/card/index.js";
@@ -89,15 +90,15 @@
   <Card.Header>
     <div class="flex items-center justify-between">
       <div>
-        <Card.Title>Recent Logs</Card.Title>
-        <Card.Description>Last 10 monitoring data points</Card.Description>
+        <Card.Title>{tm("Recent Logs")}</Card.Title>
+        <Card.Description>{tm("Last 10 monitoring data points")}</Card.Description>
       </div>
       <div class="flex items-center gap-2">
         <Button variant="ghost" size="icon" onclick={fetchLogs} disabled={loading}>
           <RefreshCwIcon class="size-4 {loading ? 'animate-spin' : ''}" />
         </Button>
         <Button variant="outline" size="sm" href={clientResolver(resolve, "/manage/app/monitoring-data")}>
-          View All
+          {tm("View All")}
           <ExternalLinkIcon class="ml-1 size-3" />
         </Button>
       </div>
@@ -109,17 +110,19 @@
         <Spinner class="size-6" />
       </div>
     {:else if logs.length === 0}
-      <div class="text-muted-foreground py-8 text-center text-sm">No monitoring data found for this monitor</div>
+      <div class="text-muted-foreground py-8 text-center text-sm">
+        {tm("No monitoring data found for this monitor")}
+      </div>
     {:else}
       <div class="ktable rounded-lg border">
         <Table.Root>
           <Table.Header>
             <Table.Row>
-              <Table.Head class="w-44">Timestamp</Table.Head>
-              <Table.Head class="w-20">Status</Table.Head>
-              <Table.Head class="w-20">Latency</Table.Head>
-              <Table.Head class="w-20">Type</Table.Head>
-              <Table.Head>Error</Table.Head>
+              <Table.Head class="w-44">{tm("Timestamp")}</Table.Head>
+              <Table.Head class="w-20">{tm("Status")}</Table.Head>
+              <Table.Head class="w-20">{tm("Latency")}</Table.Head>
+              <Table.Head class="w-20">{tm("Type")}</Table.Head>
+              <Table.Head>{tm("Error")}</Table.Head>
             </Table.Row>
           </Table.Header>
           <Table.Body>
@@ -130,7 +133,7 @@
                 </Table.Cell>
                 <Table.Cell>
                   <Badge variant={getStatusBadgeVariant(log.status)}>
-                    {log.status || "N/A"}
+                    {log.status ? tmStatus(log.status) : "N/A"}
                   </Badge>
                 </Table.Cell>
                 <Table.Cell>

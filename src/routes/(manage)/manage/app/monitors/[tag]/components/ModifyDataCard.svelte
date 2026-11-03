@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tm, tmStatus } from "$lib/uiLocale.svelte";
   import { Button } from "$lib/components/ui/button/index.js";
   import { Input } from "$lib/components/ui/input/index.js";
   import { Label } from "$lib/components/ui/label/index.js";
@@ -31,11 +32,11 @@
     modifyDataError = null;
 
     if (!modifyDataForm.start) {
-      modifyDataError = "Start date is required";
+      modifyDataError = tm("Start date is required");
       return;
     }
     if (!modifyDataForm.end) {
-      modifyDataError = "End date is required";
+      modifyDataError = tm("End date is required");
       return;
     }
 
@@ -43,16 +44,16 @@
     const endTimestamp = Math.floor(new Date(modifyDataForm.end).getTime() / 1000);
 
     if (startTimestamp >= endTimestamp) {
-      modifyDataError = "Start date must be before end date";
+      modifyDataError = tm("Start date must be before end date");
       return;
     }
 
     if (modifyDataForm.latency < 0) {
-      modifyDataError = "Latency must be non-negative";
+      modifyDataError = tm("Latency must be non-negative");
       return;
     }
     if (modifyDataForm.deviation < 0) {
-      modifyDataError = "Deviation must be non-negative";
+      modifyDataError = tm("Deviation must be non-negative");
       return;
     }
 
@@ -78,11 +79,11 @@
       if (result.error) {
         modifyDataError = result.error;
       } else {
-        toast.success("Monitoring data updated successfully");
+        toast.success(tm("Monitoring data updated successfully"));
         modifyDataForm = { start: "", end: "", newStatus: "UP", latency: 0, deviation: 0 };
       }
     } catch (e) {
-      modifyDataError = "Failed to update monitoring data";
+      modifyDataError = tm("Failed to update monitoring data");
     } finally {
       modifyingData = false;
     }
@@ -93,25 +94,25 @@
   <Card.Header>
     <Card.Title class="flex items-center gap-2">
       <DatabaseIcon class="size-5" />
-      Modify Monitoring Data
+      {tm("Modify Monitoring Data")}
     </Card.Title>
-    <Card.Description>Change the status of monitoring data for a given time range</Card.Description>
+    <Card.Description>{tm("Change the status of monitoring data for a given time range")}</Card.Description>
   </Card.Header>
   <Card.Content>
     <div class="grid gap-4">
       <div class="grid grid-cols-2 gap-4">
         <div class="space-y-2">
-          <Label for="start_date">Start Date & Time <span class="text-destructive">*</span></Label>
+          <Label for="start_date">{tm("Start Date & Time")} <span class="text-destructive">*</span></Label>
           <Input id="start_date" type="datetime-local" bind:value={modifyDataForm.start} />
         </div>
         <div class="space-y-2">
-          <Label for="end_date">End Date & Time <span class="text-destructive">*</span></Label>
+          <Label for="end_date">{tm("End Date & Time")} <span class="text-destructive">*</span></Label>
           <Input id="end_date" type="datetime-local" bind:value={modifyDataForm.end} min={modifyDataForm.start} />
         </div>
       </div>
       <div class="grid grid-cols-3 gap-4">
         <div class="space-y-2">
-          <Label for="new_status">New Status</Label>
+          <Label for="new_status">{tm("New Status")}</Label>
           <Select.Root
             type="single"
             value={modifyDataForm.newStatus}
@@ -120,27 +121,28 @@
             }}
           >
             <Select.Trigger id="new_status" class="w-full">
-              {modifyDataForm.newStatus}
+              {tmStatus(modifyDataForm.newStatus)}
             </Select.Trigger>
             <Select.Content>
-              <Select.Item value="UP">UP</Select.Item>
-              <Select.Item value="DEGRADED">DEGRADED</Select.Item>
-              <Select.Item value="DOWN">DOWN</Select.Item>
+              <Select.Item value="UP">{tmStatus("UP")}</Select.Item>
+              <Select.Item value="DEGRADED">{tmStatus("DEGRADED")}</Select.Item>
+              <Select.Item value="DOWN">{tmStatus("DOWN")}</Select.Item>
             </Select.Content>
           </Select.Root>
         </div>
         <div class="space-y-2">
-          <Label for="latency">Latency (ms)</Label>
+          <Label for="latency">{tm("Latency (ms)")}</Label>
           <Input id="latency" type="number" min="0" bind:value={modifyDataForm.latency} placeholder="100" />
         </div>
         <div class="space-y-2">
-          <Label for="deviation">Deviation (ms)</Label>
+          <Label for="deviation">{tm("Deviation (ms)")}</Label>
           <Input id="deviation" type="number" min="0" bind:value={modifyDataForm.deviation} placeholder="0" />
         </div>
       </div>
       <p class="text-muted-foreground text-xs">
-        Latency will be randomly generated as latency ± deviation for each data point. Set deviation to 0 for a fixed
-        latency value.
+        {tm(
+          "Latency will be randomly generated as latency ± deviation for each data point. Set deviation to 0 for a fixed latency value."
+        )}
       </p>
       {#if modifyDataError}
         <p class="text-destructive text-sm">{modifyDataError}</p>
@@ -151,10 +153,10 @@
     <Button onclick={modifyMonitoringData} disabled={modifyingData}>
       {#if modifyingData}
         <Loader class="size-4 animate-spin" />
-        Saving...
+        {tm("Saving...")}
       {:else}
         <SaveIcon class="size-4" />
-        Save Changes
+        {tm("Save Changes")}
       {/if}
     </Button>
   </Card.Footer>

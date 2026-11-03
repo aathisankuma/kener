@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tm } from "$lib/uiLocale.svelte";
   import { Label } from "$lib/components/ui/label/index.js";
   import { Input } from "$lib/components/ui/input/index.js";
   import { Button } from "$lib/components/ui/button/index.js";
@@ -17,9 +18,9 @@
   const LATENCY_CALCULATION_OPTIONS = ["AVG", "MAX", "MIN"] as const;
   type LatencyCalculationOption = (typeof LATENCY_CALCULATION_OPTIONS)[number];
   const LATENCY_CALCULATION_LABELS: Record<LatencyCalculationOption, string> = {
-    AVG: "Average (mean)",
-    MAX: "Maximum (slowest)",
-    MIN: "Minimum (fastest)"
+    AVG: tm("Average (mean)"),
+    MAX: tm("Maximum (slowest)"),
+    MIN: tm("Minimum (fastest)")
   };
 
   type GroupMonitorFormData = {
@@ -140,21 +141,23 @@
 <div class="space-y-4">
   <div class="flex flex-col gap-2">
     <div class="flex flex-col gap-1">
-      <Label>Select Monitors to Group</Label>
+      <Label>{tm("Select Monitors to Group")}</Label>
       <p class="text-muted-foreground text-xs">
-        Group monitors aggregate the status of multiple monitors using weighted scores. Each status has a normalized
-        score: UP=1, DEGRADED=0.5, DOWN=0. Maintenance members are treated as UP. The weighted sum determines the group
-        status: 1=UP, between 0 and 1=DEGRADED, 0=DOWN.
+        {tm(
+          "Group monitors aggregate the status of multiple monitors using weighted scores. Each status has a normalized score: UP=1, DEGRADED=0.5, DOWN=0. Maintenance members are treated as UP. The weighted sum determines the group status: 1=UP, between 0 and 1=DEGRADED, 0=DOWN."
+        )}
       </p>
       <p class="text-muted-foreground text-xs">
-        Select at least {MIN_SELECTED_MONITORS} monitors. Weights must sum to 1.
+        {tm("Select at least %count monitors. Weights must sum to 1.", { count: MIN_SELECTED_MONITORS })}
       </p>
     </div>
 
     {#if eligibleMonitors.length > 0 || formData.monitors.length > 0}
       <MonitorPicker monitors={eligibleMonitors} {selectedTags} onToggle={toggleMonitor} onAddMany={addMonitors} />
     {:else}
-      <p class="text-muted-foreground text-sm">No eligible monitors available. Create some non-group monitors first.</p>
+      <p class="text-muted-foreground text-sm">
+        {tm("No eligible monitors available. Create some non-group monitors first.")}
+      </p>
     {/if}
   </div>
 
@@ -165,9 +168,9 @@
           ? 'border-green-500/50 bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300'
           : 'border-destructive/50 text-destructive bg-red-50 dark:bg-red-950'}"
       >
-        Total weight: {totalWeight}
+        {tm("Total weight: %weight", { weight: totalWeight })}
         {#if !weightsValid}
-          <span class="text-xs">(must equal 1)</span>
+          <span class="text-xs">{tm("(must equal 1)")}</span>
         {/if}
       </div>
       <Button
@@ -177,7 +180,7 @@
         class="text-muted-foreground hover:text-foreground h-auto p-0 text-xs"
         onclick={distributeEqually}
       >
-        Distribute equally
+        {tm("Distribute equally")}
       </Button>
       <Button
         type="button"
@@ -186,7 +189,7 @@
         class="text-muted-foreground hover:text-destructive h-auto p-0 text-xs"
         onclick={clearAll}
       >
-        Clear all
+        {tm("Clear all")}
       </Button>
     </div>
   {/if}
@@ -194,17 +197,17 @@
   <div class="grid gap-4 md:grid-cols-2">
     <div class="space-y-2">
       <div class="flex items-center justify-between">
-        <Label for="group-execution-delay">Execution Delay (ms)</Label>
-        <span class="text-muted-foreground text-xs">Minimum {MIN_DELAY_MS}ms</span>
+        <Label for="group-execution-delay">{tm("Execution Delay (ms)")}</Label>
+        <span class="text-muted-foreground text-xs">{tm("Minimum %ms ms", { ms: MIN_DELAY_MS })}</span>
       </div>
       <Input id="group-execution-delay" type="number" min={MIN_DELAY_MS} step={100} bind:value={executionDelayInput} />
       <p class="text-muted-foreground text-xs">
-        Determines how long to wait for all child monitors before aggregating results.
+        {tm("Determines how long to wait for all child monitors before aggregating results.")}
       </p>
     </div>
 
     <div class="space-y-2">
-      <Label for="group-latency-calculation">Latency calculation</Label>
+      <Label for="group-latency-calculation">{tm("Latency calculation")}</Label>
       <Select.Root
         type="single"
         value={formData.latencyCalculation}
@@ -223,15 +226,21 @@
           {/each}
         </Select.Content>
       </Select.Root>
-      <p class="text-muted-foreground text-xs">Choose how latency should be derived from the selected monitors.</p>
+      <p class="text-muted-foreground text-xs">
+        {tm("Choose how latency should be derived from the selected monitors.")}
+      </p>
     </div>
   </div>
 
   {#if formData.monitors.length > 0}
     <div class="rounded-lg border">
       <div class="mb-2 border-b px-3 py-2">
-        <p class="text-sm font-medium">Selected: {formData.monitors.length} monitor(s) — Execution Order</p>
-        <p class="text-muted-foreground text-xs">Monitors will be executed in this order. Use arrows to reorder.</p>
+        <p class="text-sm font-medium">
+          {tm("Selected: %count monitor(s) — Execution Order", { count: formData.monitors.length })}
+        </p>
+        <p class="text-muted-foreground text-xs">
+          {tm("Monitors will be executed in this order. Use arrows to reorder.")}
+        </p>
       </div>
       {#each formData.monitors as m, index (m.tag)}
         {@const monitorInfo = availableMonitors.find((am) => am.tag === m.tag)}
@@ -262,7 +271,7 @@
                   <Badge
                     variant="outline"
                     class="text-muted-foreground shrink-0 text-[10px]"
-                    title="Not currently checked; excluded from group score"
+                    title={tm("Not currently checked; excluded from group score")}
                   >
                     inactive
                   </Badge>
@@ -273,7 +282,7 @@
           </div>
           <div class="flex shrink-0 items-center gap-1">
             <div class="flex items-center gap-1.5">
-              <Label class="text-muted-foreground text-xs" for="group-member-weight-{m.tag}">Weight</Label>
+              <Label class="text-muted-foreground text-xs" for="group-member-weight-{m.tag}">{tm("Weight")}</Label>
               <Input
                 id="group-member-weight-{m.tag}"
                 type="number"
@@ -310,7 +319,7 @@
               variant="ghost"
               size="icon"
               class="hover:text-destructive h-7 w-7"
-              title="Remove from group"
+              title={tm("Remove from group")}
               onclick={() => removeMonitor(m.tag)}
             >
               <X class="h-3.5 w-3.5" />

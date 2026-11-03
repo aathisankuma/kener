@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tm, tmh } from "$lib/uiLocale.svelte";
   import { Input } from "$lib/components/ui/input/index.js";
   import { Label } from "$lib/components/ui/label/index.js";
   import { Button } from "$lib/components/ui/button/index.js";
@@ -89,7 +90,7 @@
       const result = await response.json();
       if (result.error) throw new Error(result.error);
       components = Array.isArray(result.components) ? result.components : [];
-      if (components.length === 0) componentsError = "This page lists no components.";
+      if (components.length === 0) componentsError = tm("This page lists no components.");
     } catch (e) {
       components = [];
       componentsError = `Could not load the list (${e instanceof Error ? e.message : "error"}). Type the component name instead.`;
@@ -114,10 +115,10 @@
 
 <div class="space-y-4">
   <div class="flex flex-col gap-2">
-    <Label for="cloud-provider">Service <span class="text-destructive">*</span></Label>
+    <Label for="cloud-provider">{tm("Service")} <span class="text-destructive">*</span></Label>
     <Select.Root type="single" value={data.provider} onValueChange={(v) => v && selectProvider(v)}>
       <Select.Trigger id="cloud-provider" class="w-full">
-        {provider ? `${provider.label}` : "Choose a service"}
+        {provider ? `${provider.label}` : tm("Choose a service")}
       </Select.Trigger>
       <Select.Content class="max-h-80">
         {#each GROUPS as group (group)}
@@ -141,15 +142,15 @@
               </Select.Item>
             {/each}
             {#if group === "Microsoft Azure"}
-              <Select.Item value={CLOUD_CUSTOM_AZURE}>Other Azure resource…</Select.Item>
+              <Select.Item value={CLOUD_CUSTOM_AZURE}>{tm("Other Azure resource…")}</Select.Item>
             {/if}
             {#if group === "Microsoft 365"}
-              <Select.Item value={CLOUD_CUSTOM_M365}>Other Microsoft 365 service…</Select.Item>
+              <Select.Item value={CLOUD_CUSTOM_M365}>{tm("Other Microsoft 365 service…")}</Select.Item>
             {/if}
             {#if group === "Other"}
-              <Select.Item value={CLOUD_CUSTOM_STATUSPAGE}>Other Statuspage (URL)…</Select.Item>
-              <Select.Item value={CLOUD_CUSTOM_INSTATUS}>Other Instatus page (URL)…</Select.Item>
-              <Select.Item value={CLOUD_CUSTOM_UPTIMEROBOT}>Other UptimeRobot page (URL)…</Select.Item>
+              <Select.Item value={CLOUD_CUSTOM_STATUSPAGE}>{tm("Other Statuspage (URL)…")}</Select.Item>
+              <Select.Item value={CLOUD_CUSTOM_INSTATUS}>{tm("Other Instatus page (URL)…")}</Select.Item>
+              <Select.Item value={CLOUD_CUSTOM_UPTIMEROBOT}>{tm("Other UptimeRobot page (URL)…")}</Select.Item>
             {/if}
           </Select.Group>
         {/each}
@@ -157,23 +158,27 @@
     </Select.Root>
     <p class="text-muted-foreground text-xs">
       {#if provider?.kind === "m365"}
-        Reads this service's health for your Microsoft 365 tenant from Microsoft Graph.
+        {tm("Reads this service's health for your Microsoft 365 tenant from Microsoft Graph.")}
       {:else if provider?.kind === "azure"}
-        Reads the health of your own Azure resource from Azure Resource Health.
+        {tm("Reads the health of your own Azure resource from Azure Resource Health.")}
       {:else}
-        Reads the provider's official status page{statuspageBase ? ` (${statuspageBase})` : ""}. No login needed.
+        {statuspageBase
+          ? tm("Reads the provider's official status page (%url). No login needed.", { url: statuspageBase })
+          : tm("Reads the provider's official status page. No login needed.")}
       {/if}
     </p>
     {#if duplicate}
       <p class="text-xs text-amber-600 dark:text-amber-400">
-        "{duplicate.name}" already follows this service{duplicate.component ? ` (${duplicate.component})` : ""}. A
-        second monitor would show the same status twice.
+        {tm('"%name" already follows this service. A second monitor would show the same status twice.', {
+          name: duplicate.component ? `${duplicate.name} (${duplicate.component})` : duplicate.name
+        })}
       </p>
     {:else if usedHere.length > 0}
       <p class="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
         <CheckIcon class="size-3.5" />
-        Already monitored by {usedHere.map((u) => (u.component ? `${u.name} (${u.component})` : u.name)).join(", ")}.
-        Pick another component to follow a different part.
+        {tm("Already monitored by %names. Pick another component to follow a different part.", {
+          names: usedHere.map((u) => (u.component ? `${u.name} (${u.component})` : u.name)).join(", ")
+        })}
       </p>
     {/if}
   </div>
@@ -181,24 +186,30 @@
   {#if IsStatusPageKind(provider?.kind)}
     {#if isCustomPage}
       <div class="flex flex-col gap-2">
-        <Label for="cloud-url">Status page URL <span class="text-destructive">*</span></Label>
+        <Label for="cloud-url">{tm("Status page URL")} <span class="text-destructive">*</span></Label>
         <Input id="cloud-url" bind:value={data.statuspageUrl} placeholder="https://status.example.com" />
         <p class="text-muted-foreground text-xs">
           {#if provider?.kind === "instatus"}
-            Any page run on Instatus ("Powered by Instatus" in its footer): it answers at <code>/v3/summary.json</code>.
+            <span
+              >{@html tmh(
+                'Any page run on Instatus ("Powered by Instatus" in its footer): it answers at `/v3/summary.json`.'
+              )}</span
+            >
           {:else if provider?.kind === "uptimerobot"}
-            Any public status page run on UptimeRobot (its footer links to uptimerobot.com), with its own address or at <code
-              >stats.uptimerobot.com/…</code
-            >. Each of its monitors can be picked as a component.
+            <span
+              >{@html tmh(
+                "Any public status page run on UptimeRobot (its footer links to uptimerobot.com), with its own address or at `stats.uptimerobot.com/…`. Each of its monitors can be picked as a component."
+              )}</span
+            >
           {:else}
-            Any page run on Atlassian Statuspage: it answers at <code>/api/v2/status.json</code>.
+            <span>{@html tmh("Any page run on Atlassian Statuspage: it answers at `/api/v2/status.json`.")}</span>
           {/if}
         </p>
       </div>
     {/if}
 
     <div class="flex flex-col gap-2">
-      <Label for="cloud-component">Component (optional)</Label>
+      <Label for="cloud-component">{tm("Component (optional)")}</Label>
       <div class="flex gap-2">
         {#if components.length > 0}
           <Select.Root
@@ -214,7 +225,7 @@
             <Select.Trigger id="cloud-component" class="w-full">
               <span class="truncate">
                 {#if data.components.length === 0}
-                  Whole page
+                  {tm("Whole page")}
                 {:else if data.components.length <= 2}
                   {data.components.join(", ")}
                 {:else}
@@ -223,7 +234,7 @@
               </span>
             </Select.Trigger>
             <Select.Content class="max-h-80">
-              <Select.Item value={WHOLE_PAGE}>Whole page</Select.Item>
+              <Select.Item value={WHOLE_PAGE}>{tm("Whole page")}</Select.Item>
               {#each components as name (name)}
                 <Select.Item value={name}>{name}</Select.Item>
               {/each}
@@ -238,21 +249,22 @@
                 .split(",")
                 .map((x) => x.trim())
                 .filter(Boolean))}
-            placeholder="Whole page"
+            placeholder={tm("Whole page")}
             class="flex-1"
           />
         {/if}
         <Button variant="outline" onclick={loadComponents} disabled={!statuspageBase || loadingComponents}>
           {#if loadingComponents}<Loader class="size-4 animate-spin" />{/if}
-          Load list
+          {tm("Load list")}
         </Button>
       </div>
       {#if componentsError}
         <p class="text-xs text-amber-600 dark:text-amber-400">{componentsError}</p>
       {:else}
         <p class="text-muted-foreground text-xs">
-          Empty follows the whole page. Tick one or more parts, e.g. "Search" and "Notifications", to follow only those:
-          the card shows the worst of them. Without the list, separate names with commas.
+          {tm(
+            'Empty follows the whole page. Tick one or more parts, e.g. "Search" and "Notifications", to follow only those: the card shows the worst of them. Without the list, separate names with commas.'
+          )}
         </p>
       {/if}
     </div>
@@ -261,10 +273,11 @@
       <div class="flex items-start gap-2">
         <Switch id="cloud-ignore-minor" bind:checked={data.ignoreMinor} />
         <div>
-          <Label for="cloud-ignore-minor">Ignore minor issues</Label>
+          <Label for="cloud-ignore-minor">{tm("Ignore minor issues")}</Label>
           <p class="text-muted-foreground text-xs">
-            Minor incidents and degraded performance count as UP, so small problems elsewhere in the world do not turn
-            the card yellow. On for new monitors; turn it off to see every minor issue.
+            {tm(
+              "Minor incidents and degraded performance count as UP, so small problems elsewhere in the world do not turn the card yellow. On for new monitors; turn it off to see every minor issue."
+            )}
           </p>
         </div>
       </div>
@@ -272,7 +285,7 @@
   {:else if IsMicrosoftKind(provider?.kind)}
     {#if provider?.kind === "azure"}
       <div class="flex flex-col gap-2">
-        <Label for="cloud-azure-resource">Resource ID <span class="text-destructive">*</span></Label>
+        <Label for="cloud-azure-resource">{tm("Resource ID")} <span class="text-destructive">*</span></Label>
         <Input
           id="cloud-azure-resource"
           bind:value={data.azureResourceId}
@@ -280,59 +293,73 @@
         />
         {#if data.azureResourceId && !IsAzureResourceId(data.azureResourceId)}
           <p class="text-xs text-amber-600 dark:text-amber-400">
-            This does not look like a resource ID. It starts with <code>/subscriptions/</code>.
+            <span>{@html tmh("This does not look like a resource ID. It starts with `/subscriptions/`.")}</span>
           </p>
         {:else}
           <p class="text-muted-foreground text-xs">
-            In the Azure portal, open the resource, then <b>Settings → Properties → Resource ID</b>, or
-            <b>JSON View</b> on its Overview page.
+            <span
+              >{@html tmh(
+                "In the Azure portal, open the resource, then **Settings → Properties → Resource ID**, or **JSON View** on its Overview page."
+              )}</span
+            >
           </p>
         {/if}
       </div>
     {/if}
     {#if data.provider === CLOUD_CUSTOM_M365}
       <div class="flex flex-col gap-2">
-        <Label for="cloud-m365-service">Service name or ID <span class="text-destructive">*</span></Label>
+        <Label for="cloud-m365-service">{tm("Service name or ID")} <span class="text-destructive">*</span></Label>
         <Input id="cloud-m365-service" bind:value={data.m365Service} placeholder="Microsoft Bookings" />
         <p class="text-muted-foreground text-xs">
-          As Microsoft names it. If unsure, run <b>Test Monitor</b>: it lists the services of your tenant.
+          <span
+            >{@html tmh(
+              "As Microsoft names it. If unsure, run **Test Monitor**: it lists the services of your tenant."
+            )}</span
+          >
         </p>
       </div>
     {/if}
 
     <div class="bg-muted/40 rounded-md border p-3 text-xs">
-      <p class="font-medium">Microsoft connection</p>
+      <p class="font-medium">{tm("Microsoft connection")}</p>
       <p class="text-muted-foreground mt-1">
-        Leave these fields empty to use the shared connection from Kener's environment:
-        <code>M365_TENANT_ID</code>, <code>M365_CLIENT_ID</code> and <code>M365_CLIENT_SECRET</code>. One app
-        registration with the application permission <code>ServiceHealth.Read.All</code> (admin consent) serves every Microsoft
-        365 monitor. Fill a field only to use a different app for this monitor.
+        <span
+          >{@html tmh(
+            "Leave these fields empty to use the shared connection from Kener's environment: `M365_TENANT_ID`, `M365_CLIENT_ID` and `M365_CLIENT_SECRET`. One app registration with the application permission `ServiceHealth.Read.All` (admin consent) serves every Microsoft 365 monitor. Fill a field only to use a different app for this monitor."
+          )}</span
+        >
       </p>
       {#if provider?.kind === "azure"}
         <p class="text-muted-foreground mt-1">
-          For Azure, give the same app the <b>Reader</b> role on this resource (or its resource group) under
-          <b>Access control (IAM)</b>.
+          <span
+            >{@html tmh(
+              "For Azure, give the same app the **Reader** role on this resource (or its resource group) under **Access control (IAM)**."
+            )}</span
+          >
         </p>
       {/if}
     </div>
 
     <div class="grid gap-4 sm:grid-cols-2">
       <div class="flex flex-col gap-2">
-        <Label for="cloud-tenant">Tenant ID</Label>
+        <Label for="cloud-tenant">{tm("Tenant ID")}</Label>
         <Input id="cloud-tenant" bind:value={data.tenantId} placeholder="from M365_TENANT_ID" />
       </div>
       <div class="flex flex-col gap-2">
-        <Label for="cloud-client">Client ID</Label>
+        <Label for="cloud-client">{tm("Client ID")}</Label>
         <Input id="cloud-client" bind:value={data.clientId} placeholder="from M365_CLIENT_ID" />
       </div>
     </div>
     <div class="flex flex-col gap-2">
-      <Label for="cloud-secret">Client secret</Label>
+      <Label for="cloud-secret">{tm("Client secret")}</Label>
       <Input id="cloud-secret" bind:value={data.clientSecret} placeholder="from M365_CLIENT_SECRET" />
       {#if secretIsLiteral}
         <p class="text-xs text-amber-600 dark:text-amber-400">
-          The secret is stored in Kener's database as typed. Leave it empty to use <code>M365_CLIENT_SECRET</code>, or
-          enter the name of another environment variable, e.g. <code>$OTHER_SECRET</code>.
+          <span
+            >{@html tmh(
+              "The secret is stored in Kener's database as typed. Leave it empty to use `M365_CLIENT_SECRET`, or enter the name of another environment variable, e.g. `$OTHER_SECRET`."
+            )}</span
+          >
         </p>
       {/if}
     </div>
@@ -340,7 +367,7 @@
 
   <div class="grid gap-4 sm:grid-cols-2">
     <div class="flex flex-col gap-2">
-      <Label for="cloud-error">If the provider cannot be read</Label>
+      <Label for="cloud-error">{tm("If the provider cannot be read")}</Label>
       <Select.Root type="single" value={data.errorStatus} onValueChange={(v) => v && (data.errorStatus = v)}>
         <Select.Trigger id="cloud-error" class="w-full">{data.errorStatus}</Select.Trigger>
         <Select.Content>
@@ -351,7 +378,7 @@
       </Select.Root>
     </div>
     <div class="flex flex-col gap-2">
-      <Label for="cloud-timeout">Timeout (ms)</Label>
+      <Label for="cloud-timeout">{tm("Timeout (ms)")}</Label>
       <Input id="cloud-timeout" type="number" bind:value={data.timeout} placeholder="10000" />
     </div>
   </div>

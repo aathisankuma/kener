@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tm } from "$lib/uiLocale.svelte";
   import { Input } from "$lib/components/ui/input/index.js";
   import { Label } from "$lib/components/ui/label/index.js";
   import * as Select from "$lib/components/ui/select/index.js";
@@ -51,7 +52,7 @@
 <div class="space-y-4">
   <div class="grid grid-cols-2 gap-4">
     <div class="flex flex-col gap-2">
-      <Label for="sql-dbtype">Database Type</Label>
+      <Label for="sql-dbtype">{tm("Database Type")}</Label>
       <Select.Root
         type="single"
         value={data.dbType}
@@ -70,7 +71,7 @@
       </Select.Root>
     </div>
     <div class="flex flex-col gap-2">
-      <Label for="sql-timeout">Timeout (ms)</Label>
+      <Label for="sql-timeout">{tm("Timeout (ms)")}</Label>
       <Input id="sql-timeout" type="number" bind:value={data.timeout} placeholder="5000" />
     </div>
   </div>
@@ -78,7 +79,9 @@
   <div>
     <InputGroup.Root>
       <InputGroup.Addon>
-        <InputGroup.Text class="border-r-2 pr-2">Connection String for {selectedDbType}</InputGroup.Text>
+        <InputGroup.Text class="border-r-2 pr-2"
+          >{tm("Connection string for %db", { db: selectedDbType })}</InputGroup.Text
+        >
       </InputGroup.Addon>
       <InputGroup.Input
         id="sql-connection"
@@ -89,8 +92,8 @@
       <InputGroup.Addon align="inline-end">
         <InputGroup.Button
           type="button"
-          aria-label={showConnectionString ? "Hide connection string" : "Show connection string"}
-          title={showConnectionString ? "Hide connection string" : "Show connection string"}
+          aria-label={showConnectionString ? tm("Hide connection string") : tm("Show connection string")}
+          title={showConnectionString ? tm("Hide connection string") : tm("Show connection string")}
           size="icon-xs"
           onclick={() => (showConnectionString = !showConnectionString)}
         >
@@ -102,11 +105,11 @@
         </InputGroup.Button>
       </InputGroup.Addon>
     </InputGroup.Root>
-    <p class="text-muted-foreground mt-1 text-xs">Connection string will be stored securely</p>
+    <p class="text-muted-foreground mt-1 text-xs">{tm("Connection string will be stored securely")}</p>
   </div>
 
   <div class="flex flex-col gap-2">
-    <Label for="sql-query">Query <span class="text-destructive">*</span></Label>
+    <Label for="sql-query">{tm("Query")} <span class="text-destructive">*</span></Label>
     <div class="rounded-md border">
       <CodeMirror
         bind:value={data.query}
@@ -120,6 +123,6 @@
         }}
       />
     </div>
-    <p class="text-muted-foreground mt-1 text-xs">Query to execute. If successful, monitor is UP.</p>
+    <p class="text-muted-foreground mt-1 text-xs">{tm("Query to execute. If successful, monitor is UP.")}</p>
   </div>
 </div>

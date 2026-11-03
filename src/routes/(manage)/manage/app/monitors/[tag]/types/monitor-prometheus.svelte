@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tm, tmh } from "$lib/uiLocale.svelte";
   import { Input } from "$lib/components/ui/input/index.js";
   import { Label } from "$lib/components/ui/label/index.js";
   import { Textarea } from "$lib/components/ui/textarea/index.js";
@@ -60,23 +61,26 @@
   </div>
 
   <div class="flex flex-col gap-2">
-    <Label for="prom-query">PromQL Query <span class="text-destructive">*</span></Label>
+    <Label for="prom-query">{tm("PromQL Query")} <span class="text-destructive">*</span></Label>
     <Textarea id="prom-query" bind:value={data.query} placeholder="up" rows={3} />
     <p class="text-muted-foreground mt-1 text-xs">
-      Instant query. Aggregate multi-series results in PromQL (e.g. <code>max(...)</code>) — otherwise the first series
-      is used.
+      <span
+        >{@html tmh(
+          "Instant query. Aggregate multi-series results in PromQL (e.g. `max(...)`) — otherwise the first series is used."
+        )}</span
+      >
     </p>
   </div>
 
   <!-- Down condition -->
   <div class="flex items-center space-x-2">
     <Switch id="prom-down-enabled" checked={!!data.down} onCheckedChange={toggleDown} />
-    <Label for="prom-down-enabled">Down condition</Label>
+    <Label for="prom-down-enabled">{tm("Down condition")}</Label>
   </div>
   {#if data.down}
     <div class="grid grid-cols-2 gap-4">
       <div class="flex flex-col gap-2">
-        <Label for="prom-down-op">Operator</Label>
+        <Label for="prom-down-op">{tm("Operator")}</Label>
         <Select.Root
           type="single"
           value={data.down.operator}
@@ -93,22 +97,24 @@
         </Select.Root>
       </div>
       <div class="flex flex-col gap-2">
-        <Label for="prom-down-val">Value</Label>
+        <Label for="prom-down-val">{tm("Value")}</Label>
         <Input id="prom-down-val" type="number" bind:value={data.down.value} />
       </div>
     </div>
-    <p class="text-muted-foreground -mt-2 text-xs">DOWN when metric value {data.down.operator} {data.down.value}.</p>
+    <p class="text-muted-foreground -mt-2 text-xs">
+      {tm("DOWN when metric value %condition.", { condition: `${data.down.operator} ${data.down.value}` })}
+    </p>
   {/if}
 
   <!-- Degraded condition -->
   <div class="flex items-center space-x-2">
     <Switch id="prom-degraded-enabled" checked={!!data.degraded} onCheckedChange={toggleDegraded} />
-    <Label for="prom-degraded-enabled">Degraded condition</Label>
+    <Label for="prom-degraded-enabled">{tm("Degraded condition")}</Label>
   </div>
   {#if data.degraded}
     <div class="grid grid-cols-2 gap-4">
       <div class="flex flex-col gap-2">
-        <Label for="prom-degraded-op">Operator</Label>
+        <Label for="prom-degraded-op">{tm("Operator")}</Label>
         <Select.Root
           type="single"
           value={data.degraded.operator}
@@ -125,19 +131,20 @@
         </Select.Root>
       </div>
       <div class="flex flex-col gap-2">
-        <Label for="prom-degraded-val">Value</Label>
+        <Label for="prom-degraded-val">{tm("Value")}</Label>
         <Input id="prom-degraded-val" type="number" bind:value={data.degraded.value} />
       </div>
     </div>
     <p class="text-muted-foreground -mt-2 text-xs">
-      DEGRADED when metric value {data.degraded.operator}
-      {data.degraded.value} (checked after DOWN).
+      {tm("DEGRADED when metric value %condition (checked after DOWN).", {
+        condition: `${data.degraded.operator} ${data.degraded.value}`
+      })}
     </p>
   {/if}
 
   <!-- No-data status -->
   <div class="flex flex-col gap-2">
-    <Label for="prom-nodata">No-data status</Label>
+    <Label for="prom-nodata">{tm("No-data status")}</Label>
     <Select.Root
       type="single"
       value={data.noDataStatus}
@@ -152,11 +159,11 @@
         {/each}
       </Select.Content>
     </Select.Root>
-    <p class="text-muted-foreground mt-1 text-xs">Status recorded when the query returns no data.</p>
+    <p class="text-muted-foreground mt-1 text-xs">{tm("Status recorded when the query returns no data.")}</p>
   </div>
 
   <div class="flex flex-col gap-2">
-    <Label for="prom-error">Unreachable status</Label>
+    <Label for="prom-error">{tm("Unreachable status")}</Label>
     <Select.Root
       type="single"
       value={data.errorStatus}
@@ -172,26 +179,27 @@
       </Select.Content>
     </Select.Root>
     <p class="text-muted-foreground mt-1 text-xs">
-      Status recorded when Prometheus cannot be reached or answers unusably (timeout, HTTP error, malformed response).
-      Distinct from no-data, which means the query ran and matched nothing.
+      {tm(
+        "Status recorded when Prometheus cannot be reached or answers unusably (timeout, HTTP error, malformed response). Distinct from no-data, which means the query ran and matched nothing."
+      )}
     </p>
   </div>
 
   <!-- Headers -->
   <div>
     <div class="mb-2 flex items-center justify-between">
-      <Label>Headers</Label>
+      <Label>{tm("Headers")}</Label>
       <Button variant="outline" size="sm" onclick={addHeader}>
         <Plus class="mr-1 size-4" />
-        Add Header
+        {tm("Add Header")}
       </Button>
     </div>
     {#if data.headers && data.headers.length > 0}
       <div class="space-y-2">
         {#each data.headers as header, index}
           <div class="flex items-center gap-2">
-            <Input bind:value={header.key} placeholder="Header Key" class="flex-1" />
-            <Input bind:value={header.value} placeholder="Header Value" class="flex-1" />
+            <Input bind:value={header.key} placeholder={tm("Header Key")} class="flex-1" />
+            <Input bind:value={header.value} placeholder={tm("Header Value")} class="flex-1" />
             <Button variant="ghost" size="icon" onclick={() => removeHeader(index)}>
               <X class="size-4" />
             </Button>
@@ -203,20 +211,22 @@
 
   <!-- Timeout -->
   <div class="flex flex-col gap-2">
-    <Label for="prom-timeout">Timeout (ms)</Label>
+    <Label for="prom-timeout">{tm("Timeout (ms)")}</Label>
     <Input id="prom-timeout" type="number" bind:value={data.timeout} placeholder="10000" />
   </div>
 
   <!-- Proxy -->
   <div class="flex flex-col gap-2">
-    <Label for="prom-proxy">Proxy URL</Label>
+    <Label for="prom-proxy">{tm("Proxy URL")}</Label>
     <Input id="prom-proxy" bind:value={data.proxy} placeholder="http://user:$PROXY_PASS@proxy.internal:3128" />
-    <p class="text-muted-foreground text-xs">Leave empty to use HTTP_PROXY / HTTPS_PROXY from the environment.</p>
+    <p class="text-muted-foreground text-xs">
+      {tm("Leave empty to use HTTP_PROXY / HTTPS_PROXY from the environment.")}
+    </p>
   </div>
 
   <!-- Self-signed -->
   <div class="flex items-center space-x-2">
     <Switch id="prom-self-signed" bind:checked={data.allowSelfSignedCert} />
-    <Label for="prom-self-signed">Allow Self-Signed Certificates</Label>
+    <Label for="prom-self-signed">{tm("Allow Self-Signed Certificates")}</Label>
   </div>
 </div>

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tm, tmh } from "$lib/uiLocale.svelte";
   import { Input } from "$lib/components/ui/input/index.js";
   import { Label } from "$lib/components/ui/label/index.js";
   import { Textarea } from "$lib/components/ui/textarea/index.js";
@@ -38,7 +39,7 @@
 
 <div class="space-y-4">
   <div class="flex flex-col gap-2">
-    <Label for="gamedig-game">Game <span class="text-destructive">*</span></Label>
+    <Label for="gamedig-game">{tm("Game")} <span class="text-destructive">*</span></Label>
     <Select.Root
       type="single"
       value={data.gameId}
@@ -51,13 +52,13 @@
       </Select.Trigger>
       <Select.Content class="max-h-75">
         <div class="p-2">
-          <Input bind:value={searchQuery} placeholder="Search games..." class="mb-2" />
+          <Input bind:value={searchQuery} placeholder={tm("Search games...")} class="mb-2" />
         </div>
         {#each filteredGames as game}
           <Select.Item value={game.id}>{game.name}</Select.Item>
         {/each}
         {#if filteredGames.length === 0}
-          <p class="text-muted-foreground p-2 text-sm">No games found</p>
+          <p class="text-muted-foreground p-2 text-sm">{tm("No games found")}</p>
         {/if}
       </Select.Content>
     </Select.Root>
@@ -65,15 +66,15 @@
 
   <div class="grid grid-cols-3 gap-4">
     <div class="flex flex-col gap-2">
-      <Label for="gamedig-host">Host <span class="text-destructive">*</span></Label>
+      <Label for="gamedig-host">{tm("Host")} <span class="text-destructive">*</span></Label>
       <Input id="gamedig-host" bind:value={data.host} placeholder="game.example.com" />
     </div>
     <div class="flex flex-col gap-2">
-      <Label for="gamedig-port">Port</Label>
+      <Label for="gamedig-port">{tm("Port")}</Label>
       <Input id="gamedig-port" type="number" bind:value={data.port} placeholder="27015" />
     </div>
     <div class="flex flex-col gap-2">
-      <Label for="gamedig-timeout">Timeout (ms)</Label>
+      <Label for="gamedig-timeout">{tm("Timeout (ms)")}</Label>
       <Input id="gamedig-timeout" type="number" bind:value={data.timeout} placeholder="10000" />
     </div>
   </div>
@@ -83,12 +84,13 @@
       <Tooltip.Root>
         <Tooltip.Trigger class="flex items-center space-x-2">
           <Switch id="gamedig-guessport" bind:checked={data.guessPort} />
-          <Label for="gamedig-guessport">Guess Port</Label>
+          <Label for="gamedig-guessport">{tm("Guess Port")}</Label>
         </Tooltip.Trigger>
         <Tooltip.Content class="max-w-xs">
           <p class="text-wrap">
-            Used port can be different from client port, depending on queried game. Try this if you have unsuccessful
-            responses
+            {tm(
+              "Used port can be different from client port, depending on queried game. Try this if you have unsuccessful responses"
+            )}
           </p>
         </Tooltip.Content>
       </Tooltip.Root>
@@ -97,7 +99,7 @@
       <Tooltip.Root>
         <Tooltip.Trigger class="flex items-center space-x-2">
           <Switch id="gamedig-rules" bind:checked={data.requestRules} />
-          <Label for="gamedig-rules">Request Rules</Label>
+          <Label for="gamedig-rules">{tm("Request Rules")}</Label>
         </Tooltip.Trigger>
         <Tooltip.Content class="max-w-xs">
           <p class="text-wrap">
@@ -110,7 +112,7 @@
   </div>
 
   <div class="flex flex-col gap-2">
-    <Label for="gamedig-eval">Custom Eval Function</Label>
+    <Label for="gamedig-eval">{tm("Custom Eval Function")}</Label>
     <div class="rounded-md border">
       <CodeMirror
         bind:value={data.eval}
@@ -125,7 +127,11 @@
       />
     </div>
     <p class="text-muted-foreground mt-1 text-xs">
-      Function receives (responseTime, responseRaw) and should return {`{ status, latency }`}
+      <span
+        >{@html tmh("Function receives (%args) and should return `{ status, latency }`", {
+          args: "responseTime, responseRaw"
+        })}</span
+      >
     </p>
   </div>
 </div>

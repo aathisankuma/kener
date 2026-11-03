@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tm } from "$lib/uiLocale.svelte";
   import { Label } from "$lib/components/ui/label/index.js";
   import * as Card from "$lib/components/ui/card/index.js";
   import { Checkbox } from "$lib/components/ui/checkbox/index.js";
@@ -51,11 +52,11 @@
       if (result.error) {
         toast.error(result.error);
       } else {
-        toast.success(checked ? "Monitor added to page" : "Monitor removed from page");
+        toast.success(checked ? tm("Monitor added to page") : tm("Monitor removed from page"));
         onPagesUpdated();
       }
     } catch (e) {
-      toast.error("Failed to update page");
+      toast.error(tm("Failed to update page"));
     } finally {
       savingPages = false;
     }
@@ -66,13 +67,13 @@
   <Card.Header>
     <Card.Title class="flex items-center gap-2">
       <FileTextIcon class="size-5" />
-      Page Visibility
+      {tm("Page Visibility")}
     </Card.Title>
-    <Card.Description>Select which pages this monitor should appear on</Card.Description>
+    <Card.Description>{tm("Select which pages this monitor should appear on")}</Card.Description>
   </Card.Header>
   <Card.Content>
     {#if allPages.length === 0}
-      <p class="text-muted-foreground text-sm">No pages available. Create a page first.</p>
+      <p class="text-muted-foreground text-sm">{tm("No pages available. Create a page first.")}</p>
     {:else}
       <div class="flex flex-row flex-wrap gap-2 space-y-3">
         {#each allPages as page (page.id)}

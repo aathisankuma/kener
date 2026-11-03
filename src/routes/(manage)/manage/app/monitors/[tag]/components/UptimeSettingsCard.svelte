@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tm } from "$lib/uiLocale.svelte";
   import { Button } from "$lib/components/ui/button/index.js";
   import * as Card from "$lib/components/ui/card/index.js";
   import * as InputGroup from "$lib/components/ui/input-group/index.js";
@@ -73,7 +74,7 @@
 
   async function saveUptimeSettings() {
     if (!isUptimeSettingsValid) {
-      toast.error("Invalid uptime formula. Use: up, down, degraded, maintenance with +, -, *, /");
+      toast.error(tm("Invalid uptime formula. Use: up, down, degraded, maintenance with +, -, *, /"));
       return;
     }
 
@@ -95,10 +96,10 @@
       if (result.error) {
         toast.error(result.error);
       } else {
-        toast.success("Uptime settings saved successfully");
+        toast.success(tm("Uptime settings saved successfully"));
       }
     } catch (e) {
-      const message = e instanceof Error ? e.message : "Failed to save uptime settings";
+      const message = e instanceof Error ? e.message : tm("Failed to save uptime settings");
       toast.error(message);
     } finally {
       savingUptimeSettings = false;
@@ -108,8 +109,8 @@
 
 <Card.Root>
   <Card.Header>
-    <Card.Title>Uptime Calculation</Card.Title>
-    <Card.Description>Customize how uptime percentage is calculated for this monitor</Card.Description>
+    <Card.Title>{tm("Uptime Calculation")}</Card.Title>
+    <Card.Description>{tm("Customize how uptime percentage is calculated for this monitor")}</Card.Description>
   </Card.Header>
   <Card.Content class="space-y-4">
     <div class="flex gap-2">
@@ -133,13 +134,13 @@
     <div class="text-muted-foreground text-sm">
       <p><strong>Uptime % = (a / b) × 100</strong></p>
       <p class="mt-2 text-xs">
-        Valid variables: <code class="bg-muted rounded px-1">up</code>,
+        {tm("Valid variables:")} <code class="bg-muted rounded px-1">up</code>,
         <code class="bg-muted rounded px-1">down</code>,
         <code class="bg-muted rounded px-1">degraded</code>,
         <code class="bg-muted rounded px-1">maintenance</code>
       </p>
       <p class="text-xs">
-        Valid operators: <code class="bg-muted rounded px-1">+</code>,
+        {tm("Valid operators:")} <code class="bg-muted rounded px-1">+</code>,
         <code class="bg-muted rounded px-1">-</code>,
         <code class="bg-muted rounded px-1">*</code>,
         <code class="bg-muted rounded px-1">/</code>
@@ -153,7 +154,7 @@
       {:else}
         <SaveIcon class="size-4" />
       {/if}
-      Save Uptime Settings
+      {tm("Save Uptime Settings")}
     </Button>
   </Card.Footer>
 </Card.Root>

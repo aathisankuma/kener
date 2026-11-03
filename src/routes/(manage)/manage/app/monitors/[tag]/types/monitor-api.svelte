@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tm, tmh } from "$lib/uiLocale.svelte";
   import { Input } from "$lib/components/ui/input/index.js";
   import { Label } from "$lib/components/ui/label/index.js";
   import { Textarea } from "$lib/components/ui/textarea/index.js";
@@ -61,7 +62,7 @@
       {/if}
     </div>
     <div class="col-span-1 flex flex-col gap-2">
-      <Label for="api-method">Method</Label>
+      <Label for="api-method">{tm("Method")}</Label>
       <Select.Root
         type="single"
         value={data.method}
@@ -82,30 +83,32 @@
   </div>
 
   <div class="flex flex-col gap-2">
-    <Label for="api-timeout">Timeout (ms)</Label>
+    <Label for="api-timeout">{tm("Timeout (ms)")}</Label>
     <Input id="api-timeout" type="number" bind:value={data.timeout} placeholder="10000" />
   </div>
 
   <div class="flex flex-col gap-2">
-    <Label for="api-proxy">Proxy URL</Label>
+    <Label for="api-proxy">{tm("Proxy URL")}</Label>
     <Input id="api-proxy" bind:value={data.proxy} placeholder="http://user:$PROXY_PASS@proxy.internal:3128" />
-    <p class="text-muted-foreground text-xs">Leave empty to use HTTP_PROXY / HTTPS_PROXY from the environment.</p>
+    <p class="text-muted-foreground text-xs">
+      {tm("Leave empty to use HTTP_PROXY / HTTPS_PROXY from the environment.")}
+    </p>
   </div>
 
   <div>
     <div class="mb-2 flex items-center justify-between">
-      <Label>Headers</Label>
+      <Label>{tm("Headers")}</Label>
       <Button variant="outline" size="sm" onclick={addHeader}>
         <Plus class="mr-1 size-4" />
-        Add Header
+        {tm("Add Header")}
       </Button>
     </div>
     {#if data.headers && data.headers.length > 0}
       <div class="space-y-2">
         {#each data.headers as header, index}
           <div class="flex items-center gap-2">
-            <Input bind:value={header.key} placeholder="Header Key" class="flex-1" />
-            <Input bind:value={header.value} placeholder="Header Value" class="flex-1" />
+            <Input bind:value={header.key} placeholder={tm("Header Key")} class="flex-1" />
+            <Input bind:value={header.value} placeholder={tm("Header Value")} class="flex-1" />
             <Button variant="ghost" size="icon" onclick={() => removeHeader(index)}>
               <X class="size-4" />
             </Button>
@@ -117,23 +120,23 @@
 
   {#if data.method !== "GET" && data.method !== "HEAD"}
     <div class="flex flex-col gap-2">
-      <Label for="api-body">Request Body</Label>
+      <Label for="api-body">{tm("Request Body")}</Label>
       <Textarea id="api-body" bind:value={data.body} placeholder={'{"key": "value"}'} rows={4} />
     </div>
   {/if}
 
   <div class="flex items-center space-x-2">
     <Switch id="api-self-signed" bind:checked={data.allowSelfSignedCert} />
-    <Label for="api-self-signed">Allow Self-Signed Certificates</Label>
+    <Label for="api-self-signed">{tm("Allow Self-Signed Certificates")}</Label>
   </div>
 
   <div class="flex items-center space-x-2">
     <Switch id="api-follow-redirects" bind:checked={data.follow_redirects} />
-    <Label for="api-follow-redirects">Follow Redirects</Label>
+    <Label for="api-follow-redirects">{tm("Follow Redirects")}</Label>
   </div>
 
   <div class="flex flex-col gap-2">
-    <Label for="api-max-redirects">Max Redirects</Label>
+    <Label for="api-max-redirects">{tm("Max Redirects")}</Label>
     <Input
       id="api-max-redirects"
       type="number"
@@ -146,7 +149,7 @@
   </div>
 
   <div class="flex flex-col gap-2">
-    <Label for="api-eval">Custom Eval Function</Label>
+    <Label for="api-eval">{tm("Custom Eval Function")}</Label>
     <div class="rounded-md border">
       <CodeMirror
         bind:value={data.eval}
@@ -161,7 +164,11 @@
       />
     </div>
     <p class="text-muted-foreground mt-1 text-xs">
-      Function receives (statusCode, responseTime, responseRaw, modules) and should return {`{ status, latency }`}
+      <span
+        >{@html tmh("Function receives (%args) and should return `{ status, latency }`", {
+          args: "statusCode, responseTime, responseRaw, modules"
+        })}</span
+      >
     </p>
   </div>
 </div>

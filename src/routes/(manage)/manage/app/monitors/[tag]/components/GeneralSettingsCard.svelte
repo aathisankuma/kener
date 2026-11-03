@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tm, tmStatus } from "$lib/uiLocale.svelte";
   import { Button } from "$lib/components/ui/button/index.js";
   import { Input } from "$lib/components/ui/input/index.js";
   import { Label } from "$lib/components/ui/label/index.js";
@@ -42,7 +43,7 @@
 
     const allowedTypes = ["image/png", "image/jpeg", "image/jpg", "image/svg+xml", "image/webp"];
     if (!allowedTypes.includes(file.type)) {
-      toast.error("Invalid file type. Allowed: PNG, JPG, SVG, WebP");
+      toast.error(tm("Invalid file type. Allowed: PNG, JPG, SVG, WebP"));
       return;
     }
 
@@ -76,10 +77,10 @@
         toast.error(result.error);
       } else {
         monitor.image = result.url;
-        toast.success("Image uploaded successfully");
+        toast.success(tm("Image uploaded successfully"));
       }
     } catch (e) {
-      toast.error("Failed to upload image");
+      toast.error(tm("Failed to upload image"));
     } finally {
       uploadingImage = false;
       input.value = "";
@@ -148,13 +149,13 @@
       if (result.error) {
         toast.error(result.error);
       } else if (isNew) {
-        toast.success("Monitor created successfully");
+        toast.success(tm("Monitor created successfully"));
         goto(clientResolver(resolve, `/manage/app/monitors/${monitor.tag}`));
       } else {
-        toast.success("Monitor saved successfully");
+        toast.success(tm("Monitor saved successfully"));
       }
     } catch (e) {
-      const message = e instanceof Error ? e.message : "Failed to save general settings";
+      const message = e instanceof Error ? e.message : tm("Failed to save general settings");
       toast.error(message);
     } finally {
       savingGeneral = false;
@@ -164,17 +165,17 @@
 
 <Card.Root>
   <Card.Header>
-    <Card.Title>General Settings</Card.Title>
-    <Card.Description>Basic information about this monitor</Card.Description>
+    <Card.Title>{tm("General Settings")}</Card.Title>
+    <Card.Description>{tm("Basic information about this monitor")}</Card.Description>
   </Card.Header>
   <Card.Content class="space-y-4">
     <div class="grid grid-cols-2 gap-4">
       <div class="flex flex-col gap-2">
-        <Label for="monitor-name">Name <span class="text-destructive">*</span></Label>
-        <Input id="monitor-name" bind:value={monitor.name} placeholder="My API Monitor" />
+        <Label for="monitor-name">{tm("Name")} <span class="text-destructive">*</span></Label>
+        <Input id="monitor-name" bind:value={monitor.name} placeholder={tm("My API Monitor")} />
       </div>
       <div class="flex flex-col gap-2">
-        <Label for="monitor-tag">Tag <span class="text-destructive">*</span></Label>
+        <Label for="monitor-tag">{tm("Tag")} <span class="text-destructive">*</span></Label>
         <Input
           id="monitor-tag"
           bind:value={monitor.tag}
@@ -183,35 +184,35 @@
           aria-invalid={tagTaken}
         />
         {#if tagTaken}
-          <p class="text-destructive text-xs">Another monitor already uses this tag. Choose a different one.</p>
+          <p class="text-destructive text-xs">{tm("Another monitor already uses this tag. Choose a different one.")}</p>
         {/if}
-        <p class="text-muted-foreground mt-1 text-xs">Unique identifier (cannot be changed after creation)</p>
+        <p class="text-muted-foreground mt-1 text-xs">{tm("Unique identifier (cannot be changed after creation)")}</p>
       </div>
     </div>
 
     <div class="flex flex-col gap-2">
-      <Label for="monitor-description">Description</Label>
+      <Label for="monitor-description">{tm("Description")}</Label>
       <Textarea
         id="monitor-description"
         bind:value={monitor.description}
-        placeholder="A brief description of what this monitor checks"
+        placeholder={tm("A brief description of what this monitor checks")}
         rows={3}
       />
     </div>
     <div class="flex flex-col gap-2">
-      <Label for="monitor-external_url">Service URL</Label>
+      <Label for="monitor-external_url">{tm("Service URL")}</Label>
       <Input id="monitor-external_url" bind:value={monitor.external_url} placeholder="https://example.com/api/health" />
     </div>
 
     <div class="grid grid-cols-2 gap-4">
       <div class="flex flex-col gap-2">
-        <Label>Monitor Image</Label>
+        <Label>{tm("Monitor Image")}</Label>
         <div class="flex items-center gap-3">
           <div class="bg-muted flex h-12 w-12 items-center justify-center rounded-md border">
             {#if monitor.image}
               <img
                 src={clientResolver(resolve, monitor.image)}
-                alt="Monitor"
+                alt={tm("Monitor")}
                 class="max-h-10 max-w-10 object-contain"
               />
             {:else}
@@ -227,10 +228,10 @@
             >
               {#if uploadingImage}
                 <Loader class="h-4 w-4 animate-spin" />
-                Uploading...
+                {tm("Uploading...")}
               {:else}
                 <UploadIcon class="h-4 w-4" />
-                Upload
+                {tm("Upload")}
               {/if}
             </Button>
             <input
@@ -248,18 +249,18 @@
             {/if}
           </div>
         </div>
-        <p class="text-muted-foreground text-xs">Max 128x128px, PNG/JPG/SVG/WebP</p>
+        <p class="text-muted-foreground text-xs">{tm("Max 128x128px, PNG/JPG/SVG/WebP")}</p>
       </div>
       <div class="flex flex-col gap-2">
-        <Label for="monitor-cron">Cron Schedule</Label>
+        <Label for="monitor-cron">{tm("Cron Schedule")}</Label>
         <Input id="monitor-cron" bind:value={monitor.cron} placeholder="* * * * *" />
-        <p class="text-muted-foreground mt-1 text-xs">How often to check (cron format)</p>
+        <p class="text-muted-foreground mt-1 text-xs">{tm("How often to check (cron format)")}</p>
       </div>
     </div>
 
     <div class="grid grid-cols-2 gap-4">
       <div class="flex flex-col gap-2">
-        <Label for="monitor-default-status">Default Status</Label>
+        <Label for="monitor-default-status">{tm("Default Status")}</Label>
         <Select.Root
           type="single"
           value={monitor.default_status}
@@ -268,18 +269,18 @@
           }}
         >
           <Select.Trigger id="monitor-default-status" class="w-full">
-            {monitor.default_status}
+            {tmStatus(monitor.default_status)}
           </Select.Trigger>
           <Select.Content>
-            <Select.Item value="UP">UP</Select.Item>
-            <Select.Item value="DOWN">DOWN</Select.Item>
-            <Select.Item value="DEGRADED">DEGRADED</Select.Item>
-            <Select.Item value="MAINTENANCE">MAINTENANCE</Select.Item>
+            <Select.Item value="UP">{tmStatus("UP")}</Select.Item>
+            <Select.Item value="DOWN">{tmStatus("DOWN")}</Select.Item>
+            <Select.Item value="DEGRADED">{tmStatus("DEGRADED")}</Select.Item>
+            <Select.Item value="MAINTENANCE">{tmStatus("MAINTENANCE")}</Select.Item>
           </Select.Content>
         </Select.Root>
       </div>
       <div class="flex flex-col gap-2">
-        <Label for="hidden-switch">Hidden in Status Page</Label>
+        <Label for="hidden-switch">{tm("Hidden in Status Page")}</Label>
         <div class="flex items-center gap-2">
           <Switch
             id="hidden-switch"
@@ -287,16 +288,17 @@
             onCheckedChange={(checked) => (monitor.is_hidden = checked ? "YES" : "NO")}
           />
           <span class="text-muted-foreground text-xs">
-            {monitor.is_hidden === "YES" ? "Hidden" : "Visible"}
+            {monitor.is_hidden === "YES" ? tm("Hidden") : tm("Visible")}
           </span>
         </div>
         <p class="text-muted-foreground text-xs">
-          Hidden monitors don't appear on status pages, except to signed-in users whose role has monitors.read.
-          Monitoring, alerting, and all other features keep working.
+          {tm(
+            "Hidden monitors don't appear on status pages, except to signed-in users whose role has monitors.read. Monitoring, alerting, and all other features keep working."
+          )}
         </p>
       </div>
       <div class="flex flex-col gap-2">
-        <Label for="monitor-confirmation-threshold">Grace period</Label>
+        <Label for="monitor-confirmation-threshold">{tm("Grace period")}</Label>
         <Input
           id="monitor-confirmation-threshold"
           type="number"
@@ -310,15 +312,18 @@
           }}
         />
         <p class="text-muted-foreground text-xs">
-          Require this many consecutive checks before a status change is recorded. 1 = off (record every check
-          immediately).
+          {tm(
+            "Require this many consecutive checks before a status change is recorded. 1 = off (record every check immediately)."
+          )}
         </p>
       </div>
     </div>
   </Card.Content>
   <Card.Footer class="flex justify-end">
     {#if blockedByType}
-      <p class="text-muted-foreground mr-auto self-center text-xs">Fill in the monitor type's required fields first.</p>
+      <p class="text-muted-foreground mr-auto self-center text-xs">
+        {tm("Fill in the monitor type's required fields first.")}
+      </p>
     {/if}
     <Button onclick={saveGeneralSettings} disabled={savingGeneral || blockedByType || tagTaken}>
       {#if savingGeneral}
@@ -326,7 +331,7 @@
       {:else}
         <SaveIcon class="size-4" />
       {/if}
-      {isNew ? "Create Monitor" : "Save Monitor"}
+      {isNew ? tm("Create Monitor") : tm("Save Monitor")}
     </Button>
   </Card.Footer>
 </Card.Root>

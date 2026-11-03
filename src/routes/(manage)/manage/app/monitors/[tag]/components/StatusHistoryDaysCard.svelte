@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tm, tmh } from "$lib/uiLocale.svelte";
   import { Button } from "$lib/components/ui/button/index.js";
   import { Input } from "$lib/components/ui/input/index.js";
   import { Label } from "$lib/components/ui/label/index.js";
@@ -82,10 +83,10 @@
       } else {
         // Update the monitor's settings_json so subsequent saves from other cards stay in sync
         monitor.monitor_settings_json = JSON.stringify(mergedSettings);
-        toast.success("Status history settings saved successfully");
+        toast.success(tm("Status history settings saved successfully"));
       }
     } catch (e) {
-      const message = e instanceof Error ? e.message : "Failed to save status history settings";
+      const message = e instanceof Error ? e.message : tm("Failed to save status history settings");
       toast.error(message);
     } finally {
       saving = false;
@@ -95,15 +96,15 @@
 
 <Card.Root>
   <Card.Header>
-    <Card.Title>Status History Days</Card.Title>
+    <Card.Title>{tm("Status History Days")}</Card.Title>
     <Card.Description>
-      Configure how many days of status history to display by default when this monitor loads on a status page
+      {tm("Configure how many days of status history to display by default when this monitor loads on a status page")}
     </Card.Description>
   </Card.Header>
   <Card.Content class="space-y-4">
     <div class="grid grid-cols-2 gap-4">
       <div class="space-y-2">
-        <Label for="monitor-history-desktop">Desktop (days)</Label>
+        <Label for="monitor-history-desktop">{tm("Desktop (days)")}</Label>
         <Input
           id="monitor-history-desktop"
           type="number"
@@ -113,10 +114,10 @@
           bind:value={statusHistoryDays.desktop}
           class={isDesktopValid ? "" : "border-destructive"}
         />
-        <p class="text-muted-foreground text-xs">Number of days shown on desktop screens</p>
+        <p class="text-muted-foreground text-xs">{tm("Number of days shown on desktop screens")}</p>
       </div>
       <div class="space-y-2">
-        <Label for="monitor-history-mobile">Mobile (days)</Label>
+        <Label for="monitor-history-mobile">{tm("Mobile (days)")}</Label>
         <Input
           id="monitor-history-mobile"
           type="number"
@@ -126,12 +127,16 @@
           bind:value={statusHistoryDays.mobile}
           class={isMobileValid ? "" : "border-destructive"}
         />
-        <p class="text-muted-foreground text-xs">Number of days shown on mobile screens</p>
+        <p class="text-muted-foreground text-xs">{tm("Number of days shown on mobile screens")}</p>
       </div>
     </div>
     <p class="text-muted-foreground text-xs">
-      This overrides the page-level default for this monitor. Values must be whole numbers between {GC.STATUS_HISTORY_DAYS_MIN}
-      and {GC.STATUS_HISTORY_DAYS_MAX}.
+      <span
+        >{@html tmh(
+          "This overrides the page-level default for this monitor. Values must be whole numbers between %v1 and %v2.",
+          { v1: GC.STATUS_HISTORY_DAYS_MIN, v2: GC.STATUS_HISTORY_DAYS_MAX }
+        )}</span
+      >
     </p>
   </Card.Content>
   <Card.Footer class="flex justify-end">
@@ -141,7 +146,7 @@
       {:else}
         <SaveIcon class="size-4" />
       {/if}
-      Save Status History Settings
+      {tm("Save Status History Settings")}
     </Button>
   </Card.Footer>
 </Card.Root>

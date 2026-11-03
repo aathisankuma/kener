@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tm } from "$lib/uiLocale.svelte";
   import { Spinner } from "$lib/components/ui/spinner/index.js";
   import * as Card from "$lib/components/ui/card/index.js";
   import * as Breadcrumb from "$lib/components/ui/breadcrumb/index.js";
@@ -176,10 +177,10 @@
           }
         }
       } else {
-        error = "Monitor not found";
+        error = tm("Monitor not found");
       }
     } catch (e) {
-      error = e instanceof Error ? e.message : "Failed to fetch monitor";
+      error = e instanceof Error ? e.message : tm("Failed to fetch monitor");
     } finally {
       loading = false;
     }
@@ -275,7 +276,7 @@
     const newName = cloneName.trim();
 
     if (!newTag || !newName) {
-      toast.error("Tag and name are required");
+      toast.error(tm("Tag and name are required"));
       return;
     }
 
@@ -300,11 +301,11 @@
         return;
       }
 
-      toast.success("Monitor cloned successfully");
+      toast.success(tm("Monitor cloned successfully"));
       cloneDialogOpen = false;
       goto(clientResolver(resolve, `/manage/app/monitors/${newTag}`));
     } catch (e) {
-      const message = e instanceof Error ? e.message : "Failed to clone monitor";
+      const message = e instanceof Error ? e.message : tm("Failed to clone monitor");
       toast.error(message);
     } finally {
       cloning = false;
@@ -317,32 +318,32 @@
     <Breadcrumb.Root>
       <Breadcrumb.List>
         <Breadcrumb.Item>
-          <Breadcrumb.Link href={clientResolver(resolve, "/manage/app/monitors")}>Monitors</Breadcrumb.Link>
+          <Breadcrumb.Link href={clientResolver(resolve, "/manage/app/monitors")}>{tm("Monitors")}</Breadcrumb.Link>
         </Breadcrumb.Item>
         <Breadcrumb.Separator />
         <Breadcrumb.Item>
-          <Breadcrumb.Page>{isNew ? "New Monitor" : monitor.name || params.tag}</Breadcrumb.Page>
+          <Breadcrumb.Page>{isNew ? tm("New Monitor") : monitor.name || params.tag}</Breadcrumb.Page>
         </Breadcrumb.Item>
       </Breadcrumb.List>
     </Breadcrumb.Root>
     <div class="flex gap-2">
       {#if !isNew}
-        <Button size="sm" variant="outline" onclick={openCloneDialog}>Clone</Button>
+        <Button size="sm" variant="outline" onclick={openCloneDialog}>{tm("Clone")}</Button>
       {/if}
       <HoverCard.Root>
         <HoverCard.Trigger>
           <Button size="sm" target="_blank" href={clientResolver(resolve, `/monitors/${params.tag}`)} variant="outline">
-            View
+            {tm("View")}
           </Button>
         </HoverCard.Trigger>
         <HoverCard.Content class="w-80">
           <div class="flex justify-between space-x-4 text-xs">
             {#if monitor.is_hidden === "YES"}
-              <p class="text-destructive">This monitor is hidden and won't appear on status pages.</p>
+              <p class="text-destructive">{tm("This monitor is hidden and won't appear on status pages.")}</p>
             {:else if monitor.status !== "ACTIVE"}
-              <p class="text-destructive">This monitor is not active and won't appear on status pages.</p>
+              <p class="text-destructive">{tm("This monitor is not active and won't appear on status pages.")}</p>
             {:else}
-              <p class="text-success">This monitor is visible on status pages.</p>
+              <p class="text-success">{tm("This monitor is visible on status pages.")}</p>
             {/if}
             <p class="text-xs"></p>
           </div>
@@ -366,10 +367,11 @@
     {#if !isNew && monitorPages.length === 0}
       <Alert.Root variant="destructive">
         <AlertTriangleIcon class="size-4" />
-        <Alert.Title>Monitor Not Visible</Alert.Title>
+        <Alert.Title>{tm("Monitor Not Visible")}</Alert.Title>
         <Alert.Description>
-          This monitor is not added to any page. It won't be visible on your status page until you add it to at least
-          one page.
+          {tm(
+            "This monitor is not added to any page. It won't be visible on your status page until you add it to at least one page."
+          )}
         </Alert.Description>
       </Alert.Root>
     {/if}
@@ -396,7 +398,7 @@
         onValueChange={(value) => (activeAccordionItem = value)}
       >
         <Accordion.Item value="general">
-          <Accordion.Trigger>General Settings</Accordion.Trigger>
+          <Accordion.Trigger>{tm("General Settings")}</Accordion.Trigger>
           <Accordion.Content class="flex flex-col gap-4 text-balance">
             <!-- What the monitor checks comes first; "Save Monitor" saves both cards. -->
             <MonitorTypeCard
@@ -413,7 +415,7 @@
         </Accordion.Item>
         {#if !isNew}
           <Accordion.Item value="calculation">
-            <Accordion.Trigger>Uptime Calculation</Accordion.Trigger>
+            <Accordion.Trigger>{tm("Uptime Calculation")}</Accordion.Trigger>
             <Accordion.Content class="flex flex-col gap-4 text-balance">
               <!-- Uptime Calculation Card -->
               <UptimeSettingsCard {monitor} {typeData} bind:uptimeSettings />
@@ -422,7 +424,7 @@
         {/if}
         {#if !isNew}
           <Accordion.Item value="status-history">
-            <Accordion.Trigger>Status History</Accordion.Trigger>
+            <Accordion.Trigger>{tm("Status History")}</Accordion.Trigger>
             <Accordion.Content class="flex flex-col gap-4 text-balance">
               <!-- Status History Days Card -->
 
@@ -432,7 +434,7 @@
         {/if}
         {#if !isNew}
           <Accordion.Item value="logs-recent">
-            <Accordion.Trigger>Recent Logs</Accordion.Trigger>
+            <Accordion.Trigger>{tm("Recent Logs")}</Accordion.Trigger>
             <Accordion.Content class="flex flex-col gap-4 text-balance">
               <!-- Recent Logs Card -->
 
@@ -442,7 +444,7 @@
         {/if}
         {#if !isNew}
           <Accordion.Item value="pages-visibility">
-            <Accordion.Trigger>Page Visibility</Accordion.Trigger>
+            <Accordion.Trigger>{tm("Page Visibility")}</Accordion.Trigger>
             <Accordion.Content class="flex flex-col gap-4 text-balance">
               <!-- Page Visibility Card -->
 
@@ -452,7 +454,7 @@
         {/if}
         {#if !isNew}
           <Accordion.Item value="sharing-options">
-            <Accordion.Trigger>Sharing Options</Accordion.Trigger>
+            <Accordion.Trigger>{tm("Sharing Options")}</Accordion.Trigger>
             <Accordion.Content class="flex flex-col gap-4 text-balance">
               <!-- Monitor Sharing Options Card -->
 
@@ -462,7 +464,7 @@
         {/if}
         {#if !isNew}
           <Accordion.Item value="problem-button">
-            <Accordion.Trigger>"Not working" Button</Accordion.Trigger>
+            <Accordion.Trigger>{tm('"Not working" button')}</Accordion.Trigger>
             <Accordion.Content class="flex flex-col gap-4 text-balance">
               <ProblemButtonCard bind:monitor {typeData} />
             </Accordion.Content>
@@ -470,7 +472,7 @@
         {/if}
         {#if !isNew}
           <Accordion.Item value="modify-data">
-            <Accordion.Trigger>Modify Data</Accordion.Trigger>
+            <Accordion.Trigger>{tm("Modify Data")}</Accordion.Trigger>
             <Accordion.Content class="flex flex-col gap-4 text-balance">
               <!-- Modify Data Card -->
 
@@ -480,7 +482,7 @@
         {/if}
         {#if !isNew}
           <Accordion.Item value="danger-zone">
-            <Accordion.Trigger>Danger Zone</Accordion.Trigger>
+            <Accordion.Trigger>{tm("Danger Zone")}</Accordion.Trigger>
             <Accordion.Content class="flex flex-col gap-4 text-balance">
               <!-- Danger Zone Card -->
 
@@ -496,29 +498,29 @@
 <Dialog.Root bind:open={cloneDialogOpen}>
   <Dialog.Content class="sm:max-w-md">
     <Dialog.Header>
-      <Dialog.Title>Clone Monitor</Dialog.Title>
-      <Dialog.Description>Enter a new tag and name for the cloned monitor.</Dialog.Description>
+      <Dialog.Title>{tm("Clone Monitor")}</Dialog.Title>
+      <Dialog.Description>{tm("Enter a new tag and name for the cloned monitor.")}</Dialog.Description>
     </Dialog.Header>
 
     <div class="space-y-4 py-2">
       <div class="space-y-2">
-        <Label for="clone-tag">Tag</Label>
+        <Label for="clone-tag">{tm("Tag")}</Label>
         <Input id="clone-tag" bind:value={cloneTag} placeholder="my-monitor-copy" />
       </div>
       <div class="space-y-2">
-        <Label for="clone-name">Name</Label>
-        <Input id="clone-name" bind:value={cloneName} placeholder="Monitor Name Copy" />
+        <Label for="clone-name">{tm("Name")}</Label>
+        <Input id="clone-name" bind:value={cloneName} placeholder={tm("Monitor Name Copy")} />
       </div>
     </div>
 
     <Dialog.Footer>
-      <Button variant="outline" onclick={() => (cloneDialogOpen = false)} disabled={cloning}>Cancel</Button>
+      <Button variant="outline" onclick={() => (cloneDialogOpen = false)} disabled={cloning}>{tm("Cancel")}</Button>
       <Button onclick={cloneMonitor} disabled={cloning || !cloneTag.trim() || !cloneName.trim()}>
         {#if cloning}
           <Spinner class="size-4" />
-          Cloning...
+          {tm("Cloning...")}
         {:else}
-          Clone
+          {tm("Clone")}
         {/if}
       </Button>
     </Dialog.Footer>
