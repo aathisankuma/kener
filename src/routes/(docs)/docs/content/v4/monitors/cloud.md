@@ -145,11 +145,12 @@ For a Statuspage, the list shows only the monitor's components when they are set
 
 A timeout, an HTTP error or an unexpected answer records **If the provider cannot be read** (default **DEGRADED**) and keeps the reason in the monitor's log. Common messages:
 
-| Message                                     | Fix                                                                                                                                |
-| ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `Component "…" not found. Available: …`     | Pick the components from **Load list**.                                                                                            |
-| `Environment variable … is not set`         | Add the variable to Kener's environment and restart.                                                                               |
-| `Microsoft sign-in failed: …`               | The message names the wrong field: tenant ID, client ID, or the secret (use its **Value**, not its **Secret ID**; secrets expire). |
-| `Microsoft Graph refused access (HTTP 403)` | Grant `ServiceHealth.Read.All` as application permission with admin consent.                                                       |
+| Message                                           | Fix                                                                                                                                |
+| ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `Component "…" not found. Available: …`           | Pick the components from **Load list**.                                                                                            |
+| `Environment variable … is not set`               | Add the variable to Kener's environment and restart.                                                                               |
+| `Microsoft sign-in failed: …`                     | The message names the wrong field: tenant ID, client ID, or the secret (use its **Value**, not its **Secret ID**; secrets expire). |
+| `Microsoft sign-in failed: the app is disabled …` | In Entra, **Enterprise applications** → the app → **Properties**: set **Enabled for users to sign-in?** to **Yes**.                |
+| `Microsoft Graph refused access (HTTP 403)`       | Grant `ServiceHealth.Read.All` as application permission with admin consent.                                                       |
 
 Kener reaches the providers through the proxy in `HTTP_PROXY` / `HTTPS_PROXY` when set.

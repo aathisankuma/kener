@@ -389,6 +389,16 @@ describe("Microsoft 365 providers", () => {
     );
     const client = await new CloudServiceCall(m365({ clientSecret: "typed-secret" })).execute();
     expect(client.error_message).toContain("Application (client) ID");
+    ClearCloudServiceCache();
+    mockedAxios.mockResolvedValueOnce(
+      reply(401, {
+        error: "unauthorized_client",
+        error_description:
+          "AADSTS7000112: Application 'x'(Statuspage (Kener) Service Health) is disabled.\r\nTrace ID: y",
+      }),
+    );
+    const disabled = await new CloudServiceCall(m365({ clientSecret: "typed-secret" })).execute();
+    expect(disabled.error_message).toContain("Enabled for users to sign-in?");
   });
 
   it("signs in with values typed into the fields, without environment variables", async () => {

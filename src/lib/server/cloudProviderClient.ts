@@ -84,6 +84,10 @@ const SIGN_IN_HINTS: Array<[RegExp, string]> = [
     /AADSTS7000215/,
     "the client secret is wrong. Paste the secret's Value (shown only once when it is created), not its Secret ID.",
   ],
+  [
+    /AADSTS7000112/,
+    'the app is disabled in your tenant. In Entra under Enterprise applications, open the app, then Properties: set "Enabled for users to sign-in?" to Yes.',
+  ],
   [/AADSTS7000222/, "the client secret has expired. Create a new one under Certificates & secrets."],
   [
     /AADSTS700016/,
