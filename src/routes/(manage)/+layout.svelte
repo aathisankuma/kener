@@ -37,34 +37,35 @@
   import { Toaster } from "$lib/components/ui/sonner/index.js";
   import * as Tooltip from "$lib/components/ui/tooltip/index.js";
   import { ROUTE_PERMISSION_MAP } from "$lib/allPerms.js";
+  import { tm } from "$lib/uiLocale.svelte";
 
   let { children, data } = $props();
 
   // Navigation items - single source of truth
   const allNavItems = [
-    { title: "Site Configurations", url: "/manage/app/site-configurations", icon: Settings2Icon },
-    { title: "Internationalization", url: "/manage/app/internationalization", icon: GlobeIcon },
-    { title: "Customizations", url: "/manage/app/customizations", icon: Columns3CogIcon },
-    { title: "Analytics Providers", url: "/manage/app/analytics-providers", icon: ChartSplineIcon },
-    { title: "Captcha Providers", url: "/manage/app/captcha-providers", icon: ShieldCheckIcon },
-    { title: "Pages", url: "/manage/app/pages", icon: BookOpenIcon },
-    { title: "Monitors", url: "/manage/app/monitors", icon: BlendIcon },
-    { title: "Monitoring Data", url: "/manage/app/monitoring-data", icon: DatabaseIcon },
-    { title: "Incidents", url: "/manage/app/incidents", icon: CloudAlertIcon },
-    { title: "JSM Tickets", url: "/manage/app/jsm-tickets", icon: TicketIcon },
-    { title: "Maintenances", url: "/manage/app/maintenances", icon: ClockAlertIcon },
-    { title: "Alerts", url: "/manage/app/alerts", icon: SirenIcon },
-    { title: "Subscriptions", url: "/manage/app/subscriptions", icon: BellIcon },
-    { title: "Reports", url: "/manage/app/reports", icon: MegaphoneIcon },
-    { title: "Microsoft Teams", url: "/manage/app/teams", icon: MessagesSquareIcon },
-    { title: "Users", url: "/manage/app/users", icon: UsersIcon },
-    { title: "Roles", url: "/manage/app/roles", icon: ShieldIcon },
-    { title: "OpenID Connect", url: "/manage/app/oidc", icon: FingerprintIcon },
-    { title: "Triggers", url: "/manage/app/triggers", icon: MailboxIcon },
-    { title: "Templates", url: "/manage/app/templates", icon: TemplateIcon },
-    { title: "Badges", url: "/manage/app/badges", icon: BadgeIcon },
-    { title: "Embed", url: "/manage/app/embed", icon: CodeIcon },
-    { title: "API Keys", url: "/manage/app/api-keys", icon: KeyIcon }
+    { title: tm("Site Configurations"), url: "/manage/app/site-configurations", icon: Settings2Icon },
+    { title: tm("Internationalization"), url: "/manage/app/internationalization", icon: GlobeIcon },
+    { title: tm("Customizations"), url: "/manage/app/customizations", icon: Columns3CogIcon },
+    { title: tm("Analytics Providers"), url: "/manage/app/analytics-providers", icon: ChartSplineIcon },
+    { title: tm("Captcha Providers"), url: "/manage/app/captcha-providers", icon: ShieldCheckIcon },
+    { title: tm("Pages"), url: "/manage/app/pages", icon: BookOpenIcon },
+    { title: tm("Monitors"), url: "/manage/app/monitors", icon: BlendIcon },
+    { title: tm("Monitoring Data"), url: "/manage/app/monitoring-data", icon: DatabaseIcon },
+    { title: tm("Incidents"), url: "/manage/app/incidents", icon: CloudAlertIcon },
+    { title: tm("JSM Tickets"), url: "/manage/app/jsm-tickets", icon: TicketIcon },
+    { title: tm("Maintenances"), url: "/manage/app/maintenances", icon: ClockAlertIcon },
+    { title: tm("Alerts"), url: "/manage/app/alerts", icon: SirenIcon },
+    { title: tm("Subscriptions"), url: "/manage/app/subscriptions", icon: BellIcon },
+    { title: tm("Reports"), url: "/manage/app/reports", icon: MegaphoneIcon },
+    { title: tm("Microsoft Teams"), url: "/manage/app/teams", icon: MessagesSquareIcon },
+    { title: tm("Users"), url: "/manage/app/users", icon: UsersIcon },
+    { title: tm("Roles"), url: "/manage/app/roles", icon: ShieldIcon },
+    { title: tm("OpenID Connect"), url: "/manage/app/oidc", icon: FingerprintIcon },
+    { title: tm("Triggers"), url: "/manage/app/triggers", icon: MailboxIcon },
+    { title: tm("Templates"), url: "/manage/app/templates", icon: TemplateIcon },
+    { title: tm("Badges"), url: "/manage/app/badges", icon: BadgeIcon },
+    { title: tm("Embed"), url: "/manage/app/embed", icon: CodeIcon },
+    { title: tm("API Keys"), url: "/manage/app/api-keys", icon: KeyIcon }
   ];
 
   const navItems = allNavItems
@@ -78,7 +79,7 @@
     .map((item) => ({ ...item, url: clientResolver(resolve, item.url) }));
 
   // Derive page title from current URL
-  let pageTitle = $derived(navItems.find((item) => page.url.pathname.startsWith(item.url))?.title || "Dashboard");
+  let pageTitle = $derived(navItems.find((item) => page.url.pathname.startsWith(item.url))?.title || tm("Dashboard"));
 </script>
 
 <ModeWatcher defaultMode={data.defaultSiteTheme as "light" | "dark" | "system"} />

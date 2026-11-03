@@ -7,6 +7,7 @@ import seedSiteData from "$lib/server/db/seedSiteData.js";
 import serverResolve from "$lib/server/resolver.js";
 import { HomePathFor, ROUTE_PERMISSION_MAP } from "$lib/allPerms.js";
 import { error } from "@sveltejs/kit";
+import { UiLocaleFor } from "$lib/server/uiLocale.js";
 
 import { resolve } from "$app/paths";
 import {
@@ -64,5 +65,6 @@ export const load: LayoutServerLoad = async ({ cookies, route }) => {
     defaultSiteTheme,
     canSendEmail: IsEmailSetup(),
     seedSiteData,
+    uiLocale: UiLocaleFor(cookies, siteData.i18n?.defaultLocale),
   };
 };

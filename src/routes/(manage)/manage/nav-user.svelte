@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tm } from "$lib/uiLocale.svelte";
   import CreditCardIcon from "@lucide/svelte/icons/credit-card";
   import DotsVerticalIcon from "@lucide/svelte/icons/ellipsis-vertical";
   import LogoutIcon from "@lucide/svelte/icons/log-out";
@@ -92,7 +93,7 @@
         setTimeout(() => (nameSuccess = false), 2000);
       }
     } catch {
-      nameError = "Error while saving name";
+      nameError = tm("Error while saving name");
     } finally {
       savingName = false;
     }
@@ -121,7 +122,7 @@
         setTimeout(() => (passwordSuccess = false), 2000);
       }
     } catch {
-      passwordError = "Error while updating password";
+      passwordError = tm("Error while updating password");
     } finally {
       resettingPass = false;
     }
@@ -187,13 +188,13 @@
         <DropdownMenu.Group>
           <DropdownMenu.Item onclick={openAccountDialog}>
             <UserCircleIcon />
-            Account
+            {tm("Account")}
           </DropdownMenu.Item>
           <DropdownMenu.Item class="relative" onclick={toggleMode}>
             <Sun class="absolute left-2  scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
             <Moon class="absolute left-2  scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />
             <span class="pl-6">
-              {mode.current === "light" ? "Light" : "Dark"}
+              {mode.current === "light" ? tm("Light") : tm("Dark")}
             </span>
           </DropdownMenu.Item>
         </DropdownMenu.Group>
@@ -203,7 +204,7 @@
             <form method="POST" action={clientResolver(resolve, "/account/logout")} class="w-full">
               <Button {...props} type="submit" variant="ghost" class="w-full justify-start">
                 <LogoutIcon />
-                Log out
+                {tm("Log out")}
               </Button>
             </form>
           {/snippet}
@@ -217,10 +218,10 @@
   <Dialog.Content class="max-w-md">
     <Dialog.Header>
       <Dialog.Title class="flex flex-col  justify-between">
-        <span>Account Settings</span>
+        <span>{tm("Account Settings")}</span>
       </Dialog.Title>
       <Dialog.Description class="flex flex-col gap-2">
-        <span> Manage your profile information. </span>
+        <span> {tm("Manage your profile information.")} </span>
         <div class="flex items-center justify-between">
           <span class="text-foreground rounded-sm font-medium">
             {user.email}
@@ -242,16 +243,22 @@
           saveName();
         }}
       >
-        <Label for="account-name">Name</Label>
+        <Label for="account-name">{tm("Name")}</Label>
         <div class="flex gap-2">
-          <Input id="account-name" bind:value={myName} placeholder="Your name" disabled={savingName} class="flex-1" />
+          <Input
+            id="account-name"
+            bind:value={myName}
+            placeholder={tm("Your name")}
+            disabled={savingName}
+            class="flex-1"
+          />
           <Button type="submit" disabled={savingName || !myName.trim()}>
             {#if savingName}
               <LoaderIcon class="size-4 animate-spin" />
             {:else if nameSuccess}
               <CheckIcon class="size-4" />
             {:else}
-              Save
+              {tm("Save")}
             {/if}
           </Button>
         </div>
@@ -270,39 +277,44 @@
           updatePassword();
         }}
       >
-        <Label for="new-password">Change Password</Label>
+        <Label for="new-password">{tm("Change Password")}</Label>
         <Input
           id="new-password"
           type="password"
           bind:value={myPassword}
-          placeholder="New Password"
+          placeholder={tm("New Password")}
           disabled={resettingPass}
         />
         <Input
           id="confirm-password"
           type="password"
           bind:value={plainPassword}
-          placeholder="Confirm Password"
+          placeholder={tm("Confirm Password")}
           disabled={resettingPass}
         />
 
         <div class="text-muted-foreground text-xs">
-          <p class="mb-1 font-medium">Password requirements:</p>
+          <p class="mb-1 font-medium">{tm("Password requirements:")}</p>
           <ul class="grid grid-cols-2 gap-1">
             <li class:text-green-500={hasDigit}>
-              {#if hasDigit}<CheckIcon class="inline size-3" />{/if} One digit
+              {#if hasDigit}<CheckIcon class="inline size-3" />{/if}
+              {tm("One digit")}
             </li>
             <li class:text-green-500={hasLowercase}>
-              {#if hasLowercase}<CheckIcon class="inline size-3" />{/if} One lowercase
+              {#if hasLowercase}<CheckIcon class="inline size-3" />{/if}
+              {tm("One lowercase")}
             </li>
             <li class:text-green-500={hasUppercase}>
-              {#if hasUppercase}<CheckIcon class="inline size-3" />{/if} One uppercase
+              {#if hasUppercase}<CheckIcon class="inline size-3" />{/if}
+              {tm("One uppercase")}
             </li>
             <li class:text-green-500={hasMinLength}>
-              {#if hasMinLength}<CheckIcon class="inline size-3" />{/if} 8+ characters
+              {#if hasMinLength}<CheckIcon class="inline size-3" />{/if}
+              {tm("8+ characters")}
             </li>
             <li class:text-green-500={passwordsMatch}>
-              {#if passwordsMatch}<CheckIcon class="inline size-3" />{/if} Passwords match
+              {#if passwordsMatch}<CheckIcon class="inline size-3" />{/if}
+              {tm("Passwords match")}
             </li>
           </ul>
         </div>
@@ -310,12 +322,12 @@
         <Button type="submit" disabled={resettingPass || !isPasswordValid}>
           {#if resettingPass}
             <LoaderIcon class="size-4 animate-spin" />
-            Updating...
+            {tm("Updating...")}
           {:else if passwordSuccess}
             <CheckIcon class="size-4" />
-            Updated!
+            {tm("Updated!")}
           {:else}
-            Update Password
+            {tm("Update Password")}
           {/if}
         </Button>
         {#if passwordError}

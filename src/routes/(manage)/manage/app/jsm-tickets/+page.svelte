@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { dateLocale, tm, tmh } from "$lib/uiLocale.svelte";
   // Jira Service Management tickets shared with Kener (its account is a request participant):
   // pick a service to turn one into an incident that follows the ticket, move it, or unlink it.
   import { Button } from "$lib/components/ui/button/index.js";
@@ -31,12 +32,12 @@
   let chosenTop = $state<Record<string, boolean>>({});
 
   const IMPACTS = [
-    { value: "DOWN", label: "Down" },
-    { value: "DEGRADED", label: "Degraded" }
+    { value: "DOWN", label: tm("Down") },
+    { value: "DEGRADED", label: tm("Degraded") }
   ];
-  const monitorName = (tag: string | null) => monitors.find((m) => m.tag === tag)?.name ?? tag ?? "no service";
+  const monitorName = (tag: string | null) => monitors.find((m) => m.tag === tag)?.name ?? tag ?? tm("no service");
   const ago = (seconds: number | null) =>
-    seconds ? formatDistanceToNow(new Date(seconds * 1000), { addSuffix: true }) : "never";
+    seconds ? formatDistanceToNow(new Date(seconds * 1000), { addSuffix: true, locale: dateLocale() }) : tm("never");
 
   async function call(action: string, payload: Record<string, unknown> = {}) {
     const response = await fetch(clientResolver(resolve, "/manage/api"), {
@@ -45,7 +46,7 @@
       body: JSON.stringify({ action, data: payload })
     });
     const result = await response.json();
-    if (!response.ok || result.error) throw new Error(result.error || "Request failed");
+    if (!response.ok || result.error) throw new Error(result.error || tm("Request failed"));
     return result;
   }
 
@@ -55,7 +56,7 @@
       overview = await call("getJsmTickets");
       loadError = null;
     } catch (e) {
-      loadError = e instanceof Error ? e.message : "Could not load tickets";
+      loadError = e instanceof Error ? e.message : tm("Could not load tickets");
       if (overview) toast.error(loadError);
     } finally {
       loading = false;
@@ -68,7 +69,7 @@
       await call(action, payload);
       toast.success(done);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Request failed");
+      toast.error(e instanceof Error ? e.message : tm("Request failed"));
     } finally {
       busy = null;
     }
@@ -80,10 +81,12 @@
     busy = "sync";
     try {
       const result = await call("syncJsmTickets");
-      toast.success(`Read ${result.tickets} ticket(s), posted ${result.updates} update(s)`);
+      toast.success(
+        tm("Read %tickets ticket(s), posted %updates update(s)", { tickets: result.tickets, updates: result.updates })
+      );
       await load();
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Sync failed");
+      toast.error(e instanceof Error ? e.message : tm("Sync failed"));
     } finally {
       busy = null;
     }
@@ -105,20 +108,24 @@
 <div class="container mx-auto space-y-6 py-6">
   <div class="flex flex-wrap items-start justify-between gap-3">
     <div>
-      <h1 class="flex items-center gap-2 text-2xl font-semibold"><TicketIcon class="size-6" /> JSM Tickets</h1>
+      <h1 class="flex items-center gap-2 text-2xl font-semibold"><TicketIcon class="size-6" /> {tm("JSM Tickets")}</h1>
       <p class="text-muted-foreground max-w-3xl text-sm">
-        Tickets from Jira Service Management where Kener's account is a <b>request participant</b>. Pick a service to
-        show a ticket as an incident on the status page. From then on Kener posts the ticket's replies to customers
-        (never internal comments) and follows its status, every 2 minutes. Kener never writes to Jira.
+        <span
+          >{@html tmh(
+            "Tickets from Jira Service Management where Kener's account is a **request participant**. Pick a service to show a ticket as an incident on the status page. From then on Kener posts the ticket's replies to customers (never internal comments) and follows its status, every 2 minutes. Kener never writes to Jira."
+          )}</span
+        >
       </p>
     </div>
     <div class="flex gap-2">
       <Button variant="outline" onclick={load} disabled={loading}>
-        <RefreshIcon class="size-4" /> Refresh
+        <RefreshIcon class="size-4" />
+        {tm("Refresh")}
       </Button>
       {#if canWrite && overview?.configured}
         <Button variant="outline" onclick={syncNow} disabled={busy !== null}>
-          {#if busy === "sync"}<Spinner class="size-4" />{/if} Sync now
+          {#if busy === "sync"}<Spinner class="size-4" />{/if}
+          {tm("Sync now")}
         </Button>
       {/if}
     </div>
@@ -128,22 +135,24 @@
     <div class="flex justify-center py-10"><Spinner class="size-6" /></div>
   {:else if loadError && !overview}
     <Alert.Root variant="destructive">
-      <Alert.Title>Could not load the tickets</Alert.Title>
+      <Alert.Title>{tm("Could not load the tickets")}</Alert.Title>
       <Alert.Description>{loadError}</Alert.Description>
     </Alert.Root>
   {:else if overview && !overview.configured}
     <Alert.Root>
-      <Alert.Title>Jira Service Management is not connected</Alert.Title>
+      <Alert.Title>{tm("Jira Service Management is not connected")}</Alert.Title>
       <Alert.Description>
-        Set <code>JSM_BASE_URL</code>, <code>JSM_EMAIL</code> (Atlassian Cloud only) and <code>JSM_API_TOKEN</code> in
-        Kener's environment and restart Kener. Use a customer account such as <code>status@…</code>: it then sees only
-        the tickets it is added to as request participant.
+        <span
+          >{@html tmh(
+            "Set `JSM_BASE_URL`, `JSM_EMAIL` (Atlassian Cloud only) and `JSM_API_TOKEN` in Kener's environment and restart Kener. Use a customer account such as `status@…`: it then sees only the tickets it is added to as request participant."
+          )}</span
+        >
       </Alert.Description>
     </Alert.Root>
   {:else if overview}
     {#if overview.error}
       <Alert.Root variant="destructive">
-        <Alert.Title>Could not read the shared tickets</Alert.Title>
+        <Alert.Title>{tm("Could not read the shared tickets")}</Alert.Title>
         <Alert.Description>{overview.error}</Alert.Description>
       </Alert.Root>
     {/if}
@@ -151,26 +160,31 @@
     <!-- New tickets -->
     <Card.Root>
       <Card.Header>
-        <Card.Title>New tickets ({overview.shared.length})</Card.Title>
+        <Card.Title>{tm("New tickets (%count)", { count: overview.shared.length })}</Card.Title>
         <Card.Description>
-          Shared with Kener, not on the status page yet. Only replies written after linking reach the status page.
+          {tm(
+            "Shared with Kener, not on the status page yet. Only replies written after linking reach the status page."
+          )}
         </Card.Description>
       </Card.Header>
       <Card.Content>
         {#if overview.shared.length === 0}
           <p class="text-muted-foreground text-sm">
-            No new tickets. In Jira, add Kener's account as <b>Anfrageteilnehmer</b> (request participant) on an outage ticket
-            and it appears here.
+            <span
+              >{@html tmh(
+                "No new tickets. In Jira, add Kener's account as **Anfrageteilnehmer** (request participant) on an outage ticket and it appears here."
+              )}</span
+            >
           </p>
         {:else}
           <Table.Root>
             <Table.Header>
               <Table.Row>
-                <Table.Head>Ticket</Table.Head>
-                <Table.Head>Status in Jira</Table.Head>
-                <Table.Head>Service</Table.Head>
-                <Table.Head>Impact</Table.Head>
-                <Table.Head class="text-right">Actions</Table.Head>
+                <Table.Head>{tm("Ticket")}</Table.Head>
+                <Table.Head>{tm("Status in Jira")}</Table.Head>
+                <Table.Head>{tm("Service")}</Table.Head>
+                <Table.Head>{tm("Impact")}</Table.Head>
+                <Table.Head class="text-right">{tm("Actions")}</Table.Head>
               </Table.Row>
             </Table.Header>
             <Table.Body>
@@ -181,30 +195,32 @@
                       {ticket.key}
                     </a>
                     <div class="text-sm">{ticket.summary}</div>
-                    <div class="text-muted-foreground text-xs">opened {ago(ticket.createdAt)}</div>
+                    <div class="text-muted-foreground text-xs">
+                      {tm("opened %when", { when: ago(ticket.createdAt) })}
+                    </div>
                   </Table.Cell>
                   <Table.Cell><Badge variant="outline">{ticket.status}</Badge></Table.Cell>
                   <Table.Cell>
                     <select
                       class="border-input bg-background h-9 max-w-56 rounded-md border px-2 text-sm"
-                      aria-label="Service"
+                      aria-label={tm("Service")}
                       bind:value={chosenService[ticket.key]}
                       disabled={!canWrite}
                     >
-                      <option value={undefined}>No service</option>
+                      <option value={undefined}>{tm("No service")}</option>
                       {#each monitors as monitor (monitor.tag)}
                         <option value={monitor.tag}>{monitor.name}</option>
                       {/each}
                     </select>
                     <label class="mt-2 flex items-center gap-2 text-xs">
                       <input type="checkbox" bind:checked={chosenTop[ticket.key]} disabled={!canWrite} />
-                      Show to everyone (top of status page)
+                      {tm("Show to everyone (top of status page)")}
                     </label>
                   </Table.Cell>
                   <Table.Cell>
                     <select
                       class="border-input bg-background h-9 rounded-md border px-2 text-sm"
-                      aria-label="Impact"
+                      aria-label={tm("Impact")}
                       bind:value={chosenImpact[ticket.key]}
                       disabled={!canWrite}
                     >
@@ -219,7 +235,7 @@
                         size="sm"
                         disabled={busy !== null || (!chosenService[ticket.key] && !chosenTop[ticket.key])}
                         title={!chosenService[ticket.key] && !chosenTop[ticket.key]
-                          ? "Choose a service, or show the ticket to everyone"
+                          ? tm("Choose a service, or show the ticket to everyone")
                           : undefined}
                         onclick={() =>
                           act(
@@ -231,19 +247,25 @@
                               impact: chosenImpact[ticket.key] || "DOWN",
                               show_at_top: !!chosenTop[ticket.key]
                             },
-                            `${ticket.key} is now on the status page`
+                            tm("%key is now on the status page", { key: ticket.key })
                           )}
                       >
-                        {#if busy === `linkJsmTicket-${ticket.key}`}<Spinner class="size-4" />{/if} Link
+                        {#if busy === `linkJsmTicket-${ticket.key}`}<Spinner class="size-4" />{/if}
+                        {tm("Link")}
                       </Button>
                       <Button
                         size="sm"
                         variant="ghost"
                         disabled={busy !== null}
                         onclick={() =>
-                          act(ticket.key, "ignoreJsmTicket", { issue_key: ticket.key }, `${ticket.key} ignored`)}
+                          act(
+                            ticket.key,
+                            "ignoreJsmTicket",
+                            { issue_key: ticket.key },
+                            tm("%key ignored", { key: ticket.key })
+                          )}
                       >
-                        Ignore
+                        {tm("Ignore")}
                       </Button>
                     {/if}
                   </Table.Cell>
@@ -258,24 +280,25 @@
     <!-- Linked tickets -->
     <Card.Root>
       <Card.Header>
-        <Card.Title>Linked tickets ({overview.linked.length})</Card.Title>
+        <Card.Title>{tm("Linked tickets (%count)", { count: overview.linked.length })}</Card.Title>
         <Card.Description>
-          Kept up to date from Jira while open, and for 7 days after the ticket is done. Change the service to move the
-          incident; unlink to stop the updates (the incident stays).
+          {tm(
+            "Kept up to date from Jira while open, and for 7 days after the ticket is done. Change the service to move the incident; unlink to stop the updates (the incident stays)."
+          )}
         </Card.Description>
       </Card.Header>
       <Card.Content>
         {#if overview.linked.length === 0}
-          <p class="text-muted-foreground text-sm">No linked tickets.</p>
+          <p class="text-muted-foreground text-sm">{tm("No linked tickets.")}</p>
         {:else}
           <Table.Root>
             <Table.Header>
               <Table.Row>
-                <Table.Head>Ticket</Table.Head>
-                <Table.Head>Incident</Table.Head>
-                <Table.Head>Service</Table.Head>
-                <Table.Head>Last read</Table.Head>
-                <Table.Head class="text-right">Actions</Table.Head>
+                <Table.Head>{tm("Ticket")}</Table.Head>
+                <Table.Head>{tm("Incident")}</Table.Head>
+                <Table.Head>{tm("Service")}</Table.Head>
+                <Table.Head>{tm("Last read")}</Table.Head>
+                <Table.Head class="text-right">{tm("Actions")}</Table.Head>
               </Table.Row>
             </Table.Header>
             <Table.Body>
@@ -309,7 +332,7 @@
                       <div class="flex flex-col gap-1">
                         <select
                           class="border-input bg-background h-9 max-w-56 rounded-md border px-2 text-sm"
-                          aria-label="Service"
+                          aria-label={tm("Service")}
                           value={link.monitor_tag ?? ""}
                           disabled={busy !== null}
                           onchange={(e) =>
@@ -322,17 +345,20 @@
                                 impact: link.monitor_impact || "DOWN",
                                 show_at_top: link.show_at_top
                               },
-                              `${link.issue_key} moved to ${monitorName(e.currentTarget.value || null)}`
+                              tm("%key moved to %service", {
+                                key: link.issue_key,
+                                service: monitorName(e.currentTarget.value || null)
+                              })
                             )}
                         >
-                          <option value="">No service</option>
+                          <option value="">{tm("No service")}</option>
                           {#each monitors as monitor (monitor.tag)}
                             <option value={monitor.tag}>{monitor.name}</option>
                           {/each}
                         </select>
                         <select
                           class="border-input bg-background h-9 max-w-56 rounded-md border px-2 text-sm"
-                          aria-label="Impact"
+                          aria-label={tm("Impact")}
                           value={link.monitor_impact}
                           disabled={busy !== null}
                           onchange={(e) =>
@@ -345,7 +371,7 @@
                                 impact: e.currentTarget.value,
                                 show_at_top: link.show_at_top
                               },
-                              `${link.issue_key} impact changed`
+                              tm("%key impact changed", { key: link.issue_key })
                             )}
                         >
                           {#each IMPACTS as impact (impact.value)}
@@ -368,16 +394,16 @@
                                   show_at_top: e.currentTarget.checked
                                 },
                                 e.currentTarget.checked
-                                  ? `${link.issue_key} is shown at the top`
-                                  : `${link.issue_key} is no longer at the top`
+                                  ? tm("%key is shown at the top", { key: link.issue_key })
+                                  : tm("%key is no longer at the top", { key: link.issue_key })
                               )}
                           />
-                          Show to everyone (top of status page)
+                          {tm("Show to everyone (top of status page)")}
                         </label>
                       </div>
                     {:else}
                       {monitorName(link.monitor_tag)} · {link.monitor_impact}
-                      {#if link.show_at_top}<Badge variant="outline" class="ml-1">At top</Badge>{/if}
+                      {#if link.show_at_top}<Badge variant="outline" class="ml-1">{tm("At top")}</Badge>{/if}
                     {/if}
                   </Table.Cell>
                   <Table.Cell>
@@ -393,12 +419,16 @@
                         variant="ghost"
                         disabled={busy !== null}
                         onclick={() => {
-                          if (confirm(`Stop updating the incident from ${link.issue_key}? The incident stays.`)) {
-                            act(link.issue_key, "unlinkJsmTicket", { issue_key: link.issue_key }, "Unlinked");
+                          if (
+                            confirm(
+                              tm("Stop updating the incident from %key? The incident stays.", { key: link.issue_key })
+                            )
+                          ) {
+                            act(link.issue_key, "unlinkJsmTicket", { issue_key: link.issue_key }, tm("Unlinked"));
                           }
                         }}
                       >
-                        Unlink
+                        {tm("Unlink")}
                       </Button>
                     {/if}
                   </Table.Cell>
@@ -413,7 +443,7 @@
     {#if overview.ignored.length > 0}
       <Card.Root>
         <Card.Header>
-          <Card.Title>Ignored ({overview.ignored.length})</Card.Title>
+          <Card.Title>{tm("Ignored (%count)", { count: overview.ignored.length })}</Card.Title>
         </Card.Header>
         <Card.Content class="flex flex-col gap-2">
           {#each overview.ignored as ticket (ticket.issue_key)}
@@ -425,9 +455,9 @@
                   variant="ghost"
                   disabled={busy !== null}
                   onclick={() =>
-                    act(ticket.issue_key, "unignoreJsmTicket", { issue_key: ticket.issue_key }, "Back in the list")}
+                    act(ticket.issue_key, "unignoreJsmTicket", { issue_key: ticket.issue_key }, tm("Back in the list"))}
                 >
-                  Restore
+                  {tm("Restore")}
                 </Button>
               {/if}
             </div>
