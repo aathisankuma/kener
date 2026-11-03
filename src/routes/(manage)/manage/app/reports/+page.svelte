@@ -156,7 +156,9 @@
               bind:value={problemRecipients}
               disabled={!canWrite}
             ></textarea>
-            <p class="text-muted-foreground text-xs">One per line. Empty: reports are counted, nobody is emailed.</p>
+            <p class="text-muted-foreground text-xs">
+              One per line. To also post to Teams, switch it on under Microsoft Teams.
+            </p>
           </div>
           <div class="space-y-4">
             <div class="flex flex-wrap items-end gap-2 text-sm">

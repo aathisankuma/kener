@@ -170,6 +170,10 @@
                         {
                           "title": "Webhook Examples",
                           "content": "v4/alerting/webhook-examples"
+                        },
+                        {
+                          "title": "Microsoft Teams",
+                          "content": "v4/alerting/microsoft-teams"
                         }
                       ]
                     },

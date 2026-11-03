@@ -159,6 +159,7 @@ import {
   ParseRecipients,
   IsSsoEnabled,
 } from "$lib/server/controllers/reportsController.js";
+import { GetTeamsSettingsView, SaveTeamsSettings, SendTeamsTest } from "$lib/server/controllers/teamsController.js";
 import {
   AddMyServiceIncidentUpdate,
   CancelMyServiceMaintenance,
@@ -362,6 +363,13 @@ export async function POST({ request, cookies }) {
       resp = await UpdateCommentStatusByID(data.incident_id, data.comment_id, "INACTIVE");
     } else if (action == "updateComment") {
       resp = await UpdateCommentByID(data.incident_id, data.comment_id, data.comment, data.state, data.commented_at);
+    } else if (action == "getTeamsSettings") {
+      resp = await GetTeamsSettingsView();
+    } else if (action == "saveTeamsSettings") {
+      resp = await SaveTeamsSettings(data);
+    } else if (action == "sendTeamsTest") {
+      await SendTeamsTest();
+      resp = { success: true };
     } else if (action == "getReportSettings") {
       const [problem, uptime, overview, ssoEnabled] = await Promise.all([
         GetProblemReportSettings(),

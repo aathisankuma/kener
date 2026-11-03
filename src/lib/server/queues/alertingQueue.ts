@@ -34,6 +34,7 @@ import sendEmail from "../notification/email_notification.js";
 import sendWebhook from "$lib/server/notification/webhook_notification.js";
 import sendSlack from "$lib/server/notification/slack_notification.js";
 import sendDiscord from "$lib/server/notification/discord_notification.js";
+import { NotifyTeamsOfAlert } from "$lib/server/controllers/teamsController.js";
 
 import type { SiteDataForNotification } from "../notification/types.js";
 let alertingQueue: Queue | null = null;
@@ -117,6 +118,19 @@ async function sendAlertNotifications(
   monitorTag?: string,
 ): Promise<void> {
   const templateAlertVars = alertToVariables(monitor_alerts_configured, activeAlert, templateSiteVars, monitorTag);
+
+  // The Teams chat from Manage → Microsoft Teams gets every alert, besides the alert's own
+  // triggers. Never throws.
+  await NotifyTeamsOfAlert({
+    monitorTag: String(templateAlertVars.alert_name),
+    isTriggered: !!templateAlertVars.is_triggered,
+    alertFor: String(templateAlertVars.alert_for ?? ""),
+    alertValue: String(templateAlertVars.alert_value ?? ""),
+    severity: String(templateAlertVars.alert_severity ?? ""),
+    timestamp: new Date().toISOString(),
+    incidentId: templateAlertVars.alert_incident_id ? Number(templateAlertVars.alert_incident_id) : undefined,
+  });
+
   const triggers = await GetTriggersByMonitorAlertConfigId(monitor_alerts_configured.id);
 
   for (let i = 0; i < triggers.length; i++) {

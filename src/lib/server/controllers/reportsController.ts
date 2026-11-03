@@ -13,6 +13,7 @@ import sendEmail from "../notification/email_notification.js";
 import { IsEmailSetup } from "./emailController.js";
 import { GetAllSiteData } from "./siteDataController.js";
 import { siteDataToVariables } from "../notification/notification_utils.js";
+import { NotifyTeamsOfProblemReports } from "./teamsController.js";
 import type { MonitorRecord, UserRecordPublic } from "../types/db.js";
 
 // ============ Settings ============
@@ -265,20 +266,18 @@ export async function ReportProblem(input: {
   const count = (await db.countProblemReporters([monitor.tag], since))[monitor.tag] ?? 0;
 
   let alerted = false;
-  if (
-    reportId !== null &&
-    count >= settings.threshold &&
-    settings.recipients.length > 0 &&
-    !(await db.wasProblemAlertSent(monitor.tag, since))
-  ) {
-    try {
-      await sendProblemAlert(monitor, count, settings);
-      await db.markProblemReportAlerted(reportId, now);
-      alerted = true;
-    } catch (e) {
-      // The next report tries again.
-      console.error(`Could not send the "not working" alert for ${monitor.tag}:`, e);
+  if (reportId !== null && count >= settings.threshold && !(await db.wasProblemAlertSent(monitor.tag, since))) {
+    if (settings.recipients.length > 0) {
+      try {
+        await sendProblemAlert(monitor, count, settings);
+        alerted = true;
+      } catch (e) {
+        console.error(`Could not email the "not working" alert for ${monitor.tag}:`, e);
+      }
     }
+    if (await NotifyTeamsOfProblemReports(monitor, count, settings.windowMinutes)) alerted = true;
+    // Nothing went out: the next report tries again.
+    if (alerted) await db.markProblemReportAlerted(reportId, now);
   }
   return { count, alreadyReported, alerted };
 }

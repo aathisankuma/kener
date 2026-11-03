@@ -22,6 +22,7 @@ import { getUnixTime, differenceInSeconds } from "date-fns";
 import { siteDataToVariables } from "../notification/notification_utils.js";
 import { GetAllSiteData } from "./siteDataController.js";
 import subscriberQueue from "../queues/subscriberQueue.js";
+import { NotifyTeamsOfIncidentUpdate } from "./teamsController.js";
 import mdToHTML from "../../marked.js";
 import type { SubscriptionVariableMap } from "../notification/types.js";
 
@@ -573,6 +574,8 @@ export const AddIncidentComment = async (
     }
     await UpdateIncident(incident_id, incidentUpdate);
     await notifySubscribersOfComment(incidentExists, c);
+    // Never throws; a Teams failure is only logged.
+    await NotifyTeamsOfIncidentUpdate(incidentExists, c);
   }
 
   return c;

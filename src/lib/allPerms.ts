@@ -37,6 +37,10 @@
  * settings.read      → getReportSettings
  * settings.write     → saveProblemReportSettings, saveUptimeReportSettings, sendUptimeReportNow
  *
+ * Microsoft Teams
+ * settings.read      → getTeamsSettings
+ * settings.write     → saveTeamsSettings, sendTeamsTest
+ *
  * subscribers.read   → getSubscribersByMethod, getSubscriberWithSubscriptions, getSubscriberCountsByMethod, getAdminSubscribers
  * subscribers.write  → deleteUserSubscription, updateUserSubscriptionStatus, adminUpdateSubscriptionStatus, adminDeleteSubscriber, adminAddSubscriber
  *
@@ -127,6 +131,9 @@ export const ACTION_PERMISSION_MAP: Record<string, string | null> = {
   saveProblemReportSettings: "settings.write",
   saveUptimeReportSettings: "settings.write",
   sendUptimeReportNow: "settings.write",
+  getTeamsSettings: "settings.read",
+  saveTeamsSettings: "settings.write",
+  sendTeamsTest: "settings.write",
 
   // Users
   getUsers: "users.read",
@@ -313,6 +320,7 @@ export const ROUTE_PERMISSION_MAP: Record<string, string | null> = {
   "/(manage)/manage/app/badges": "settings.read",
   "/(manage)/manage/app/embed": "settings.read",
   "/(manage)/manage/app/reports": "settings.read",
+  "/(manage)/manage/app/teams": "settings.read",
 
   // Subscribers
   "/(manage)/manage/app/subscriptions": "subscribers.read",

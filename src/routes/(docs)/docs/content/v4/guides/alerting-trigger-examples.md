@@ -41,39 +41,9 @@ URL: https://events.pagerduty.com/v2/enqueue
 }
 ```
 
-## Microsoft Teams (Incoming Webhook) {#teams}
+## Microsoft Teams {#teams}
 
-```text
-URL: $TEAMS_WEBHOOK_URL
-```
-
-```json
-{
-    "@type": "MessageCard",
-    "@context": "http://schema.org/extensions",
-    "themeColor": "{{#is_triggered}}D13438{{/is_triggered}}{{#is_resolved}}28A745{{/is_resolved}}",
-    "summary": "{{alert_name}}",
-    "sections": [
-        {
-            "activityTitle": "{{#is_triggered}}🚨 Alert Triggered{{/is_triggered}}{{#is_resolved}}✅ Alert Resolved{{/is_resolved}}",
-            "facts": [
-                { "name": "Status", "value": "{{alert_status}}" },
-                { "name": "Severity", "value": "{{alert_severity}}" },
-                { "name": "Type", "value": "{{alert_for}}" },
-                { "name": "Value", "value": "{{alert_value}}" }
-            ],
-            "markdown": true
-        }
-    ],
-    "potentialAction": [
-        {
-            "@type": "OpenUri",
-            "name": "{{alert_cta_text}}",
-            "targets": [{ "os": "default", "uri": "{{alert_cta_url}}" }]
-        }
-    ]
-}
-```
+Microsoft retired the Teams "Incoming Webhook" connectors and their `MessageCard` format. Use the built-in [Microsoft Teams](/docs/v4/alerting/microsoft-teams) page instead: paste the URL of a Teams Workflows webhook, and Kener sends every alert, incident update and "not working" report as an Adaptive Card. No trigger or template is needed.
 
 ## Opsgenie {#opsgenie}
 
@@ -138,7 +108,6 @@ Headers: [{"key":"Authorization","value":"Bearer $CUSTOM_API_TOKEN"},{"key":"Con
 TELEGRAM_BOT_TOKEN=...
 TELEGRAM_CHAT_ID=...
 PAGERDUTY_INTEGRATION_KEY=...
-TEAMS_WEBHOOK_URL=...
 OPSGENIE_API_KEY=...
 CUSTOM_API_TOKEN=...
 ```
