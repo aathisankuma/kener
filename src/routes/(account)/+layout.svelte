@@ -8,6 +8,7 @@
 
   let { children, data } = $props();
   import KenerNav from "$lib/components/KenerNav.svelte";
+  import UiLanguageSwitch from "$lib/components/UiLanguageSwitch.svelte";
 </script>
 
 <ModeWatcher defaultMode={data.defaultSiteTheme as "light" | "dark" | "system"} />
@@ -45,6 +46,9 @@
 <main>
   <!-- Nav -->
   <KenerNav />
+  <div class="fixed right-4 bottom-4 z-50">
+    <UiLanguageSwitch />
+  </div>
   <!-- Body -->
   <div class="mx-auto max-w-5xl">
     {@render children()}

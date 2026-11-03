@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tm, tmMessage, tmh } from "$lib/uiLocale.svelte";
   import { toast } from "svelte-sonner";
   import { Button } from "$lib/components/ui/button/index.js";
   import * as Card from "$lib/components/ui/card/index.js";
@@ -30,7 +31,7 @@
 
   async function handleRequestReset() {
     if (!email) {
-      toast.error("Please enter your email address");
+      toast.error(tm("Please enter your email address"));
       return;
     }
 
@@ -45,14 +46,14 @@
       const data = await response.json();
 
       if (!response.ok) {
-        toast.error(data.error || "Failed to send reset email");
+        toast.error(data.error ? tmMessage(data.error) : tm("Failed to send reset email"));
         return;
       }
 
       emailSent = true;
-      toast.success("Password reset email sent!");
+      toast.success(tm("Password reset email sent!"));
     } catch (e) {
-      toast.error("An error occurred. Please try again.");
+      toast.error(tm("An error occurred. Please try again."));
     } finally {
       loading = false;
     }
@@ -60,17 +61,17 @@
 
   async function handlePasswordReset() {
     if (!newPassword || !confirmPassword) {
-      toast.error("Please fill in all fields");
+      toast.error(tm("Please fill in all fields"));
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      toast.error("Passwords do not match");
+      toast.error(tm("Passwords do not match"));
       return;
     }
 
     if (newPassword.length < 8) {
-      toast.error("Password must be at least 8 characters");
+      toast.error(tm("Password must be at least 8 characters"));
       return;
     }
 
@@ -85,14 +86,14 @@
       const data = await response.json();
 
       if (!response.ok) {
-        toast.error(data.error || "Failed to reset password");
+        toast.error(data.error ? tmMessage(data.error) : tm("Failed to reset password"));
         return;
       }
 
       passwordReset = true;
-      toast.success("Password reset successfully!");
+      toast.success(tm("Password reset successfully!"));
     } catch (e) {
-      toast.error("An error occurred. Please try again.");
+      toast.error(tm("An error occurred. Please try again."));
     } finally {
       loading = false;
     }
@@ -109,7 +110,7 @@
 </script>
 
 <svelte:head>
-  <title>{view === "confirm_token" ? "Reset Password" : "Forgot Password"}</title>
+  <title>{view === "confirm_token" ? tm("Reset Password") : tm("Forgot Password")}</title>
 </svelte:head>
 <div class="flex min-h-screen items-center justify-center p-4">
   <Card.Root class="kener-card w-full max-w-md">
@@ -120,27 +121,27 @@
           <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
             <CheckCircleIcon class="h-8 w-8 text-green-600" />
           </div>
-          <Card.Title>Password Reset Complete</Card.Title>
+          <Card.Title>{tm("Password Reset Complete")}</Card.Title>
           <Card.Description>
-            Your password has been reset successfully. You can now sign in with your new password.
+            {tm("Your password has been reset successfully. You can now sign in with your new password.")}
           </Card.Description>
         </Card.Header>
         <Card.Content>
           <Button href={clientResolver(resolve, "/account/signin")} class="w-full">
             <ArrowLeftIcon class="mr-2 h-4 w-4" />
-            Back to Sign In
+            {tm("Back to Sign In")}
           </Button>
         </Card.Content>
       {:else}
         <Card.Header>
-          <Card.Title>Set New Password</Card.Title>
-          <Card.Description>Enter your new password below to complete the reset process.</Card.Description>
+          <Card.Title>{tm("Set New Password")}</Card.Title>
+          <Card.Description>{tm("Enter your new password below to complete the reset process.")}</Card.Description>
         </Card.Header>
         <Card.Content>
           <form onsubmit={handleSubmit}>
             <Field.Group>
               <Field.Field class="relative flex flex-col gap-1">
-                <Field.Label for="newPassword">New Password</Field.Label>
+                <Field.Label for="newPassword">{tm("New Password")}</Field.Label>
                 <InputGroup.Root>
                   <InputGroup.Addon>
                     <LockIcon />
@@ -155,8 +156,8 @@
                   <InputGroup.Addon align="inline-end">
                     <InputGroup.Button
                       type="button"
-                      aria-label={showPassword ? "Hide password" : "Show password"}
-                      title={showPassword ? "Hide password" : "Show password"}
+                      aria-label={showPassword ? tm("Hide password") : tm("Show password")}
+                      title={showPassword ? tm("Hide password") : tm("Show password")}
                       size="icon-xs"
                       onclick={() => (showPassword = !showPassword)}
                     >
@@ -168,11 +169,11 @@
                     </InputGroup.Button>
                   </InputGroup.Addon>
                 </InputGroup.Root>
-                <Field.Description>Password must be at least 8 characters.</Field.Description>
+                <Field.Description>{tm("Password must be at least 8 characters.")}</Field.Description>
               </Field.Field>
 
               <Field.Field class="relative flex flex-col gap-1">
-                <Field.Label for="confirmPassword">Confirm Password</Field.Label>
+                <Field.Label for="confirmPassword">{tm("Confirm Password")}</Field.Label>
                 <InputGroup.Root>
                   <InputGroup.Addon>
                     <LockIcon />
@@ -187,8 +188,8 @@
                   <InputGroup.Addon align="inline-end">
                     <InputGroup.Button
                       type="button"
-                      aria-label={showConfirmPassword ? "Hide password" : "Show password"}
-                      title={showConfirmPassword ? "Hide password" : "Show password"}
+                      aria-label={showConfirmPassword ? tm("Hide password") : tm("Show password")}
+                      title={showConfirmPassword ? tm("Hide password") : tm("Show password")}
                       size="icon-xs"
                       onclick={() => (showConfirmPassword = !showConfirmPassword)}
                     >
@@ -206,9 +207,9 @@
             <div class="mt-6">
               <Button type="submit" class="w-full" disabled={loading}>
                 {#if loading}
-                  Resetting Password...
+                  {tm("Resetting Password...")}
                 {:else}
-                  Reset Password
+                  {tm("Reset Password")}
                 {/if}
               </Button>
             </div>
@@ -216,7 +217,7 @@
             <div class="mt-4 text-center">
               <Button variant="link" href={clientResolver(resolve, "/account/signin")} class="text-sm">
                 <ArrowLeftIcon class="mr-1 h-3 w-3" />
-                Back to Sign In
+                {tm("Back to Sign In")}
               </Button>
             </div>
           </form>
@@ -229,36 +230,40 @@
           <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
             <MailIcon class="h-8 w-8 text-blue-600" />
           </div>
-          <Card.Title>Check Your Email</Card.Title>
+          <Card.Title>{tm("Check Your Email")}</Card.Title>
           <Card.Description>
-            We've sent a password reset link to <strong>{email}</strong>. Please check your inbox and click the link to
-            reset your password.
+            <span
+              >{@html tmh(
+                "We've sent a password reset link to **%email**. Please check your inbox and click the link to reset your password.",
+                { email }
+              )}</span
+            >
           </Card.Description>
         </Card.Header>
         <Card.Content>
           <p class="text-muted-foreground mb-4 text-center text-sm">
-            Didn't receive the email? Check your spam folder or try again.
+            {tm("Didn't receive the email? Check your spam folder or try again.")}
           </p>
-          <Button variant="outline" class="w-full" onclick={() => (emailSent = false)}>Try Again</Button>
+          <Button variant="outline" class="w-full" onclick={() => (emailSent = false)}>{tm("Try Again")}</Button>
           <div class="mt-4 text-center">
             <Button variant="link" href={clientResolver(resolve, "/account/signin")} class="text-sm">
               <ArrowLeftIcon class="mr-1 h-3 w-3" />
-              Back to Sign In
+              {tm("Back to Sign In")}
             </Button>
           </div>
         </Card.Content>
       {:else}
         <Card.Header>
-          <Card.Title>Forgot Password</Card.Title>
+          <Card.Title>{tm("Forgot Password")}</Card.Title>
           <Card.Description>
-            Enter your email address and we'll send you a link to reset your password.
+            {tm("Enter your email address and we'll send you a link to reset your password.")}
           </Card.Description>
         </Card.Header>
         <Card.Content>
           <form onsubmit={handleSubmit}>
             <Field.Group>
               <Field.Field class="relative flex flex-col gap-1">
-                <Field.Label for="email">Email</Field.Label>
+                <Field.Label for="email">{tm("Email")}</Field.Label>
                 <InputGroup.Root>
                   <InputGroup.Addon>
                     <MailIcon />
@@ -271,9 +276,9 @@
             <div class="mt-6">
               <Button type="submit" class="w-full" disabled={loading}>
                 {#if loading}
-                  Sending Reset Link...
+                  {tm("Sending Reset Link...")}
                 {:else}
-                  Send Reset Link
+                  {tm("Send Reset Link")}
                 {/if}
               </Button>
             </div>
@@ -281,7 +286,7 @@
             <div class="mt-4 text-center">
               <Button variant="link" href={clientResolver(resolve, "/account/signin")} class="text-sm">
                 <ArrowLeftIcon class="mr-1 h-3 w-3" />
-                Back to Sign In
+                {tm("Back to Sign In")}
               </Button>
             </div>
           </form>

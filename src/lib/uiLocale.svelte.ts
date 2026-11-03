@@ -125,3 +125,96 @@ export function tmStatus(code: string | null | undefined): string {
       return code ?? "";
   }
 }
+
+/**
+ * A known message from the sign-in pages' server, e.g. "User does not exist", in the chosen
+ * language. Unknown messages come back as they are.
+ */
+export function tmMessage(text: string | null | undefined): string {
+  switch (text ?? "") {
+    case "The identity provider returned an error. Please try again.":
+      return tm("The identity provider returned an error. Please try again.");
+    case "Your account has been deactivated. Please contact an administrator.":
+      return tm("Your account has been deactivated. Please contact an administrator.");
+    case "Your account has no active roles assigned. Please contact an administrator.":
+      return tm("Your account has no active roles assigned. Please contact an administrator.");
+    case "Your account is not provisioned in this system. Please contact an administrator.":
+      return tm("Your account is not provisioned in this system. Please contact an administrator.");
+    case "An account with this email already exists. OIDC and local accounts are kept separate. Please contact an administrator.":
+      return tm(
+        "An account with this email already exists. OIDC and local accounts are kept separate. Please contact an administrator.",
+      );
+    case "Authentication failed. Please try again or contact an administrator.":
+      return tm("Authentication failed. Please try again or contact an administrator.");
+    case "Email and password are required":
+      return tm("Email and password are required");
+    case "Set up not done yet. Create a user first.":
+      return tm("Set up not done yet. Create a user first.");
+    case "Local login is disabled. Please use SSO.":
+      return tm("Local login is disabled. Please use SSO.");
+    case "User does not exist":
+      return tm("User does not exist");
+    case "This account uses SSO authentication. Please use the SSO login button.":
+      return tm("This account uses SSO authentication. Please use the SSO login button.");
+    case "Invalid password or Email":
+      return tm("Invalid password or Email");
+    case "Email, password, and name are required":
+      return tm("Email, password, and name are required");
+    case "Set up already done. Please login with the email and password you have set up.":
+      return tm("Set up already done. Please login with the email and password you have set up.");
+    case "An error occurred during signup":
+      return tm("An error occurred during signup");
+    case "Failed to create user":
+      return tm("Failed to create user");
+    case "Invalid or missing verification link.":
+      return tm("Invalid or missing verification link.");
+    case "Invalid or expired verification link.":
+      return tm("Invalid or expired verification link.");
+    case "Invalid verification link.":
+      return tm("Invalid verification link.");
+    case "This verification link has expired. Please request a new one.":
+      return tm("This verification link has expired. Please request a new one.");
+    case "No user found for this verification link.":
+      return tm("No user found for this verification link.");
+    case "Invalid or missing invitation link.":
+      return tm("Invalid or missing invitation link.");
+    case "Invalid or expired invitation link.":
+      return tm("Invalid or expired invitation link.");
+    case "Invalid invitation link.":
+      return tm("Invalid invitation link.");
+    case "This invitation link has expired. Please ask your administrator to send a new one.":
+      return tm("This invitation link has expired. Please ask your administrator to send a new one.");
+    case "No invitation found for this email address.":
+      return tm("No invitation found for this email address.");
+    case "This invitation has already been accepted. Please sign in instead.":
+      return tm("This invitation has already been accepted. Please sign in instead.");
+    case "Email is required":
+      return tm("Email is required");
+    case "Email template not found":
+      return tm("Email template not found");
+    case "Failed to send password reset email":
+      return tm("Failed to send password reset email");
+    case "Token is required":
+      return tm("Token is required");
+    case "Invalid or expired token":
+      return tm("Invalid or expired token");
+    case "Invalid token data":
+      return tm("Invalid token data");
+    case "Token has expired":
+      return tm("Token has expired");
+    case "Password must contain at least 8 characters, one uppercase letter, one lowercase letter and one number":
+      return tm(
+        "Password must contain at least 8 characters, one uppercase letter, one lowercase letter and one number",
+      );
+    case "Password is required":
+      return tm("Password is required");
+    case "Invalid or expired invitation link":
+      return tm("Invalid or expired invitation link");
+    case "This invitation link has expired":
+      return tm("This invitation link has expired");
+    case "This invitation has already been accepted":
+      return tm("This invitation has already been accepted");
+    default:
+      return text ?? "";
+  }
+}

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tm, tmMessage } from "$lib/uiLocale.svelte";
   import { Button } from "$lib/components/ui/button/index.js";
   import * as Card from "$lib/components/ui/card/index.js";
   import * as Field from "$lib/components/ui/field/index.js";
@@ -34,25 +35,25 @@
 </script>
 
 <svelte:head>
-  <title>{!isAdminAccountCreated ? "Create Admin Account" : "Sign In"}</title>
+  <title>{!isAdminAccountCreated ? tm("Create Admin Account") : tm("Sign In")}</title>
 </svelte:head>
 <div class="flex min-h-screen items-center justify-center p-4">
   <Card.Root class="kener-card w-full max-w-md">
     <Card.Header>
-      <Card.Title>{!isAdminAccountCreated ? "Create Admin Account" : "Sign In"}</Card.Title>
+      <Card.Title>{!isAdminAccountCreated ? tm("Create Admin Account") : tm("Sign In")}</Card.Title>
       <Card.Description>
         {!isAdminAccountCreated
-          ? "Set up your admin account to get started"
-          : "Enter your credentials to access the dashboard"}
+          ? tm("Set up your admin account to get started")
+          : tm("Enter your credentials to access the dashboard")}
       </Card.Description>
     </Card.Header>
     <Card.Content>
       {#if !isSetupComplete}
         <Alert.Root variant="destructive">
           <AlertCircleIcon />
-          <Alert.Title>Set up not completed.</Alert.Title>
+          <Alert.Title>{tm("Set up not completed.")}</Alert.Title>
           <Alert.Description>
-            <p>Please make sure to set the below environment variables:</p>
+            <p>{tm("Please make sure to set the below environment variables:")}</p>
             <ul class="list-inside list-disc text-sm">
               <li>KENER_SECRET_KEY</li>
               <li>ORIGIN</li>
@@ -64,7 +65,7 @@
               class="text-destructive w-full justify-start underline"
               href="https://kener.ing/docs/v4/setup/environment-variables"
             >
-              Go to docs
+              {tm("Go to docs")}
             </Button>
           </Alert.Description>
         </Alert.Root>
@@ -72,8 +73,8 @@
         {#if oidcError}
           <Alert.Root variant="destructive" class="mb-4">
             <AlertCircleIcon />
-            <Alert.Title>Authentication failed</Alert.Title>
-            <Alert.Description>{oidcError}</Alert.Description>
+            <Alert.Title>{tm("Authentication failed")}</Alert.Title>
+            <Alert.Description>{tmMessage(oidcError)}</Alert.Description>
           </Alert.Root>
         {/if}
 
@@ -81,7 +82,7 @@
           <div class="mb-4">
             <Button variant="outline" class="w-full" href={resolve("/account/oidc/login")}>
               <LogInIcon class="mr-2 h-4 w-4" />
-              Sign in with {oidcProviderName}
+              {tm("Sign in with %name", { name: oidcProviderName })}
             </Button>
           </div>
 
@@ -108,15 +109,15 @@
             {#if form?.error}
               <Alert.Root variant="destructive" class="mb-4">
                 <AlertCircleIcon />
-                <Alert.Title>{!isAdminAccountCreated ? "Signup failed" : "Login failed"}</Alert.Title>
-                <Alert.Description>{form.error}</Alert.Description>
+                <Alert.Title>{!isAdminAccountCreated ? tm("Signup failed") : tm("Login failed")}</Alert.Title>
+                <Alert.Description>{tmMessage(form.error)}</Alert.Description>
               </Alert.Root>
             {/if}
 
             <Field.Group>
               {#if !isAdminAccountCreated}
                 <Field.Field>
-                  <Field.Label for="name">Name</Field.Label>
+                  <Field.Label for="name">{tm("Name")}</Field.Label>
                   <InputGroup.Root>
                     <InputGroup.Addon>
                       <UserIcon />
@@ -125,7 +126,7 @@
                       id="name"
                       name="name"
                       type="text"
-                      placeholder="Your name"
+                      placeholder={tm("Your name")}
                       value={nameValue}
                       required
                     />
@@ -134,7 +135,7 @@
               {/if}
 
               <Field.Field class="relative flex flex-col gap-1">
-                <Field.Label for="email">Email</Field.Label>
+                <Field.Label for="email">{tm("Email")}</Field.Label>
                 <InputGroup.Root>
                   <InputGroup.Addon>
                     <MailIcon />
@@ -152,14 +153,14 @@
 
               <Field.Field class="relative flex flex-col gap-1">
                 <Field.Label for="password" class="relative">
-                  Password
+                  {tm("Password")}
                   <Button
                     variant="link"
                     size="sm"
                     class="text-muted-foreground absolute top-0 right-0 h-auto p-0 text-xs"
                     href={resolve("/account/forgot")}
                   >
-                    Forgot?
+                    {tm("Forgot?")}
                   </Button>
                 </Field.Label>
                 <InputGroup.Root>
@@ -177,8 +178,8 @@
                   <InputGroup.Addon align="inline-end">
                     <InputGroup.Button
                       type="button"
-                      aria-label={showPassword ? "Hide password" : "Show password"}
-                      title={showPassword ? "Hide password" : "Show password"}
+                      aria-label={showPassword ? tm("Hide password") : tm("Show password")}
+                      title={showPassword ? tm("Hide password") : tm("Show password")}
                       size="icon-xs"
                       onclick={() => (showPassword = !showPassword)}
                     >
@@ -192,7 +193,7 @@
                 </InputGroup.Root>
                 {#if !isAdminAccountCreated}
                   <Field.Description>
-                    Password must contain at least 8 characters, one uppercase, one lowercase, and one number.
+                    {tm("Password must contain at least 8 characters, one uppercase, one lowercase, and one number.")}
                   </Field.Description>
                 {/if}
               </Field.Field>
@@ -201,9 +202,9 @@
             <div class="mt-6">
               <Button type="submit" class="w-full" disabled={loading}>
                 {#if loading}
-                  {!isAdminAccountCreated ? "Creating Account..." : "Signing In..."}
+                  {!isAdminAccountCreated ? tm("Creating Account...") : tm("Signing In...")}
                 {:else}
-                  {!isAdminAccountCreated ? "Create Account" : "Sign In"}
+                  {!isAdminAccountCreated ? tm("Create Account") : tm("Sign In")}
                 {/if}
               </Button>
             </div>
