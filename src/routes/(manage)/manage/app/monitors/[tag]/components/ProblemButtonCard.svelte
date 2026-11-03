@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tm } from "$lib/uiLocale.svelte";
   // Turns the "not working" button on or off for this monitor. It is saved in
   // monitor_settings_json.problem_button, next to the other monitor settings.
   import { Button } from "$lib/components/ui/button/index.js";
@@ -47,10 +48,12 @@
         toast.error(result.error);
       } else {
         monitor.monitor_settings_json = JSON.stringify(merged);
-        toast.success(enabled ? "The button is shown for this service" : "The button is hidden for this service");
+        toast.success(
+          enabled ? tm("The button is shown for this service") : tm("The button is hidden for this service")
+        );
       }
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not save");
+      toast.error(e instanceof Error ? e.message : tm("Could not save"));
     } finally {
       saving = false;
     }
@@ -59,18 +62,19 @@
 
 <Card.Root>
   <Card.Header>
-    <Card.Title>"Not working" button</Card.Title>
+    <Card.Title>{tm('"Not working" button')}</Card.Title>
     <Card.Description>
-      Lets staff report with one click that this service is not working. When enough people report it within a short
-      time, the addresses under <a class="underline" href={clientResolver(resolve, "/manage/app/reports")}>Reports</a>
-      are emailed.
+      {tm(
+        "Lets staff report with one click that this service is not working. When enough people report it within a short time, the addresses under Reports are emailed."
+      )}
+      <a class="underline" href={clientResolver(resolve, "/manage/app/reports")}>{tm("Open Reports")}</a>
     </Card.Description>
   </Card.Header>
   <Card.Content>
     <div class="flex items-center justify-between gap-3">
       <div class="space-y-0.5">
-        <Label for="problem-button">Show the button on the status page</Label>
-        <p class="text-muted-foreground text-xs">Not shown for hidden services.</p>
+        <Label for="problem-button">{tm("Show the button on the status page")}</Label>
+        <p class="text-muted-foreground text-xs">{tm("Not shown for hidden services.")}</p>
       </div>
       <Switch id="problem-button" bind:checked={enabled} />
     </div>
@@ -82,7 +86,7 @@
       {:else}
         <SaveIcon class="size-4" />
       {/if}
-      Save
+      {tm("Save")}
     </Button>
   </Card.Footer>
 </Card.Root>

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tm, tmh } from "$lib/uiLocale.svelte";
   // Microsoft Teams: paste the webhook URL from a Teams "Workflows" flow and choose what is sent.
   // The URL works like a password, so it is never shown again after saving.
   import { Button } from "$lib/components/ui/button/index.js";
@@ -33,7 +34,7 @@
       body: JSON.stringify({ action, data: payload })
     });
     const result = await response.json();
-    if (!response.ok || result.error) throw new Error(result.error || "Request failed");
+    if (!response.ok || result.error) throw new Error(result.error || tm("Request failed"));
     return result;
   }
 
@@ -45,13 +46,13 @@
     webhookUrl = "";
   }
 
-  async function save(extra: Record<string, unknown> = {}, done = "Saved") {
+  async function save(extra: Record<string, unknown> = {}, done = tm("Saved")) {
     busy = extra.removeWebhook ? "remove" : "save";
     try {
       apply(await call("saveTeamsSettings", { webhookUrl, alerts, incidents, problemReports, ...extra }));
       toast.success(done);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not save");
+      toast.error(e instanceof Error ? e.message : tm("Could not save"));
     } finally {
       busy = null;
     }
@@ -63,9 +64,9 @@
       // A URL just pasted is saved first, so the test uses it.
       if (webhookUrl.trim()) apply(await call("saveTeamsSettings", { webhookUrl, alerts, incidents, problemReports }));
       await call("sendTeamsTest");
-      toast.success("Test message sent. Check the Teams chat.");
+      toast.success(tm("Test message sent. Check the Teams chat."));
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "The test message failed");
+      toast.error(e instanceof Error ? e.message : tm("The test message failed"));
     } finally {
       busy = null;
     }
@@ -75,7 +76,7 @@
     try {
       apply(await call("getTeamsSettings"));
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not load the settings");
+      toast.error(e instanceof Error ? e.message : tm("Could not load the settings"));
     } finally {
       loading = false;
     }
@@ -85,10 +86,11 @@
 <div class="container mx-auto max-w-3xl space-y-6 py-6">
   <div>
     <h1 class="flex items-center gap-2 text-2xl font-semibold">
-      <MessagesSquareIcon class="size-6" /> Microsoft Teams
+      <MessagesSquareIcon class="size-6" />
+      {tm("Microsoft Teams")}
     </h1>
     <p class="text-muted-foreground text-sm">
-      Send alerts, incident updates and "not working" reports to a Teams chat or channel.
+      {tm('Send alerts, incident updates and "not working" reports to a Teams chat or channel.')}
     </p>
   </div>
 
@@ -97,69 +99,77 @@
   {:else}
     <Card.Root>
       <Card.Header>
-        <Card.Title>1. Create the webhook in Teams</Card.Title>
+        <Card.Title>{tm("1. Create the webhook in Teams")}</Card.Title>
       </Card.Header>
       <Card.Content>
         <ol class="list-decimal space-y-1 pl-5 text-sm">
-          <li>In Teams, open the app <b>Workflows</b>.</li>
+          <li><span>{@html tmh("In Teams, open the app **Workflows**.")}</span></li>
           <li>
-            Create a workflow from the template <b>Send webhook alerts to a chat</b> (German:
-            <i>Webhook-Benachrichtigungen an einen Chat senden</i>), or <b>… to a channel</b>.
+            <span
+              >{@html tmh(
+                "Create a workflow from the template **Send webhook alerts to a chat**, or **… to a channel**."
+              )}</span
+            >
           </li>
-          <li>Choose the chat or channel, for example <b>Monitoring</b>, and finish.</li>
-          <li>Copy the URL that Teams shows at the end and paste it below.</li>
+          <li><span>{@html tmh("Choose the chat or channel, for example **Monitoring**, and finish.")}</span></li>
+          <li>{tm("Copy the URL that Teams shows at the end and paste it below.")}</li>
         </ol>
       </Card.Content>
     </Card.Root>
 
     <Card.Root>
       <Card.Header>
-        <Card.Title>2. Paste it and choose what to send</Card.Title>
+        <Card.Title>{tm("2. Paste it and choose what to send")}</Card.Title>
       </Card.Header>
       <Card.Content class="space-y-6">
         <div class="space-y-2">
-          <Label for="webhook-url">Webhook URL</Label>
+          <Label for="webhook-url">{tm("Webhook URL")}</Label>
           {#if saved?.hasWebhook}
             <p class="text-up flex items-center gap-1 text-sm">
-              <CheckIcon class="size-4" /> A webhook is saved ({saved.webhookHost}).
+              <CheckIcon class="size-4" />
+              {tm("A webhook is saved (%host).", { host: saved.webhookHost })}
             </p>
           {/if}
           <Input
             id="webhook-url"
             type="password"
             autocomplete="off"
-            placeholder={saved?.hasWebhook ? "Paste a new URL to replace it" : "https://…"}
+            placeholder={saved?.hasWebhook ? tm("Paste a new URL to replace it") : "https://…"}
             bind:value={webhookUrl}
             disabled={!canWrite}
           />
           <p class="text-muted-foreground text-xs">
-            Anyone with this URL can post into the chat, so it is not shown again after saving.
+            {tm("Anyone with this URL can post into the chat, so it is not shown again after saving.")}
           </p>
         </div>
 
         <div class="space-y-4">
           <div class="flex items-center justify-between gap-3">
             <div>
-              <Label for="send-alerts">Monitoring alerts</Label>
+              <Label for="send-alerts">{tm("Monitoring alerts")}</Label>
               <p class="text-muted-foreground text-xs">
-                Red when an alert fires, green when it is resolved. Every alert from Alerts, besides its own triggers.
+                {tm(
+                  "Red when an alert fires, green when it is resolved. Every alert from Alerts, besides its own triggers."
+                )}
               </p>
             </div>
             <Switch id="send-alerts" bind:checked={alerts} disabled={!canWrite} />
           </div>
           <div class="flex items-center justify-between gap-3">
             <div>
-              <Label for="send-incidents">Incident updates</Label>
+              <Label for="send-incidents">{tm("Incident updates")}</Label>
               <p class="text-muted-foreground text-xs">
-                Each update posted on an incident, also those from Jira Service Management tickets.
+                {tm("Each update posted on an incident, also those from Jira Service Management tickets.")}
               </p>
             </div>
             <Switch id="send-incidents" bind:checked={incidents} disabled={!canWrite} />
           </div>
           <div class="flex items-center justify-between gap-3">
             <div>
-              <Label for="send-reports">"Not working" reports</Label>
-              <p class="text-muted-foreground text-xs">When enough people report a service, as set under Reports.</p>
+              <Label for="send-reports">{tm('"Not working" reports')}</Label>
+              <p class="text-muted-foreground text-xs">
+                {tm("When enough people report a service, as set under Reports.")}
+              </p>
             </div>
             <Switch id="send-reports" bind:checked={problemReports} disabled={!canWrite} />
           </div>
@@ -173,12 +183,13 @@
                 variant="ghost"
                 disabled={busy !== null}
                 onclick={() => {
-                  if (confirm("Remove the webhook? Nothing is sent to Teams until you paste a new one.")) {
-                    save({ removeWebhook: true, webhookUrl: "" }, "Webhook removed");
+                  if (confirm(tm("Remove the webhook? Nothing is sent to Teams until you paste a new one."))) {
+                    save({ removeWebhook: true, webhookUrl: "" }, tm("Webhook removed"));
                   }
                 }}
               >
-                {#if busy === "remove"}<Spinner class="size-4" />{/if} Remove webhook
+                {#if busy === "remove"}<Spinner class="size-4" />{/if}
+                {tm("Remove webhook")}
               </Button>
             {/if}
           </div>
@@ -188,10 +199,12 @@
               disabled={busy !== null || (!saved?.hasWebhook && !webhookUrl.trim())}
               onclick={test}
             >
-              {#if busy === "test"}<Spinner class="size-4" />{/if} Send test message
+              {#if busy === "test"}<Spinner class="size-4" />{/if}
+              {tm("Send test message")}
             </Button>
             <Button disabled={busy !== null} onclick={() => save()}>
-              {#if busy === "save"}<Spinner class="size-4" />{/if} Save
+              {#if busy === "save"}<Spinner class="size-4" />{/if}
+              {tm("Save")}
             </Button>
           </div>
         </Card.Footer>

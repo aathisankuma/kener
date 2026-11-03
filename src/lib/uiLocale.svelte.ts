@@ -1,6 +1,6 @@
 // Texts of the admin area and the sign-in pages in the person's language. The English text is the
 // key; src/lib/locales/manage/{de,fr,it}.json hold the translations. A text missing there shows in
-// English. Placeholders use %name, as on the public status page: tm("Saved %count", { count }).
+// English. Placeholders use %name, as on the public status page.
 import { page } from "$app/state";
 import { de, enGB, fr, it, type Locale } from "date-fns/locale";
 import { UI_LOCALE_CODES, UI_LOCALE_COOKIE } from "./uiLocaleCodes.js";
@@ -65,4 +65,57 @@ const DATE_LOCALES: Record<string, Locale> = { de, en: enGB, fr, it };
 /** The date-fns locale of the person's language, for formatDistanceToNow and format. */
 export function dateLocale(): Locale {
   return DATE_LOCALES[uiLocale()] ?? enGB;
+}
+
+const LOCALE_TAGS: Record<string, string> = { de: "de-CH", en: "en-GB", fr: "fr-CH", it: "it-CH" };
+
+/** The BCP 47 tag of the person's language, for toLocaleString and Intl. */
+export function localeTag(): string {
+  return LOCALE_TAGS[uiLocale()] ?? "en-GB";
+}
+
+/** A status code of Kener (incident state, monitor status, impact, …) in the person's language. */
+export function tmStatus(code: string | null | undefined): string {
+  switch (code) {
+    case "INVESTIGATING":
+      return tm("INVESTIGATING");
+    case "IDENTIFIED":
+      return tm("IDENTIFIED");
+    case "MONITORING":
+      return tm("MONITORING");
+    case "RESOLVED":
+      return tm("RESOLVED");
+    case "UP":
+      return tm("UP");
+    case "DOWN":
+      return tm("DOWN");
+    case "DEGRADED":
+      return tm("DEGRADED");
+    case "MAINTENANCE":
+      return tm("MAINTENANCE");
+    case "NO_DATA":
+      return tm("NO_DATA");
+    case "SCHEDULED":
+      return tm("SCHEDULED");
+    case "READY":
+      return tm("READY");
+    case "ONGOING":
+      return tm("ONGOING");
+    case "COMPLETED":
+      return tm("COMPLETED");
+    case "CANCELLED":
+      return tm("CANCELLED");
+    case "TRIGGERED":
+      return tm("TRIGGERED");
+    case "CRITICAL":
+      return tm("CRITICAL");
+    case "WARNING":
+      return tm("WARNING");
+    case "ACTIVE":
+      return tm("ACTIVE");
+    case "INACTIVE":
+      return tm("INACTIVE");
+    default:
+      return code ?? "";
+  }
 }

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tm, tmStatus } from "$lib/uiLocale.svelte";
   import { Button } from "$lib/components/ui/button/index.js";
   import { Spinner } from "$lib/components/ui/spinner/index.js";
   import { Badge } from "$lib/components/ui/badge/index.js";
@@ -29,11 +30,11 @@
   const limit = 10;
 
   const stateOptions = [
-    { value: "ALL", label: "All States" },
-    { value: GC.INVESTIGATING, label: "Investigating" },
-    { value: GC.IDENTIFIED, label: "Identified" },
-    { value: GC.MONITORING, label: "Monitoring" },
-    { value: GC.RESOLVED, label: "Resolved" }
+    { value: "ALL", label: tm("All States") },
+    { value: GC.INVESTIGATING, label: tm("Investigating") },
+    { value: GC.IDENTIFIED, label: tm("Identified") },
+    { value: GC.MONITORING, label: tm("Monitoring") },
+    { value: GC.RESOLVED, label: tm("Resolved") }
   ];
 
   // Fetch incidents
@@ -69,7 +70,7 @@
         totalPages = Math.ceil(result.total / limit);
       }
     } catch (error) {
-      console.error("Error fetching incidents:", error);
+      console.error(tm("Error fetching incidents:"), error);
     } finally {
       loading = false;
     }
@@ -140,7 +141,7 @@
     <div class="flex items-center gap-3">
       <Select.Root type="single" value={stateFilter} onValueChange={handleStateFilterChange}>
         <Select.Trigger class="w-44">
-          {stateOptions.find((o) => o.value === stateFilter)?.label || "All States"}
+          {stateOptions.find((o) => o.value === stateFilter)?.label || tm("All States")}
         </Select.Trigger>
         <Select.Content>
           {#each stateOptions as option}
@@ -155,7 +156,7 @@
     <div class="flex items-center gap-3">
       <Button onclick={createNewIncident}>
         <PlusIcon class="size-4" />
-        New Incident
+        {tm("New Incident")}
       </Button>
     </div>
   </div>
@@ -166,18 +167,20 @@
       <Table.Header>
         <Table.Row>
           <Table.Head class="w-16">ID</Table.Head>
-          <Table.Head>Title</Table.Head>
-          <Table.Head class="w-40">Started</Table.Head>
-          <Table.Head class="w-32">Duration</Table.Head>
-          <Table.Head class="w-36">State</Table.Head>
-          <Table.Head class="w-40">Affects</Table.Head>
-          <Table.Head class="w-24 text-right">Actions</Table.Head>
+          <Table.Head>{tm("Title")}</Table.Head>
+          <Table.Head class="w-40">{tm("Started")}</Table.Head>
+          <Table.Head class="w-32">{tm("Duration")}</Table.Head>
+          <Table.Head class="w-36">{tm("State")}</Table.Head>
+          <Table.Head class="w-40">{tm("Affects")}</Table.Head>
+          <Table.Head class="w-24 text-right">{tm("Actions")}</Table.Head>
         </Table.Row>
       </Table.Header>
       <Table.Body>
         {#if incidents.length === 0 && !loading}
           <Table.Row>
-            <Table.Cell colspan={7} class="text-muted-foreground py-8 text-center">No incidents found</Table.Cell>
+            <Table.Cell colspan={7} class="text-muted-foreground py-8 text-center"
+              >{tm("No incidents found")}</Table.Cell
+            >
           </Table.Row>
         {:else}
           {#each incidents as incident}
@@ -205,14 +208,14 @@
                   </Tooltip.Trigger>
                   <Tooltip.Content>
                     <div class="text-sm">
-                      <span class="text-muted-foreground">From:</span>
+                      <span class="text-muted-foreground">{tm("From:")}</span>
                       <LocalTime value={incident.start_date_time} format="yyyy-MM-dd HH:mm" />
                       <br />
-                      <span class="text-muted-foreground">To:</span>
+                      <span class="text-muted-foreground">{tm("To:")}</span>
                       {#if incident.end_date_time}
                         <LocalTime value={incident.end_date_time} format="yyyy-MM-dd HH:mm" />
                       {:else}
-                        Ongoing
+                        {tm("Ongoing")}
                       {/if}
                     </div>
                   </Tooltip.Content>
@@ -222,7 +225,7 @@
                 <div class="flex items-center gap-2">
                   <Badge variant={getStateBadgeVariant(incident.state)} class="gap-1">
                     <SirenIcon class="size-3" />
-                    {incident.state}
+                    {tmStatus(incident.state)}
                   </Badge>
                 </div>
               </Table.Cell>
@@ -230,7 +233,7 @@
                 {#if incident.monitors && incident.monitors.length > 0}
                   <Tooltip.Root>
                     <Tooltip.Trigger>
-                      <Badge variant="outline">{incident.monitors.length} monitor(s)</Badge>
+                      <Badge variant="outline">{tm("%count monitor(s)", { count: incident.monitors.length })}</Badge>
                     </Tooltip.Trigger>
                     <Tooltip.Content>
                       <div class="space-y-1">
@@ -238,7 +241,7 @@
                           <div class="text-sm">
                             <span class="font-medium">{monitor.tag || monitor.monitor_tag}</span>
                             <span class="text-muted-foreground ml-1"
-                              >({monitor.impact_type || monitor.monitor_impact})</span
+                              >({tmStatus(monitor.impact_type || monitor.monitor_impact)})</span
                             >
                           </div>
                         {/each}
@@ -246,7 +249,7 @@
                     </Tooltip.Content>
                   </Tooltip.Root>
                 {:else}
-                  <span class="text-muted-foreground text-sm">None</span>
+                  <span class="text-muted-foreground text-sm">{tm("None")}</span>
                 {/if}
               </Table.Cell>
               <Table.Cell class="text-right">
@@ -258,7 +261,8 @@
                     openIncident(incident.id);
                   }}
                 >
-                  <PencilIcon class="size-4" /> Edit
+                  <PencilIcon class="size-4" />
+                  {tm("Edit")}
                 </Button>
               </Table.Cell>
             </Table.Row>
@@ -272,7 +276,11 @@
   {#if totalPages > 0}
     <div class="flex items-center justify-between">
       <p class="text-muted-foreground text-sm">
-        Showing {(pageNo - 1) * limit + 1} - {Math.min(pageNo * limit, totalCount)} of {totalCount} incidents
+        {tm("Showing %from - %to of %total incidents", {
+          from: (pageNo - 1) * limit + 1,
+          to: Math.min(pageNo * limit, totalCount),
+          total: totalCount
+        })}
       </p>
       {#if totalPages > 1}
         <div class="flex items-center gap-2">

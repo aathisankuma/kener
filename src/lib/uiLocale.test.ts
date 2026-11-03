@@ -4,10 +4,17 @@ import fs from "node:fs";
 import path from "node:path";
 import { UI_LOCALE_CODES } from "./uiLocaleCodes";
 
-const ROOTS = ["src/routes/(manage)", "src/routes/(account)", "src/lib/components/manage", "src/lib/components"];
+const ROOTS = [
+  "src/routes/(manage)",
+  "src/routes/(account)",
+  "src/lib/components/manage",
+  "src/lib/components",
+  "src/lib/uiLocale.svelte.ts",
+];
 
 function files(dir: string, deep = true): string[] {
   if (!fs.existsSync(dir)) return [];
+  if (fs.statSync(dir).isFile()) return [dir];
   return fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
     const full = path.join(dir, e.name);
     if (e.isDirectory()) return deep && e.name !== "ui" ? files(full) : [];

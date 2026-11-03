@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { localeTag, tm } from "$lib/uiLocale.svelte";
   // Settings for the "not working" button and the monthly uptime report, and the services
   // reported in the last days.
   import { Button } from "$lib/components/ui/button/index.js";
@@ -60,7 +61,7 @@
       body: JSON.stringify({ action, data: payload })
     });
     const result = await response.json();
-    if (!response.ok || result.error) throw new Error(result.error || "Request failed");
+    if (!response.ok || result.error) throw new Error(result.error || tm("Request failed"));
     return result;
   }
 
@@ -89,7 +90,7 @@
       ssoEnabled = result.ssoEnabled === true;
       overview = result.overview;
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not load the settings");
+      toast.error(e instanceof Error ? e.message : tm("Could not load the settings"));
     } finally {
       loading = false;
     }
@@ -102,7 +103,7 @@
       toast.success(done(result));
       if (action !== "sendUptimeReportNow") await load();
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Request failed");
+      toast.error(e instanceof Error ? e.message : tm("Request failed"));
     } finally {
       busy = null;
     }
@@ -113,13 +114,13 @@
     const d = new Date();
     d.setDate(1);
     d.setMonth(d.getMonth() + 1);
-    return `1 ${d.toLocaleDateString("en-GB", { month: "long", year: "numeric" })}, 07:00`;
+    return tm("1 %month, 07:00", { month: d.toLocaleDateString(localeTag(), { month: "long", year: "numeric" }) });
   });
   const lastMonthLabel = $derived.by(() => {
     const d = new Date();
     d.setDate(1);
     d.setMonth(d.getMonth() - 1);
-    return d.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+    return d.toLocaleDateString(localeTag(), { month: "long", year: "numeric" });
   });
 
   onMount(load);
@@ -127,9 +128,9 @@
 
 <div class="container mx-auto space-y-6 py-6">
   <div>
-    <h1 class="flex items-center gap-2 text-2xl font-semibold"><MegaphoneIcon class="size-6" /> Reports</h1>
+    <h1 class="flex items-center gap-2 text-2xl font-semibold"><MegaphoneIcon class="size-6" /> {tm("Reports")}</h1>
     <p class="text-muted-foreground max-w-3xl text-sm">
-      The "not working" button that staff press on a service, and the uptime report emailed each month.
+      {tm('The "not working" button that staff press on a service, and the uptime report emailed each month.')}
     </p>
   </div>
 
@@ -138,17 +139,17 @@
   {:else}
     <Card.Root>
       <Card.Header>
-        <Card.Title>"Not working" button</Card.Title>
+        <Card.Title>{tm('"Not working" button')}</Card.Title>
         <Card.Description>
-          Staff report with one click that a service is not working. Each browser counts once per service. When enough
-          different people report the same service within the time below, the addresses here are emailed, once per
-          period. Turn the button on per service under Monitors → the service → "Not working" Button.
+          {tm(
+            'Staff report with one click that a service is not working. Each browser counts once per service. When enough different people report the same service within the time below, the addresses here are emailed, once per period. Turn the button on per service under Monitors → the service → "Not working" Button.'
+          )}
         </Card.Description>
       </Card.Header>
       <Card.Content class="space-y-5">
         <div class="grid gap-5 md:grid-cols-2">
           <div class="space-y-2">
-            <Label for="problem-recipients">Email these addresses</Label>
+            <Label for="problem-recipients">{tm("Email these addresses")}</Label>
             <textarea
               id="problem-recipients"
               class="border-input bg-background min-h-24 w-full rounded-md border px-3 py-2 text-sm"
@@ -157,13 +158,13 @@
               disabled={!canWrite}
             ></textarea>
             <p class="text-muted-foreground text-xs">
-              One per line. To also post to Teams, switch it on under Microsoft Teams.
+              {tm("One per line. To also post to Teams, switch it on under Microsoft Teams.")}
             </p>
           </div>
           <div class="space-y-4">
             <div class="flex flex-wrap items-end gap-2 text-sm">
               <div class="space-y-2">
-                <Label for="threshold">When</Label>
+                <Label for="threshold">{tm("When")}</Label>
                 <Input
                   id="threshold"
                   type="number"
@@ -174,9 +175,9 @@
                   disabled={!canWrite}
                 />
               </div>
-              <span class="pb-2">people report within</span>
+              <span class="pb-2">{tm("people report within")}</span>
               <div class="space-y-2">
-                <Label for="window">Minutes</Label>
+                <Label for="window">{tm("Minutes")}</Label>
                 <Input
                   id="window"
                   type="number"
@@ -187,44 +188,45 @@
                   disabled={!canWrite}
                 />
               </div>
-              <span class="pb-2">minutes</span>
+              <span class="pb-2">{tm("minutes")}</span>
             </div>
             <div class="flex items-center justify-between gap-3">
               <div>
-                <Label for="show-count">Show staff how many reported</Label>
-                <p class="text-muted-foreground text-xs">"3 reports in the last minutes" next to the button.</p>
+                <Label for="show-count">{tm("Show staff how many reported")}</Label>
+                <p class="text-muted-foreground text-xs">{tm('"3 reports in the last minutes" next to the button.')}</p>
               </div>
               <Switch id="show-count" bind:checked={showCount} disabled={!canWrite} />
             </div>
             <div class="space-y-2">
-              <Label for="help-url">Link for personal help (optional)</Label>
+              <Label for="help-url">{tm("Link for personal help (optional)")}</Label>
               <Input
                 id="help-url"
                 placeholder="https://yourcompany.atlassian.net/servicedesk/customer/portal/1"
                 bind:value={helpUrl}
                 disabled={!canWrite}
               />
-              <p class="text-muted-foreground text-xs">Shown after reporting, e.g. your service desk portal.</p>
+              <p class="text-muted-foreground text-xs">{tm("Shown after reporting, e.g. your service desk portal.")}</p>
             </div>
             <div class="space-y-2">
-              <Label for="who-can-report">Who can report</Label>
+              <Label for="who-can-report">{tm("Who can report")}</Label>
               <select
                 id="who-can-report"
                 class="border-input bg-background h-9 w-full rounded-md border px-2 text-sm"
                 bind:value={whoCanReport}
                 disabled={!canWrite}
               >
-                <option value="everyone">Everyone who opens the status page</option>
-                <option value="signed_in">Only people signed in to Kener</option>
-                <option value="sso">Only people signed in with SSO</option>
+                <option value="everyone">{tm("Everyone who opens the status page")}</option>
+                <option value="signed_in">{tm("Only people signed in to Kener")}</option>
+                <option value="sso">{tm("Only people signed in with SSO")}</option>
               </select>
               <p class="text-muted-foreground text-xs">
-                Others see "Sign in to report a problem" instead of the button. Signed-in people count once each,
-                whatever browser they use.
+                {tm(
+                  'Others see "Sign in to report a problem" instead of the button. Signed-in people count once each, whatever browser they use.'
+                )}
               </p>
               {#if whoCanReport === "sso" && !ssoEnabled}
                 <p class="text-destructive text-xs">
-                  SSO is not switched on yet (OpenID Connect), so nobody can report until it is.
+                  {tm("SSO is not switched on yet (OpenID Connect), so nobody can report until it is.")}
                 </p>
               {/if}
             </div>
@@ -232,7 +234,7 @@
         </div>
 
         <div class="space-y-2">
-          <Label>Services with the button</Label>
+          <Label>{tm("Services with the button")}</Label>
           {#if overview && overview.enabled.length > 0}
             <div class="flex flex-wrap gap-2">
               {#each overview.enabled as service (service.tag)}
@@ -242,20 +244,20 @@
               {/each}
             </div>
           {:else}
-            <p class="text-muted-foreground text-sm">None yet.</p>
+            <p class="text-muted-foreground text-sm">{tm("None yet.")}</p>
           {/if}
         </div>
 
         <div class="space-y-2">
-          <Label>Reported in the last {overview?.days ?? 7} days</Label>
+          <Label>{tm("Reported in the last %days days", { days: overview?.days ?? 7 })}</Label>
           {#if overview && overview.services.length > 0}
             <Table.Root>
               <Table.Header>
                 <Table.Row>
-                  <Table.Head>Service</Table.Head>
-                  <Table.Head>People</Table.Head>
-                  <Table.Head>Last report</Table.Head>
-                  <Table.Head>Emails sent</Table.Head>
+                  <Table.Head>{tm("Service")}</Table.Head>
+                  <Table.Head>{tm("People")}</Table.Head>
+                  <Table.Head>{tm("Last report")}</Table.Head>
+                  <Table.Head>{tm("Emails sent")}</Table.Head>
                 </Table.Row>
               </Table.Header>
               <Table.Body>
@@ -270,7 +272,7 @@
               </Table.Body>
             </Table.Root>
           {:else}
-            <p class="text-muted-foreground text-sm">No reports.</p>
+            <p class="text-muted-foreground text-sm">{tm("No reports.")}</p>
           {/if}
         </div>
       </Card.Content>
@@ -283,10 +285,11 @@
                 "problem",
                 "saveProblemReportSettings",
                 { recipients: problemRecipients, threshold, windowMinutes, showCount, helpUrl, whoCanReport },
-                () => "Saved"
+                () => tm("Saved")
               )}
           >
-            {#if busy === "problem"}<Spinner class="size-4" />{/if} Save
+            {#if busy === "problem"}<Spinner class="size-4" />{/if}
+            {tm("Save")}
           </Button>
         </Card.Footer>
       {/if}
@@ -294,20 +297,21 @@
 
     <Card.Root>
       <Card.Header>
-        <Card.Title>Monthly uptime report</Card.Title>
+        <Card.Title>{tm("Monthly uptime report")}</Card.Title>
         <Card.Description>
-          On the 1st of each month from 07:00, an email with uptime, incidents and estimated downtime per service for
-          the month before, compared with the month before that.
+          {tm(
+            "On the 1st of each month from 07:00, an email with uptime, incidents and estimated downtime per service for the month before, compared with the month before that."
+          )}
         </Card.Description>
       </Card.Header>
       <Card.Content class="space-y-5">
         <div class="flex items-center justify-between gap-3">
-          <Label for="report-enabled">Send the report every month</Label>
+          <Label for="report-enabled">{tm("Send the report every month")}</Label>
           <Switch id="report-enabled" bind:checked={reportEnabled} disabled={!canWrite} />
         </div>
         <div class="grid gap-5 md:grid-cols-2">
           <div class="space-y-2">
-            <Label for="report-recipients">Send to</Label>
+            <Label for="report-recipients">{tm("Send to")}</Label>
             <textarea
               id="report-recipients"
               class="border-input bg-background min-h-24 w-full rounded-md border px-3 py-2 text-sm"
@@ -315,20 +319,20 @@
               bind:value={reportRecipients}
               disabled={!canWrite}
             ></textarea>
-            <p class="text-muted-foreground text-xs">One per line.</p>
+            <p class="text-muted-foreground text-xs">{tm("One per line.")}</p>
           </div>
           <div class="space-y-2">
-            <Label for="timezone">Time zone</Label>
+            <Label for="timezone">{tm("Time zone")}</Label>
             <Input id="timezone" list="timezones" bind:value={timezone} disabled={!canWrite} />
             <datalist id="timezones">
               {#each timezones as tz (tz)}<option value={tz}></option>{/each}
             </datalist>
-            <p class="text-muted-foreground text-xs">Months start and end at midnight here.</p>
+            <p class="text-muted-foreground text-xs">{tm("Months start and end at midnight here.")}</p>
             <p class="text-muted-foreground text-xs">
-              {#if reportEnabled}Next report: {nextReportLabel}{:else}Not sent automatically.{/if}{#if lastError}<span
-                  class="text-destructive"
-                >
-                  · Last attempt failed: {lastError}</span
+              {#if reportEnabled}{tm("Next report: %when", { when: nextReportLabel })}{:else}{tm(
+                  "Not sent automatically."
+                )}{/if}{#if lastError}<span class="text-destructive">
+                  · {tm("Last attempt failed: %error", { error: lastError })}</span
                 >{/if}
             </p>
           </div>
@@ -340,14 +344,12 @@
             variant="outline"
             disabled={busy !== null || !reportRecipients.trim()}
             onclick={() =>
-              run(
-                "send",
-                "sendUptimeReportNow",
-                { recipients: reportRecipients },
-                (r) => `Report for ${r.month} sent to ${r.recipients} address(es)`
+              run("send", "sendUptimeReportNow", { recipients: reportRecipients }, (r) =>
+                tm("Report for %month sent to %count address(es)", { month: r.month, count: r.recipients })
               )}
           >
-            {#if busy === "send"}<Spinner class="size-4" />{/if} Send {lastMonthLabel} now
+            {#if busy === "send"}<Spinner class="size-4" />{/if}
+            {tm("Send %month now", { month: lastMonthLabel })}
           </Button>
           <Button
             disabled={busy !== null}
@@ -356,10 +358,11 @@
                 "uptime",
                 "saveUptimeReportSettings",
                 { enabled: reportEnabled, recipients: reportRecipients, timezone },
-                () => "Saved"
+                () => tm("Saved")
               )}
           >
-            {#if busy === "uptime"}<Spinner class="size-4" />{/if} Save
+            {#if busy === "uptime"}<Spinner class="size-4" />{/if}
+            {tm("Save")}
           </Button>
         </Card.Footer>
       {/if}

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tm, tmStatus } from "$lib/uiLocale.svelte";
   import { Button } from "$lib/components/ui/button/index.js";
   import { Spinner } from "$lib/components/ui/spinner/index.js";
   import { Badge } from "$lib/components/ui/badge/index.js";
@@ -76,7 +77,7 @@
         totalPages = Math.ceil(result.total / limit);
       }
     } catch (error) {
-      console.error("Error fetching maintenances:", error);
+      console.error(tm("Error fetching maintenances:"), error);
     } finally {
       loading = false;
     }
@@ -192,12 +193,12 @@
       <div class="flex items-center gap-3">
         <Select.Root type="single" value={status} onValueChange={handleStatusChange}>
           <Select.Trigger class="w-40">
-            {status === "ALL" ? "All" : status === "ACTIVE" ? "Active" : "Inactive"}
+            {status === "ALL" ? tm("All") : status === "ACTIVE" ? tm("Active") : tm("Inactive")}
           </Select.Trigger>
           <Select.Content>
-            <Select.Item value="ALL">All</Select.Item>
-            <Select.Item value="ACTIVE">Active</Select.Item>
-            <Select.Item value="INACTIVE">Inactive</Select.Item>
+            <Select.Item value="ALL">{tm("All")}</Select.Item>
+            <Select.Item value="ACTIVE">{tm("Active")}</Select.Item>
+            <Select.Item value="INACTIVE">{tm("Inactive")}</Select.Item>
           </Select.Content>
         </Select.Root>
       </div>
@@ -208,7 +209,7 @@
     <div class="flex items-center gap-3">
       <Button onclick={createNewMaintenance}>
         <PlusIcon class="size-4" />
-        New Maintenance
+        {tm("New Maintenance")}
       </Button>
     </div>
   </div>
@@ -221,19 +222,21 @@
       <Table.Header>
         <Table.Row>
           <Table.Head class="w-16">ID</Table.Head>
-          <Table.Head>Title</Table.Head>
-          <Table.Head class="w-32">Type</Table.Head>
-          <Table.Head class="w-40">Duration</Table.Head>
-          <Table.Head class="w-24">Monitors</Table.Head>
-          <Table.Head class="w-40">Next Event</Table.Head>
-          <Table.Head class="w-24">Status</Table.Head>
-          <Table.Head class="w-24 text-right">Actions</Table.Head>
+          <Table.Head>{tm("Title")}</Table.Head>
+          <Table.Head class="w-32">{tm("Type")}</Table.Head>
+          <Table.Head class="w-40">{tm("Duration")}</Table.Head>
+          <Table.Head class="w-24">{tm("Monitors")}</Table.Head>
+          <Table.Head class="w-40">{tm("Next Event")}</Table.Head>
+          <Table.Head class="w-24">{tm("Status")}</Table.Head>
+          <Table.Head class="w-24 text-right">{tm("Actions")}</Table.Head>
         </Table.Row>
       </Table.Header>
       <Table.Body>
         {#if maintenances.length === 0 && !loading}
           <Table.Row>
-            <Table.Cell colspan={8} class="text-muted-foreground py-8 text-center">No maintenances found</Table.Cell>
+            <Table.Cell colspan={8} class="text-muted-foreground py-8 text-center"
+              >{tm("No maintenances found")}</Table.Cell
+            >
           </Table.Row>
         {:else}
           {#each maintenances as maintenance}
@@ -256,10 +259,10 @@
                 <Badge variant="outline" class="gap-1">
                   {#if isOneTime(maintenance.rrule)}
                     <CalendarIcon class="size-3" />
-                    One-Time
+                    {tm("One-Time")}
                   {:else}
                     <RepeatIcon class="size-3" />
-                    Recurring
+                    {tm("Recurring")}
                   {/if}
                 </Badge>
               </Table.Cell>
@@ -274,15 +277,15 @@
                   <Tooltip.Content>
                     <div class="text-sm">
                       <div>
-                        <span class="text-muted-foreground">Start:</span>
+                        <span class="text-muted-foreground">{tm("Start:")}</span>
                         <LocalTime value={maintenance.start_date_time} format="yyyy-MM-dd HH:mm" />
                       </div>
                       <div>
-                        <span class="text-muted-foreground">Duration:</span>
+                        <span class="text-muted-foreground">{tm("Duration:")}</span>
                         {formatDuration(maintenance.duration_seconds)}
                       </div>
                       <div>
-                        <span class="text-muted-foreground">RRULE:</span>
+                        <span class="text-muted-foreground">{tm("RRULE:")}</span>
                         {maintenance.rrule}
                       </div>
                     </div>
@@ -307,7 +310,7 @@
                     </Tooltip.Content>
                   </Tooltip.Root>
                 {:else}
-                  <span class="text-muted-foreground text-sm">None</span>
+                  <span class="text-muted-foreground text-sm">{tm("None")}</span>
                 {/if}
               </Table.Cell>
               <Table.Cell>
@@ -322,23 +325,23 @@
                     <Tooltip.Content>
                       <div class="text-sm">
                         <div>
-                          <span class="text-muted-foreground">Start:</span>
+                          <span class="text-muted-foreground">{tm("Start:")}</span>
                           <LocalTime value={maintenance.upcoming_event.start_date_time} format="MMM d, yyyy HH:mm" />
                         </div>
                         <div>
-                          <span class="text-muted-foreground">End:</span>
+                          <span class="text-muted-foreground">{tm("End:")}</span>
                           <LocalTime value={maintenance.upcoming_event.end_date_time} format="MMM d, yyyy HH:mm" />
                         </div>
                       </div>
                     </Tooltip.Content>
                   </Tooltip.Root>
                 {:else}
-                  <span class="text-muted-foreground text-sm">No events</span>
+                  <span class="text-muted-foreground text-sm">{tm("No events")}</span>
                 {/if}
               </Table.Cell>
               <Table.Cell>
                 <Badge variant={getStatusBadgeVariant(maintenance.status)}>
-                  {maintenance.status}
+                  {tmStatus(maintenance.status)}
                 </Badge>
               </Table.Cell>
               <Table.Cell class="text-right">
@@ -350,7 +353,8 @@
                     openMaintenance(maintenance.id);
                   }}
                 >
-                  <PencilIcon class="size-4" /> Edit
+                  <PencilIcon class="size-4" />
+                  {tm("Edit")}
                 </Button>
               </Table.Cell>
             </Table.Row>
@@ -365,7 +369,9 @@
     {@const startItem = (pageNo - 1) * limit + 1}
     {@const endItem = Math.min(pageNo * limit, totalCount)}
     <div class="flex items-center justify-between">
-      <span class="text-muted-foreground text-sm">Showing {startItem}-{endItem} of {totalCount}</span>
+      <span class="text-muted-foreground text-sm"
+        >{tm("Showing %from-%to of %total", { from: startItem, to: endItem, total: totalCount })}</span
+      >
       {#if totalPages > 1}
         <div class="flex items-center gap-2">
           <Button variant="outline" size="icon" disabled={pageNo === 1} onclick={() => goToPage(pageNo - 1)}>

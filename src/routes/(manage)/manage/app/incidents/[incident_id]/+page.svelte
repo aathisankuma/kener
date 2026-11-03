@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tm, tmh, tmStatus } from "$lib/uiLocale.svelte";
   import { Button } from "$lib/components/ui/button/index.js";
   import { Input } from "$lib/components/ui/input/index.js";
   import { Label } from "$lib/components/ui/label/index.js";
@@ -159,10 +160,10 @@
         // Fetch comments and monitors
         await Promise.all([fetchComments(), fetchIncidentMonitors()]);
       } else {
-        error = "Incident not found";
+        error = tm("Incident not found");
       }
     } catch (e) {
-      error = e instanceof Error ? e.message : "Failed to fetch incident";
+      error = e instanceof Error ? e.message : tm("Failed to fetch incident");
     } finally {
       loading = false;
     }
@@ -300,7 +301,7 @@
               })
             });
           }
-          toast.success("Incident created successfully");
+          toast.success(tm("Incident created successfully"));
           goto(clientResolver(resolve, `/manage/app/incidents/${incidentId}`));
         }
       } else {
@@ -389,11 +390,11 @@
           // Update originalMonitors to reflect current state
           originalMonitors = [...incidentMonitors];
 
-          toast.success("Changes saved successfully");
+          toast.success(tm("Changes saved successfully"));
         }
       }
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to save");
+      toast.error(e instanceof Error ? e.message : tm("Failed to save"));
     } finally {
       saving = false;
     }
@@ -420,14 +421,14 @@
       if (result.error) {
         toast.error(result.error);
       } else {
-        toast.success("Monitor added to incident");
+        toast.success(tm("Monitor added to incident"));
         await fetchIncidentMonitors();
         addMonitorDialogOpen = false;
         selectedMonitorTag = "";
         selectedMonitorImpact = "DOWN";
       }
     } catch (e) {
-      toast.error("Failed to add monitor");
+      toast.error(tm("Failed to add monitor"));
     } finally {
       addingMonitor = false;
     }
@@ -451,11 +452,11 @@
       if (result.error) {
         toast.error(result.error);
       } else {
-        toast.success("Monitor removed from incident");
+        toast.success(tm("Monitor removed from incident"));
         await fetchIncidentMonitors();
       }
     } catch {
-      toast.error("Failed to remove monitor");
+      toast.error(tm("Failed to remove monitor"));
     }
   }
 
@@ -517,7 +518,7 @@
         if (result.error) {
           toast.error(result.error);
         } else {
-          toast.success("Update saved");
+          toast.success(tm("Update saved"));
           await fetchComments();
           await fetchIncident();
           cancelEditComment();
@@ -541,14 +542,14 @@
         if (result.error) {
           toast.error(result.error);
         } else {
-          toast.success("Update added");
+          toast.success(tm("Update added"));
           await fetchComments();
           await fetchIncident();
           cancelAddComment();
         }
       }
     } catch {
-      toast.error("Failed to save update");
+      toast.error(tm("Failed to save update"));
     } finally {
       savingComment = false;
     }
@@ -572,11 +573,11 @@
       if (result.error) {
         toast.error(result.error);
       } else {
-        toast.success("Update deleted");
+        toast.success(tm("Update deleted"));
         await fetchComments();
       }
     } catch {
-      toast.error("Failed to delete update");
+      toast.error(tm("Failed to delete update"));
     }
   }
 
@@ -667,11 +668,11 @@
       if (result.error) {
         toast.error(result.error);
       } else {
-        toast.success("Incident deleted successfully");
+        toast.success(tm("Incident deleted successfully"));
         window.location.replace(clientResolver(resolve, "/manage/app/incidents"));
       }
     } catch {
-      toast.error("Failed to delete incident");
+      toast.error(tm("Failed to delete incident"));
     } finally {
       deleting = false;
     }
@@ -689,11 +690,11 @@
     <Breadcrumb.Root>
       <Breadcrumb.List>
         <Breadcrumb.Item>
-          <Breadcrumb.Link href={clientResolver(resolve, "/manage/app/incidents")}>Incidents</Breadcrumb.Link>
+          <Breadcrumb.Link href={clientResolver(resolve, "/manage/app/incidents")}>{tm("Incidents")}</Breadcrumb.Link>
         </Breadcrumb.Item>
         <Breadcrumb.Separator />
         <Breadcrumb.Item>
-          <Breadcrumb.Page>{isNew ? "New Incident" : `Edit Incident #${params.incident_id}`}</Breadcrumb.Page>
+          <Breadcrumb.Page>{isNew ? tm("New Incident") : `Edit Incident #${params.incident_id}`}</Breadcrumb.Page>
         </Breadcrumb.Item>
       </Breadcrumb.List>
     </Breadcrumb.Root>
@@ -705,38 +706,39 @@
           size="sm"
           href={clientResolver(resolve, `/incidents/${params.incident_id}`)}
         >
-          View
+          {tm("View")}
         </Button>
         <Dialog.Root bind:open={deleteDialogOpen} onOpenChange={() => (deleteConfirmText = "")}>
           <Dialog.Trigger>
             {#snippet child({ props })}
               <Button {...props} variant="destructive" size="sm">
                 <TrashIcon class="size-4" />
-                Delete
+                {tm("Delete")}
               </Button>
             {/snippet}
           </Dialog.Trigger>
           <Dialog.Content>
             <Dialog.Header>
-              <Dialog.Title>Delete Incident</Dialog.Title>
+              <Dialog.Title>{tm("Delete Incident")}</Dialog.Title>
               <Dialog.Description>
-                This action cannot be undone. This will permanently delete the incident, its updates, and remove all
-                associated monitor links.
+                {tm(
+                  "This action cannot be undone. This will permanently delete the incident, its updates, and remove all associated monitor links."
+                )}
               </Dialog.Description>
             </Dialog.Header>
             <div class="space-y-4 py-4">
               <div class="flex flex-col gap-2">
-                <Label>Type <span class="font-mono font-semibold">{deleteConfirmPhrase}</span> to confirm</Label>
+                <Label>{@html tmh("Type **%phrase** to confirm", { phrase: deleteConfirmPhrase })}</Label>
                 <Input bind:value={deleteConfirmText} placeholder={deleteConfirmPhrase} />
               </div>
             </div>
             <Dialog.Footer>
-              <Button variant="outline" onclick={() => (deleteDialogOpen = false)}>Cancel</Button>
+              <Button variant="outline" onclick={() => (deleteDialogOpen = false)}>{tm("Cancel")}</Button>
               <Button variant="destructive" onclick={deleteIncident} disabled={!deleteConfirmed || deleting}>
                 {#if deleting}
                   <Loader class="size-4 animate-spin" />
                 {/if}
-                Delete Incident
+                {tm("Delete Incident")}
               </Button>
             </Dialog.Footer>
           </Dialog.Content>
@@ -762,12 +764,12 @@
     <!-- Incident Details -->
     <Card.Root>
       <Card.Header>
-        <Card.Title>{isNew ? "Create New Incident" : "Incident Details"}</Card.Title>
+        <Card.Title>{isNew ? tm("Create New Incident") : tm("Incident Details")}</Card.Title>
         <Card.Description>
           {#if isNew}
-            Create a new incident to track
+            {tm("Create a new incident to track")}
           {:else}
-            Edit incident details and manage updates
+            {tm("Edit incident details and manage updates")}
           {/if}
         </Card.Description>
       </Card.Header>
@@ -778,34 +780,42 @@
             <Badge
               variant="outline"
               class="text-{incident.state.toLowerCase()} border-{incident.state.toLowerCase()} font-semibold"
-              >{incident.state}</Badge
+              >{tmStatus(incident.state)}</Badge
             >
           </div>
         {/if}
 
         <!-- Title -->
         <div class="flex flex-col gap-2">
-          <Label for="incident-title">Title <span class="text-destructive">*</span></Label>
-          <Input id="incident-title" bind:value={incident.title} placeholder="Brief description of the incident" />
+          <Label for="incident-title">{tm("Title")} <span class="text-destructive">*</span></Label>
+          <Input
+            id="incident-title"
+            bind:value={incident.title}
+            placeholder={tm("Brief description of the incident")}
+          />
         </div>
 
         <!-- Start Date/Time -->
         <div class="flex flex-col gap-2">
-          <Label for="incident-start">Start Date/Time <span class="text-destructive">*</span></Label>
+          <Label for="incident-start">{tm("Start Date/Time")} <span class="text-destructive">*</span></Label>
           <Input
             id="incident-start"
             type="datetime-local"
             value={startDateTimeLocal}
             onchange={handleStartDateChange}
           />
-          <p class="text-muted-foreground text-xs">Enter time in your local timezone. It will be stored as UTC.</p>
+          <p class="text-muted-foreground text-xs">
+            {tm("Enter time in your local timezone. It will be stored as UTC.")}
+          </p>
         </div>
 
         <!-- Global Visibility -->
         <div class="flex items-center justify-between rounded-md border p-3">
           <div class="flex flex-col gap-1">
-            <Label for="is-global">Global Incident</Label>
-            <p class="text-muted-foreground text-xs">When enabled, this incident will be visible on all status pages</p>
+            <Label for="is-global">{tm("Global Incident")}</Label>
+            <p class="text-muted-foreground text-xs">
+              {tm("When enabled, this incident will be visible on all status pages")}
+            </p>
           </div>
           <Switch
             id="is-global"
@@ -820,10 +830,11 @@
         <div class="flex flex-col gap-3 rounded-md border p-3">
           <div class="flex items-center justify-between gap-3">
             <div class="flex flex-col gap-1">
-              <Label for="show-at-top">Show at top</Label>
+              <Label for="show-at-top">{tm("Show at top")}</Label>
               <p class="text-muted-foreground text-xs">
-                For incidents that affect everyone. Shows the incident in a box at the top of every status page and
-                emails all subscribers. After it is resolved, the box turns green and stays for 24 hours.
+                {tm(
+                  "For incidents that affect everyone. Shows the incident in a box at the top of every status page and emails all subscribers. After it is resolved, the box turns green and stays for 24 hours."
+                )}
               </p>
             </div>
             <Switch
@@ -836,14 +847,14 @@
           </div>
           {#if incident.top_impact}
             <div class="flex items-center gap-2">
-              <Label for="top-impact" class="text-xs">Box colour</Label>
+              <Label for="top-impact" class="text-xs">{tm("Box colour")}</Label>
               <select
                 id="top-impact"
                 class="border-input bg-background h-8 rounded-md border px-2 text-sm"
                 bind:value={incident.top_impact}
               >
-                <option value={GC.DOWN}>Red: down</option>
-                <option value={GC.DEGRADED}>Orange: degraded</option>
+                <option value={GC.DOWN}>{tm("Red: down")}</option>
+                <option value={GC.DEGRADED}>{tm("Orange: degraded")}</option>
               </select>
             </div>
           {/if}
@@ -852,7 +863,7 @@
         <!-- First Comment (only for new) -->
         {#if isNew}
           <div class="flex flex-col gap-2">
-            <Label for="first-comment">Initial Update (Optional)</Label>
+            <Label for="first-comment">{tm("Initial Update (Optional)")}</Label>
             <div class="overflow-hidden rounded-md border">
               <CodeMirror
                 bind:value={firstComment}
@@ -868,7 +879,7 @@
               />
             </div>
             <p class="text-muted-foreground text-xs">
-              Supports Markdown. This will be added as the first update for this incident.
+              {tm("Supports Markdown. This will be added as the first update for this incident.")}
             </p>
           </div>
         {/if}
@@ -876,24 +887,24 @@
         <!-- Affected Monitors (for both new and existing incidents) -->
         <div class="flex flex-col gap-2">
           <div class="flex items-center justify-between">
-            <Label>Affected Monitors (Optional)</Label>
+            <Label>{tm("Affected Monitors (Optional)")}</Label>
             <Dialog.Root bind:open={addMonitorDialogOpen}>
               <Dialog.Trigger>
                 {#snippet child({ props })}
                   <Button {...props} size="sm" variant="outline" disabled={unassignedMonitors.length === 0}>
                     <PlusIcon class="size-4" />
-                    Add Monitor
+                    {tm("Add Monitor")}
                   </Button>
                 {/snippet}
               </Dialog.Trigger>
               <Dialog.Content>
                 <Dialog.Header>
-                  <Dialog.Title>Add Affected Monitor</Dialog.Title>
-                  <Dialog.Description>Select a monitor and its impact level</Dialog.Description>
+                  <Dialog.Title>{tm("Add Affected Monitor")}</Dialog.Title>
+                  <Dialog.Description>{tm("Select a monitor and its impact level")}</Dialog.Description>
                 </Dialog.Header>
                 <div class="space-y-4 py-4">
                   <div class="flex flex-col gap-2">
-                    <Label>Monitor</Label>
+                    <Label>{tm("Monitor")}</Label>
                     <Select.Root
                       type="single"
                       value={selectedMonitorTag}
@@ -902,7 +913,7 @@
                       }}
                     >
                       <Select.Trigger class="w-full">
-                        {selectedMonitorTag ? getMonitorName(selectedMonitorTag) : "Select a monitor"}
+                        {selectedMonitorTag ? getMonitorName(selectedMonitorTag) : tm("Select a monitor")}
                       </Select.Trigger>
                       <Select.Content>
                         {#each unassignedMonitors as monitor}
@@ -912,7 +923,7 @@
                     </Select.Root>
                   </div>
                   <div class="flex flex-col gap-2">
-                    <Label>Impact Level</Label>
+                    <Label>{tm("Impact Level")}</Label>
                     <Select.Root
                       type="single"
                       value={selectedMonitorImpact}
@@ -924,21 +935,21 @@
                         {selectedMonitorImpact}
                       </Select.Trigger>
                       <Select.Content>
-                        <Select.Item value="DOWN">Down</Select.Item>
-                        <Select.Item value="DEGRADED">Degraded</Select.Item>
+                        <Select.Item value="DOWN">{tm("Down")}</Select.Item>
+                        <Select.Item value="DEGRADED">{tm("Degraded")}</Select.Item>
                       </Select.Content>
                     </Select.Root>
                   </div>
                 </div>
                 <Dialog.Footer>
-                  <Button variant="outline" onclick={() => (addMonitorDialogOpen = false)}>Cancel</Button>
-                  <Button onclick={addMonitorToList} disabled={!selectedMonitorTag}>Add Monitor</Button>
+                  <Button variant="outline" onclick={() => (addMonitorDialogOpen = false)}>{tm("Cancel")}</Button>
+                  <Button onclick={addMonitorToList} disabled={!selectedMonitorTag}>{tm("Add Monitor")}</Button>
                 </Dialog.Footer>
               </Dialog.Content>
             </Dialog.Root>
           </div>
           {#if incidentMonitors.length === 0}
-            <p class="text-muted-foreground text-sm">No monitors selected</p>
+            <p class="text-muted-foreground text-sm">{tm("No monitors selected")}</p>
           {:else}
             <div class="space-y-2">
               {#each incidentMonitors as monitor}
@@ -962,7 +973,7 @@
                       {/snippet}
                     </DropdownMenu.Trigger>
                     <DropdownMenu.Content align="end">
-                      <DropdownMenu.Label>Update Impact</DropdownMenu.Label>
+                      <DropdownMenu.Label>{tm("Update Impact")}</DropdownMenu.Label>
                       <DropdownMenu.Group>
                         <DropdownMenu.Item
                           class="cursor-pointer"
@@ -974,7 +985,7 @@
                             {:else}
                               <span class="size-4"></span>
                             {/if}
-                            Down
+                            {tm("Down")}
                           </span>
                         </DropdownMenu.Item>
                         <DropdownMenu.Item
@@ -987,7 +998,7 @@
                             {:else}
                               <span class="size-4"></span>
                             {/if}
-                            Degraded
+                            {tm("Degraded")}
                           </span>
                         </DropdownMenu.Item>
                       </DropdownMenu.Group>
@@ -997,7 +1008,7 @@
                         onclick={() => removeMonitorFromList(monitor.monitor_tag)}
                       >
                         <TrashIcon class="size-4" />
-                        Remove
+                        {tm("Remove")}
                       </DropdownMenu.Item>
                     </DropdownMenu.Content>
                   </DropdownMenu.Root>
@@ -1014,7 +1025,7 @@
           {:else}
             <SaveIcon class="size-4" />
           {/if}
-          {isNew ? "Create Incident" : "Save Changes"}
+          {isNew ? tm("Create Incident") : tm("Save Changes")}
         </Button>
       </Card.Footer>
     </Card.Root>
@@ -1025,13 +1036,13 @@
         <Card.Header>
           <div class="flex items-center justify-between">
             <div>
-              <Card.Title>Updates</Card.Title>
-              <Card.Description>Timeline of status updates for this incident</Card.Description>
+              <Card.Title>{tm("Updates")}</Card.Title>
+              <Card.Description>{tm("Timeline of status updates for this incident")}</Card.Description>
             </div>
             {#if !addingNewComment}
               <Button size="sm" onclick={startAddComment}>
                 <PlusIcon class="size-4" />
-                Add Update
+                {tm("Add Update")}
               </Button>
             {/if}
           </div>
@@ -1041,7 +1052,7 @@
           {#if addingNewComment}
             <div class="mb-4 space-y-4 rounded-md border p-4">
               <div class="flex flex-col gap-2">
-                <Label>Update Message</Label>
+                <Label>{tm("Update Message")}</Label>
                 <div class="overflow-hidden rounded-md border">
                   <CodeMirror
                     bind:value={commentText}
@@ -1056,11 +1067,11 @@
                     }}
                   />
                 </div>
-                <p class="text-muted-foreground text-xs">Supports Markdown formatting</p>
+                <p class="text-muted-foreground text-xs">{tm("Supports Markdown formatting")}</p>
               </div>
               <div class="grid grid-cols-2 gap-4">
                 <div class="flex flex-col gap-2">
-                  <Label>State</Label>
+                  <Label>{tm("State")}</Label>
                   <Select.Root
                     type="single"
                     value={commentState}
@@ -1068,26 +1079,26 @@
                       if (v) commentState = v;
                     }}
                   >
-                    <Select.Trigger class="w-full">{commentState}</Select.Trigger>
+                    <Select.Trigger class="w-full">{tmStatus(commentState)}</Select.Trigger>
                     <Select.Content>
                       {#each states as state}
-                        <Select.Item value={state}>{state}</Select.Item>
+                        <Select.Item value={state}>{tmStatus(state)}</Select.Item>
                       {/each}
                     </Select.Content>
                   </Select.Root>
                 </div>
                 <div class="flex flex-col gap-2">
-                  <Label>Date/Time</Label>
+                  <Label>{tm("Date/Time")}</Label>
                   <Input type="datetime-local" bind:value={commentDateTime} />
                 </div>
               </div>
               <div class="flex justify-end gap-2">
-                <Button variant="outline" size="sm" onclick={cancelAddComment}>Cancel</Button>
+                <Button variant="outline" size="sm" onclick={cancelAddComment}>{tm("Cancel")}</Button>
                 <Button size="sm" onclick={saveComment} disabled={!commentText.trim() || savingComment}>
                   {#if savingComment}
                     <Loader class="size-4 animate-spin" />
                   {/if}
-                  Add Update
+                  {tm("Add Update")}
                 </Button>
               </div>
             </div>
@@ -1098,7 +1109,7 @@
               <Spinner class="size-6" />
             </div>
           {:else if comments.length === 0 && !addingNewComment}
-            <p class="text-muted-foreground py-4 text-center text-sm">No updates yet</p>
+            <p class="text-muted-foreground py-4 text-center text-sm">{tm("No updates yet")}</p>
           {:else}
             <div class="space-y-4">
               {#each comments as comment (comment.id)}
@@ -1107,7 +1118,7 @@
                     <!-- Inline edit mode -->
                     <div class="space-y-4">
                       <div class="flex flex-col gap-2">
-                        <Label>Update Message</Label>
+                        <Label>{tm("Update Message")}</Label>
                         <div class="overflow-hidden rounded-md border">
                           <CodeMirror
                             bind:value={commentText}
@@ -1122,11 +1133,11 @@
                             }}
                           />
                         </div>
-                        <p class="text-muted-foreground text-xs">Supports Markdown formatting</p>
+                        <p class="text-muted-foreground text-xs">{tm("Supports Markdown formatting")}</p>
                       </div>
                       <div class="grid grid-cols-2 gap-4">
                         <div class="flex flex-col gap-2">
-                          <Label>State</Label>
+                          <Label>{tm("State")}</Label>
                           <Select.Root
                             type="single"
                             value={commentState}
@@ -1134,26 +1145,26 @@
                               if (v) commentState = v;
                             }}
                           >
-                            <Select.Trigger class="w-full">{commentState}</Select.Trigger>
+                            <Select.Trigger class="w-full">{tmStatus(commentState)}</Select.Trigger>
                             <Select.Content>
                               {#each states as state}
-                                <Select.Item value={state}>{state}</Select.Item>
+                                <Select.Item value={state}>{tmStatus(state)}</Select.Item>
                               {/each}
                             </Select.Content>
                           </Select.Root>
                         </div>
                         <div class="flex flex-col gap-2">
-                          <Label>Date/Time</Label>
+                          <Label>{tm("Date/Time")}</Label>
                           <Input type="datetime-local" bind:value={commentDateTime} />
                         </div>
                       </div>
                       <div class="flex justify-end gap-2">
-                        <Button variant="outline" size="sm" onclick={cancelEditComment}>Cancel</Button>
+                        <Button variant="outline" size="sm" onclick={cancelEditComment}>{tm("Cancel")}</Button>
                         <Button size="sm" onclick={saveComment} disabled={!commentText.trim() || savingComment}>
                           {#if savingComment}
                             <Loader class="size-4 animate-spin" />
                           {/if}
-                          Save
+                          {tm("Save")}
                         </Button>
                       </div>
                     </div>
@@ -1162,7 +1173,7 @@
                     <div class="flex items-start justify-between">
                       <div class="flex-1 space-y-2">
                         <div class="flex items-center gap-2">
-                          <Badge variant={getStateBadgeVariant(comment.state)}>{comment.state}</Badge>
+                          <Badge variant={getStateBadgeVariant(comment.state)}>{tmStatus(comment.state)}</Badge>
                           <span class="text-muted-foreground text-sm">
                             <LocalTime value={comment.commented_at} format="MMM d, yyyy HH:mm" />
                           </span>
