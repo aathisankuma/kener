@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tm, tmh, tmStatus } from "$lib/uiLocale.svelte";
   import * as Accordion from "$lib/components/ui/accordion/index.js";
   import * as Card from "$lib/components/ui/card/index.js";
   import * as Table from "$lib/components/ui/table/index.js";
@@ -111,7 +112,7 @@
       const result = await apiCall("getRoles");
       roles = result;
     } catch {
-      toast.error("Failed to load roles");
+      toast.error(tm("Failed to load roles"));
     } finally {
       loading = false;
     }
@@ -121,7 +122,7 @@
     try {
       allPermissions = await apiCall("getAllPermissions");
     } catch {
-      toast.error("Failed to load permissions");
+      toast.error(tm("Failed to load permissions"));
     }
   }
 
@@ -130,7 +131,7 @@
       const result = await apiCall("getUsers", { page: 1, limit: 1000 });
       allUsers = result.users || [];
     } catch {
-      toast.error("Failed to load users");
+      toast.error(tm("Failed to load users"));
     }
   }
 
@@ -152,15 +153,15 @@
   async function handleCreateRole() {
     createError = "";
     if (!newRole.role_id.trim()) {
-      createError = "Role ID is required";
+      createError = tm("Role ID is required");
       return;
     }
     if (!newRole.name.trim()) {
-      createError = "Role name is required";
+      createError = tm("Role name is required");
       return;
     }
     if (createPermissionMode === "clone" && !cloneFromRoleId) {
-      createError = "Please select a role to clone permissions from";
+      createError = tm("Please select a role to clone permissions from");
       return;
     }
     creatingRole = true;
@@ -179,7 +180,7 @@
         }
       }
 
-      toast.success("Role created");
+      toast.success(tm("Role created"));
       showCreateDialog = false;
       const createdRoleId = newRole.role_id.trim().toLowerCase().replace(/\s+/g, "_");
       newRole = { role_id: "", name: "" };
@@ -193,7 +194,7 @@
         openPermissions(createdRole);
       }
     } catch (e: unknown) {
-      createError = e instanceof Error ? e.message : "Failed to create role";
+      createError = e instanceof Error ? e.message : tm("Failed to create role");
     } finally {
       creatingRole = false;
     }
@@ -209,12 +210,12 @@
           ? { action: "migrate" as const, targetRoleId: deleteTargetRoleId }
           : { action: "remove" as const };
       await apiCall("deleteRole", { roleId: roleToDelete.id, options });
-      toast.success("Role deleted");
+      toast.success(tm("Role deleted"));
       showDeleteDialog = false;
       roleToDelete = null;
       await fetchRoles();
     } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : "Failed to delete role");
+      toast.error(e instanceof Error ? e.message : tm("Failed to delete role"));
     } finally {
       deletingRole = false;
     }
@@ -232,7 +233,7 @@
     if (!roleToEdit) return;
     editError = "";
     if (!editRole.name.trim()) {
-      editError = "Role name is required";
+      editError = tm("Role name is required");
       return;
     }
     editingRole = true;
@@ -242,12 +243,12 @@
         name: editRole.name,
         status: editRole.status
       });
-      toast.success("Role updated");
+      toast.success(tm("Role updated"));
       showEditDialog = false;
       roleToEdit = null;
       await fetchRoles();
     } catch (e: unknown) {
-      editError = e instanceof Error ? e.message : "Failed to update role";
+      editError = e instanceof Error ? e.message : tm("Failed to update role");
     } finally {
       editingRole = false;
     }
@@ -263,7 +264,7 @@
       const perms = await apiCall("getRolePermissions", { roleId: role.id });
       rolePermissionIds = new Set(perms.map((p: { permissions_id: string }) => p.permissions_id));
     } catch {
-      toast.error("Failed to load permissions");
+      toast.error(tm("Failed to load permissions"));
     } finally {
       loadingPermissions = false;
     }
@@ -278,10 +279,10 @@
         roleId: permissionsRole.id,
         permissionIds: Array.from(rolePermissionIds)
       });
-      toast.success("Permissions updated");
+      toast.success(tm("Permissions updated"));
       showPermissionsSheet = false;
     } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : "Failed to update permissions");
+      toast.error(e instanceof Error ? e.message : tm("Failed to update permissions"));
     } finally {
       savingPermissions = false;
     }
@@ -311,7 +312,7 @@
       ]);
       roleUsers = users;
     } catch {
-      toast.error("Failed to load role users");
+      toast.error(tm("Failed to load role users"));
     } finally {
       loadingUsers = false;
     }
@@ -323,10 +324,10 @@
     addingUserId = userId;
     try {
       await apiCall("addUserToRole", { roleId: usersRole.id, userId });
-      toast.success("User added to role");
+      toast.success(tm("User added to role"));
       roleUsers = await apiCall("getRoleUsers", { roleId: usersRole.id });
     } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : "Failed to add user");
+      toast.error(e instanceof Error ? e.message : tm("Failed to add user"));
     } finally {
       addingUserId = null;
     }
@@ -338,10 +339,10 @@
     removingUserId = userId;
     try {
       await apiCall("removeUserFromRole", { roleId: usersRole.id, userId });
-      toast.success("User removed from role");
+      toast.success(tm("User removed from role"));
       roleUsers = await apiCall("getRoleUsers", { roleId: usersRole.id });
     } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : "Failed to remove user");
+      toast.error(e instanceof Error ? e.message : tm("Failed to remove user"));
     } finally {
       removingUserId = null;
     }
@@ -379,12 +380,12 @@
   <div class="flex items-center justify-between">
     <div class="flex items-center gap-2">
       <ShieldIcon class="h-5 w-5" />
-      <h2 class="text-xl font-semibold">Roles</h2>
+      <h2 class="text-xl font-semibold">{tm("Roles")}</h2>
     </div>
     {#if hasPermission("roles.write")}
       <Button size="sm" onclick={() => openCreateDialog()}>
         <PlusIcon class="mr-1 h-4 w-4" />
-        Create Role
+        {tm("Create Role")}
       </Button>
     {/if}
   </div>
@@ -396,16 +397,16 @@
         <Spinner class="h-6 w-6" />
       </div>
     {:else if roles.length === 0}
-      <div class="text-muted-foreground p-8 text-center text-sm">No roles found</div>
+      <div class="text-muted-foreground p-8 text-center text-sm">{tm("No roles found")}</div>
     {:else}
       <div class="ktable overflow-hidden rounded-xl border">
         <Table.Root>
           <Table.Header>
             <Table.Row>
-              <Table.Head>Role ID</Table.Head>
-              <Table.Head>Name</Table.Head>
-              <Table.Head>Status</Table.Head>
-              <Table.Head>Type</Table.Head>
+              <Table.Head>{tm("Role ID")}</Table.Head>
+              <Table.Head>{tm("Name")}</Table.Head>
+              <Table.Head>{tm("Status")}</Table.Head>
+              <Table.Head>{tm("Type")}</Table.Head>
               <Table.Head class="text-right"></Table.Head>
             </Table.Row>
           </Table.Header>
@@ -416,34 +417,34 @@
                 <Table.Cell>{role.role_name}</Table.Cell>
                 <Table.Cell>
                   <Badge variant={role.status === "ACTIVE" ? "default" : "secondary"}>
-                    {role.status}
+                    {tmStatus(role.status)}
                   </Badge>
                 </Table.Cell>
                 <Table.Cell>
                   {#if role.readonly === 1}
                     <Badge variant="outline">
                       <LockIcon class="mr-1 h-3 w-3" />
-                      Readonly
+                      {tm("Readonly")}
                     </Badge>
                   {:else}
-                    <Badge variant="outline">Custom</Badge>
+                    <Badge variant="outline">{tm("Custom")}</Badge>
                   {/if}
                 </Table.Cell>
                 <Table.Cell class="text-right">
                   <div class="flex items-center justify-end gap-1">
                     <Button variant="ghost" size="sm" onclick={() => openPermissions(role)}>
                       <KeyIcon class="mr-1 h-4 w-4" />
-                      Permissions
+                      {tm("Permissions")}
                     </Button>
                     <Button variant="ghost" size="sm" onclick={() => openUsers(role)}>
                       <UsersIcon class="mr-1 h-4 w-4" />
-                      Users
+                      {tm("Users")}
                     </Button>
                     {#if hasPermission("roles.write")}
                       <Button
                         variant="ghost"
                         size="sm"
-                        title="Duplicate"
+                        title={tm("Duplicate")}
                         onclick={() =>
                           openCreateDialog({
                             role_id: role.id + "-copy",
@@ -486,25 +487,25 @@
 <Dialog.Root bind:open={showEditDialog}>
   <Dialog.Content>
     <Dialog.Header>
-      <Dialog.Title>Edit Role</Dialog.Title>
+      <Dialog.Title>{tm("Edit Role")}</Dialog.Title>
       <Dialog.Description>
-        Update <span class="font-semibold">{roleToEdit?.role_name}</span> role.
+        <span>{@html tmh("Update the role **%name**.", { name: roleToEdit?.role_name ?? "" })}</span>
       </Dialog.Description>
     </Dialog.Header>
     <div class="grid gap-4 py-4">
       <div class="grid gap-2">
-        <Label for="edit-role-name">Role Name</Label>
+        <Label for="edit-role-name">{tm("Role Name")}</Label>
         <Input id="edit-role-name" bind:value={editRole.name} />
       </div>
       <div class="grid gap-2">
-        <Label for="edit-role-status">Status</Label>
+        <Label for="edit-role-status">{tm("Status")}</Label>
         <select
           id="edit-role-status"
           class="border-input flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm shadow-sm"
           bind:value={editRole.status}
         >
-          <option value="ACTIVE">Active</option>
-          <option value="INACTIVE">Inactive</option>
+          <option value="ACTIVE">{tm("Active")}</option>
+          <option value="INACTIVE">{tm("Inactive")}</option>
         </select>
       </div>
       {#if editError}
@@ -512,12 +513,12 @@
       {/if}
     </div>
     <Dialog.Footer>
-      <Button variant="outline" onclick={() => (showEditDialog = false)}>Cancel</Button>
+      <Button variant="outline" onclick={() => (showEditDialog = false)}>{tm("Cancel")}</Button>
       <Button onclick={handleEditRole} disabled={editingRole}>
         {#if editingRole}
           <Spinner class="mr-2 h-4 w-4" />
         {/if}
-        Save
+        {tm("Save")}
       </Button>
     </Dialog.Footer>
   </Dialog.Content>
@@ -527,21 +528,21 @@
 <Dialog.Root bind:open={showCreateDialog}>
   <Dialog.Content>
     <Dialog.Header>
-      <Dialog.Title>Create Role</Dialog.Title>
-      <Dialog.Description>Create a new custom role with its own permissions.</Dialog.Description>
+      <Dialog.Title>{tm("Create Role")}</Dialog.Title>
+      <Dialog.Description>{tm("Create a new custom role with its own permissions.")}</Dialog.Description>
     </Dialog.Header>
     <div class="grid gap-4 py-4">
       <div class="grid gap-2">
-        <Label for="role-id">Role ID</Label>
-        <Input id="role-id" placeholder="e.g. viewer" bind:value={newRole.role_id} />
-        <p class="text-muted-foreground text-xs">Lowercase letters, numbers, underscores, hyphens only.</p>
+        <Label for="role-id">{tm("Role ID")}</Label>
+        <Input id="role-id" placeholder={tm("e.g. viewer")} bind:value={newRole.role_id} />
+        <p class="text-muted-foreground text-xs">{tm("Lowercase letters, numbers, underscores, hyphens only.")}</p>
       </div>
       <div class="grid gap-2">
-        <Label for="role-name">Role Name</Label>
-        <Input id="role-name" placeholder="e.g. Viewer" bind:value={newRole.name} />
+        <Label for="role-name">{tm("Role Name")}</Label>
+        <Input id="role-name" placeholder={tm("e.g. Viewer")} bind:value={newRole.name} />
       </div>
       <div class="grid gap-2">
-        <Label>Permissions</Label>
+        <Label>{tm("Permissions")}</Label>
         <div class="flex gap-2">
           <Button
             variant={createPermissionMode === "pick" ? "default" : "outline"}
@@ -551,26 +552,26 @@
               cloneFromRoleId = "";
             }}
           >
-            Pick after creation
+            {tm("Pick after creation")}
           </Button>
           <Button
             variant={createPermissionMode === "clone" ? "default" : "outline"}
             size="sm"
             onclick={() => (createPermissionMode = "clone")}
           >
-            Clone from existing role
+            {tm("Clone from existing role")}
           </Button>
         </div>
       </div>
       {#if createPermissionMode === "clone"}
         <div class="grid gap-2">
-          <Label for="clone-role">Clone permissions from</Label>
+          <Label for="clone-role">{tm("Clone permissions from")}</Label>
           <select
             id="clone-role"
             class="border-input flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm shadow-sm"
             bind:value={cloneFromRoleId}
           >
-            <option value="">Select a role...</option>
+            <option value="">{tm("Select a role...")}</option>
             {#each roles.filter((r) => r.status === "ACTIVE") as r (r.id)}
               <option value={r.id}>{r.role_name}</option>
             {/each}
@@ -582,12 +583,12 @@
       {/if}
     </div>
     <Dialog.Footer>
-      <Button variant="outline" onclick={() => (showCreateDialog = false)}>Cancel</Button>
+      <Button variant="outline" onclick={() => (showCreateDialog = false)}>{tm("Cancel")}</Button>
       <Button onclick={handleCreateRole} disabled={creatingRole}>
         {#if creatingRole}
           <Spinner class="mr-2 h-4 w-4" />
         {/if}
-        Create
+        {tm("Create")}
       </Button>
     </Dialog.Footer>
   </Dialog.Content>
@@ -597,40 +598,40 @@
 <Dialog.Root bind:open={showDeleteDialog}>
   <Dialog.Content>
     <Dialog.Header>
-      <Dialog.Title>Delete Role</Dialog.Title>
+      <Dialog.Title>{tm("Delete Role")}</Dialog.Title>
       <Dialog.Description>
-        Are you sure you want to delete <span class="font-semibold">{roleToDelete?.role_name}</span>?
+        <span>{@html tmh("Are you sure you want to delete **%name**?", { name: roleToDelete?.role_name ?? "" })}</span>
       </Dialog.Description>
     </Dialog.Header>
     <div class="grid gap-4 py-4">
       <div class="grid gap-2">
-        <Label>What should happen to users in this role?</Label>
+        <Label>{tm("What should happen to users in this role?")}</Label>
         <div class="flex gap-2">
           <Button
             variant={deleteAction === "remove" ? "default" : "outline"}
             size="sm"
             onclick={() => (deleteAction = "remove")}
           >
-            Remove assignments
+            {tm("Remove assignments")}
           </Button>
           <Button
             variant={deleteAction === "migrate" ? "default" : "outline"}
             size="sm"
             onclick={() => (deleteAction = "migrate")}
           >
-            Migrate to another role
+            {tm("Migrate to another role")}
           </Button>
         </div>
       </div>
       {#if deleteAction === "migrate"}
         <div class="grid gap-2">
-          <Label for="target-role">Target Role</Label>
+          <Label for="target-role">{tm("Target Role")}</Label>
           <select
             id="target-role"
             class="border-input flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm shadow-sm"
             bind:value={deleteTargetRoleId}
           >
-            <option value="">Select a role...</option>
+            <option value="">{tm("Select a role...")}</option>
             {#each roles.filter((r) => r.id !== roleToDelete?.id && r.status === "ACTIVE") as r (r.id)}
               <option value={r.id}>{r.role_name}</option>
             {/each}
@@ -639,7 +640,7 @@
       {/if}
     </div>
     <Dialog.Footer>
-      <Button variant="outline" onclick={() => (showDeleteDialog = false)}>Cancel</Button>
+      <Button variant="outline" onclick={() => (showDeleteDialog = false)}>{tm("Cancel")}</Button>
       <Button
         variant="destructive"
         onclick={handleDeleteRole}
@@ -648,7 +649,7 @@
         {#if deletingRole}
           <Spinner class="mr-2 h-4 w-4" />
         {/if}
-        Delete
+        {tm("Delete")}
       </Button>
     </Dialog.Footer>
   </Dialog.Content>
@@ -659,13 +660,13 @@
   <Sheet.Content side="right" class="w-full overflow-y-auto sm:max-w-lg">
     <Sheet.Header>
       <Sheet.Title>
-        Permissions — {permissionsRole?.role_name}
+        {tm("Permissions — %name", { name: permissionsRole?.role_name ?? "" })}
       </Sheet.Title>
       <Sheet.Description>
         {#if permissionsRole?.readonly === 1}
-          This is a readonly role. Permissions cannot be modified.
+          {tm("This is a readonly role. Permissions cannot be modified.")}
         {:else}
-          Toggle permissions for this role.
+          {tm("Toggle permissions for this role.")}
         {/if}
       </Sheet.Description>
     </Sheet.Header>
@@ -720,12 +721,12 @@
 
         {#if permissionsRole?.readonly !== 1 && hasPermission("roles.assign_permissions")}
           <div class="flex justify-end gap-2 p-4">
-            <Button variant="outline" onclick={() => (showPermissionsSheet = false)}>Cancel</Button>
+            <Button variant="outline" onclick={() => (showPermissionsSheet = false)}>{tm("Cancel")}</Button>
             <Button onclick={savePermissions} disabled={savingPermissions}>
               {#if savingPermissions}
                 <Spinner class="mr-2 h-4 w-4" />
               {/if}
-              Save Permissions
+              {tm("Save Permissions")}
             </Button>
           </div>
         {/if}
@@ -739,9 +740,9 @@
   <Sheet.Content side="right" class="w-full overflow-y-auto sm:max-w-lg">
     <Sheet.Header>
       <Sheet.Title>
-        Users — {usersRole?.role_name}
+        {tm("Users — %name", { name: usersRole?.role_name ?? "" })}
       </Sheet.Title>
-      <Sheet.Description>Manage users assigned to this role.</Sheet.Description>
+      <Sheet.Description>{tm("Manage users assigned to this role.")}</Sheet.Description>
     </Sheet.Header>
 
     {#if loadingUsers}
@@ -751,9 +752,9 @@
     {:else}
       <!-- Current users in role -->
       <div class="p-4">
-        <h4 class="mb-2 text-sm font-medium">Current Users ({roleUsers.length})</h4>
+        <h4 class="mb-2 text-sm font-medium">{tm("Current users (%count)", { count: roleUsers.length })}</h4>
         {#if roleUsers.length === 0}
-          <p class="text-muted-foreground text-sm">No users assigned to this role.</p>
+          <p class="text-muted-foreground text-sm">{tm("No users assigned to this role.")}</p>
         {:else}
           <div class="flex flex-col gap-2">
             {#each roleUsers as user (user.id)}
@@ -787,9 +788,9 @@
 
         <!-- Add users -->
         <div class="p-4">
-          <h4 class="mb-2 text-sm font-medium">Add Users</h4>
+          <h4 class="mb-2 text-sm font-medium">{tm("Add Users")}</h4>
           {#if availableUsersToAdd.length === 0}
-            <p class="text-muted-foreground text-sm">All users are already in this role.</p>
+            <p class="text-muted-foreground text-sm">{tm("All users are already in this role.")}</p>
           {:else}
             <div class="flex max-h-64 flex-col gap-2 overflow-y-auto">
               {#each availableUsersToAdd as user (user.id)}

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tm, tmStatus } from "$lib/uiLocale.svelte";
   import { page } from "$app/stores";
   import { goto } from "$app/navigation";
   import { onMount } from "svelte";
@@ -64,24 +65,24 @@
 
   // Options
   const alertForOptions: { value: AlertForType; label: string }[] = [
-    { value: GC.STATUS, label: GC.STATUS },
-    { value: GC.LATENCY, label: GC.LATENCY },
-    { value: GC.UPTIME, label: GC.UPTIME }
+    { value: GC.STATUS, label: tm("Status") },
+    { value: GC.LATENCY, label: tm("Latency") },
+    { value: GC.UPTIME, label: tm("Uptime") }
   ];
 
   const statusValueOptions = [
-    { value: GC.DOWN, label: GC.DOWN },
-    { value: GC.DEGRADED, label: GC.DEGRADED }
+    { value: GC.DOWN, label: tmStatus(GC.DOWN) },
+    { value: GC.DEGRADED, label: tmStatus(GC.DEGRADED) }
   ];
 
   const severityOptions: { value: AlertSeverityType; label: string }[] = [
-    { value: GC.CRITICAL, label: GC.CRITICAL },
-    { value: GC.WARNING, label: GC.WARNING }
+    { value: GC.CRITICAL, label: tmStatus(GC.CRITICAL) },
+    { value: GC.WARNING, label: tmStatus(GC.WARNING) }
   ];
 
   const yesNoOptions: { value: YesNoType; label: string }[] = [
-    { value: GC.YES, label: GC.YES },
-    { value: GC.NO, label: GC.NO }
+    { value: GC.YES, label: tm("Yes") },
+    { value: GC.NO, label: tm("No") }
   ];
 
   // Computed labels
@@ -138,7 +139,7 @@
       });
       triggers = await response.json();
     } catch (error) {
-      console.error("Failed to load triggers", error);
+      console.error(tm("Failed to load triggers"), error);
     }
   }
 
@@ -157,7 +158,7 @@
         monitors = result.map((m: { tag: string; name: string }) => ({ tag: m.tag, name: m.name }));
       }
     } catch (error) {
-      console.error("Failed to load monitors", error);
+      console.error(tm("Failed to load monitors"), error);
     }
   }
 
@@ -193,15 +194,15 @@
         };
       }
     } catch (error) {
-      console.error("Failed to load alert config", error);
-      toast.error("Failed to load alert configuration");
+      console.error(tm("Failed to load alert config"), error);
+      toast.error(tm("Failed to load alert configuration"));
       goto(clientResolver(resolve, "/manage/app/alerts"));
     }
   }
 
   async function saveAlertConfig() {
     if (form.monitor_tags.length === 0) {
-      toast.error("Please select at least one monitor");
+      toast.error(tm("Please select at least one monitor"));
       return;
     }
 
@@ -235,13 +236,13 @@
       if (result.error) {
         toast.error(result.error);
       } else {
-        toast.success(isNew ? "Alert created successfully" : "Alert updated successfully");
+        toast.success(isNew ? tm("Alert created successfully") : tm("Alert updated successfully"));
         if (isNew) {
           goto(clientResolver(resolve, `/manage/app/alerts/${result.id}`));
         }
       }
     } catch (error) {
-      toast.error("Failed to save alert");
+      toast.error(tm("Failed to save alert"));
     } finally {
       saving = false;
     }
@@ -262,11 +263,11 @@
       if (result.error) {
         toast.error(result.error);
       } else {
-        toast.success("Alert deleted successfully");
+        toast.success(tm("Alert deleted successfully"));
         goto(clientResolver(resolve, "/manage/app/alerts"));
       }
     } catch (error) {
-      toast.error("Failed to delete alert");
+      toast.error(tm("Failed to delete alert"));
     } finally {
       deleteDialogOpen = false;
     }
@@ -284,11 +285,11 @@
   <Breadcrumb.Root>
     <Breadcrumb.List>
       <Breadcrumb.Item>
-        <Breadcrumb.Link href={clientResolver(resolve, "/manage/app/alerts")}>Alerts</Breadcrumb.Link>
+        <Breadcrumb.Link href={clientResolver(resolve, "/manage/app/alerts")}>{tm("Alerts")}</Breadcrumb.Link>
       </Breadcrumb.Item>
       <Breadcrumb.Separator />
       <Breadcrumb.Item>
-        <Breadcrumb.Page>{isNew ? "New Alert" : `Edit Alert #${alertConfigId}`}</Breadcrumb.Page>
+        <Breadcrumb.Page>{isNew ? tm("New Alert") : `Edit Alert #${alertConfigId}`}</Breadcrumb.Page>
       </Breadcrumb.Item>
     </Breadcrumb.List>
   </Breadcrumb.Root>
@@ -296,40 +297,39 @@
   {#if loading}
     <div class="flex flex-col items-center gap-4 py-16">
       <Spinner class="size-8" />
-      <p class="text-muted-foreground">Loading...</p>
+      <p class="text-muted-foreground">{tm("Loading...")}</p>
     </div>
   {:else}
     <Card.Root>
       <Card.Content class="space-y-6 pt-6">
         <!-- Monitor Selection (Searchable Multi-select) -->
         <div class="flex flex-col gap-2">
-          <Label>Monitors</Label>
-          <p class="text-muted-foreground text-xs">Select which monitors this alert applies to</p>
+          <Label>{tm("Monitors")}</Label>
+          <p class="text-muted-foreground text-xs">{tm("Select which monitors this alert applies to")}</p>
           <Popover.Root bind:open={monitorPopoverOpen}>
             <Popover.Trigger>
               <Button variant="outline" role="combobox" class="w-full justify-between font-normal">
                 {#if form.monitor_tags.length === 0}
-                  Select monitors...
+                  {tm("Select monitors...")}
                 {:else if form.monitor_tags.length === 1}
                   {monitors.find((m) => m.tag === form.monitor_tags[0])?.name || form.monitor_tags[0]}
                 {:else}
-                  {form.monitor_tags.length} monitors selected
+                  {tm("%count monitors selected", { count: form.monitor_tags.length })}
                 {/if}
                 <ChevronsUpDownIcon class="text-muted-foreground size-4 shrink-0" />
               </Button>
             </Popover.Trigger>
             <Popover.Content class="w-[var(--bits-popover-trigger-width)] p-0" align="start">
               <Command.Root>
-                <Command.Input placeholder="Search monitors..." />
+                <Command.Input placeholder={tm("Search monitors...")} />
                 <Command.List>
-                  <Command.Empty>No monitors found.</Command.Empty>
+                  <Command.Empty>{tm("No monitors found.")}</Command.Empty>
                   <Command.Group>
                     {#each monitors as monitor (monitor.tag)}
-                      <Command.Item
-                        value={monitor.name}
-                        onSelect={() => toggleMonitor(monitor.tag)}
-                      >
-                        <CheckIcon class="size-4 {form.monitor_tags.includes(monitor.tag) ? 'opacity-100' : 'opacity-0'}" />
+                      <Command.Item value={monitor.name} onSelect={() => toggleMonitor(monitor.tag)}>
+                        <CheckIcon
+                          class="size-4 {form.monitor_tags.includes(monitor.tag) ? 'opacity-100' : 'opacity-0'}"
+                        />
                         {monitor.name}
                       </Command.Item>
                     {/each}
@@ -343,11 +343,7 @@
               {#each form.monitor_tags as tag (tag)}
                 <Badge variant="secondary" class="gap-1 pr-1">
                   {monitors.find((m) => m.tag === tag)?.name || tag}
-                  <button
-                    type="button"
-                    class="hover:bg-muted rounded-sm p-0.5"
-                    onclick={() => toggleMonitor(tag)}
-                  >
+                  <button type="button" class="hover:bg-muted rounded-sm p-0.5" onclick={() => toggleMonitor(tag)}>
                     <XIcon class="size-3" />
                   </button>
                 </Badge>
@@ -358,14 +354,14 @@
 
         <!-- Alert For -->
         <div class="flex flex-col gap-2">
-          <Label for="alert-for">Alert Type</Label>
+          <Label for="alert-for">{tm("Alert Type")}</Label>
           <Select.Root
             type="single"
             value={form.alert_for}
             onValueChange={(v) => v && handleAlertForChange(v as AlertForType)}
           >
             <Select.Trigger id="alert-for" class="w-full">
-              {alertForOptions.find((o) => o.value === form.alert_for)?.label || "Select type"}
+              {alertForOptions.find((o) => o.value === form.alert_for)?.label || tm("Select type")}
             </Select.Trigger>
             <Select.Content>
               {#each alertForOptions as option}
@@ -381,7 +377,7 @@
           {#if form.alert_for === "STATUS"}
             <Select.Root type="single" value={form.alert_value} onValueChange={(v) => v && (form.alert_value = v)}>
               <Select.Trigger id="alert-value" class="w-full">
-                {form.alert_value}
+                {tmStatus(String(form.alert_value))}
               </Select.Trigger>
               <Select.Content>
                 {#each statusValueOptions as option}
@@ -404,34 +400,34 @@
         <!-- Thresholds -->
         <div class="grid grid-cols-2 gap-4">
           <div class="flex flex-col gap-2">
-            <Label for="failure-threshold">Failure Threshold</Label>
+            <Label for="failure-threshold">{tm("Failure Threshold")}</Label>
             <Input id="failure-threshold" type="number" min="1" bind:value={form.failure_threshold} />
-            <p class="text-muted-foreground text-xs">Consecutive failures before alert</p>
+            <p class="text-muted-foreground text-xs">{tm("Consecutive failures before alert")}</p>
           </div>
 
           <div class="flex flex-col gap-2">
-            <Label for="success-threshold">Success Threshold</Label>
+            <Label for="success-threshold">{tm("Success Threshold")}</Label>
             <Input id="success-threshold" type="number" min="1" bind:value={form.success_threshold} />
-            <p class="text-muted-foreground text-xs">Consecutive successes to resolve</p>
+            <p class="text-muted-foreground text-xs">{tm("Consecutive successes to resolve")}</p>
           </div>
         </div>
 
         <!-- Generated Alert Text -->
         <div class="flex flex-col gap-2">
-          <Label>Details</Label>
+          <Label>{tm("Details")}</Label>
           <p class="text-muted-foreground bg-muted/40 rounded-md border p-3 text-sm">{alertDescriptionText}</p>
         </div>
 
         <!-- Severity -->
         <div class="flex flex-col gap-2">
-          <Label for="severity">Severity</Label>
+          <Label for="severity">{tm("Severity")}</Label>
           <Select.Root
             type="single"
             value={form.severity}
             onValueChange={(v) => v && (form.severity = v as AlertSeverityType)}
           >
             <Select.Trigger id="severity" class="w-full">
-              {severityOptions.find((o) => o.value === form.severity)?.label || "Select severity"}
+              {severityOptions.find((o) => o.value === form.severity)?.label || tm("Select severity")}
             </Select.Trigger>
             <Select.Content>
               {#each severityOptions as option}
@@ -443,14 +439,14 @@
 
         <!-- Create Incident -->
         <div class="flex flex-col gap-2">
-          <Label for="create-incident">Create Incident</Label>
+          <Label for="create-incident">{tm("Create Incident")}</Label>
           <Select.Root
             type="single"
             value={form.create_incident}
             onValueChange={(v) => v && (form.create_incident = v as YesNoType)}
           >
             <Select.Trigger id="create-incident" class="w-full">
-              {form.create_incident}
+              {form.create_incident === GC.YES ? tm("Yes") : tm("No")}
             </Select.Trigger>
             <Select.Content>
               {#each yesNoOptions as option}
@@ -458,15 +454,15 @@
               {/each}
             </Select.Content>
           </Select.Root>
-          <p class="text-muted-foreground text-xs">Automatically create an incident when this alert triggers</p>
+          <p class="text-muted-foreground text-xs">{tm("Automatically create an incident when this alert triggers")}</p>
         </div>
 
         <!-- Is Active (only when editing) -->
         {#if !isNew}
           <div class="flex items-center justify-between">
             <div>
-              <Label>Active</Label>
-              <p class="text-muted-foreground text-xs">Enable or disable this alert</p>
+              <Label>{tm("Active")}</Label>
+              <p class="text-muted-foreground text-xs">{tm("Enable or disable this alert")}</p>
             </div>
             <Switch
               checked={form.is_active === GC.YES}
@@ -477,10 +473,10 @@
 
         <!-- Description -->
         <div class="flex flex-col gap-2">
-          <Label for="alert-description">Description (optional)</Label>
+          <Label for="alert-description">{tm("Description (optional)")}</Label>
           <Textarea
             id="alert-description"
-            placeholder="Add a description for this alert..."
+            placeholder={tm("Add a description for this alert...")}
             bind:value={form.alert_description}
             rows={2}
           />
@@ -489,8 +485,8 @@
         <!-- Triggers -->
         {#if triggers.length > 0}
           <div class="flex flex-col gap-2">
-            <Label>Notification Triggers</Label>
-            <p class="text-muted-foreground text-xs">Select which triggers to notify when this alert fires</p>
+            <Label>{tm("Notification Triggers")}</Label>
+            <p class="text-muted-foreground text-xs">{tm("Select which triggers to notify when this alert fires")}</p>
             <div class="mt-2 grid gap-2">
               {#each triggers as trigger (trigger.id)}
                 <label
@@ -513,21 +509,23 @@
           </div>
         {:else}
           <p class="text-muted-foreground text-sm">
-            No notification triggers available. <a
-              href={clientResolver(resolve, "/manage/app/triggers")}
-              class="text-primary underline">Create a trigger</a
-            > to receive notifications.
+            {tm("No notification triggers available.")}
+            <a href={clientResolver(resolve, "/manage/app/triggers")} class="text-primary underline"
+              >{tm("Create a trigger to receive notifications.")}</a
+            >
           </p>
         {/if}
       </Card.Content>
 
       <Card.Footer class="flex justify-between">
-        <Button variant="outline" onclick={() => goto(clientResolver(resolve, "/manage/app/alerts"))}>Cancel</Button>
+        <Button variant="outline" onclick={() => goto(clientResolver(resolve, "/manage/app/alerts"))}
+          >{tm("Cancel")}</Button
+        >
         <Button onclick={saveAlertConfig} disabled={saving}>
           {#if saving}
             <Spinner class="size-4" />
           {/if}
-          {isNew ? "Create Alert" : "Save Changes"}
+          {isNew ? tm("Create Alert") : tm("Save Changes")}
         </Button>
       </Card.Footer>
     </Card.Root>
@@ -536,13 +534,13 @@
     {#if !isNew}
       <Card.Root class="border-destructive">
         <Card.Header>
-          <Card.Title class="text-destructive">Danger Zone</Card.Title>
-          <Card.Description>Irreversible actions for this alert configuration.</Card.Description>
+          <Card.Title class="text-destructive">{tm("Danger Zone")}</Card.Title>
+          <Card.Description>{tm("Irreversible actions for this alert configuration.")}</Card.Description>
         </Card.Header>
         <Card.Content>
           <Button variant="destructive" onclick={() => (deleteDialogOpen = true)}>
             <TrashIcon class="size-4" />
-            Delete Alert
+            {tm("Delete Alert")}
           </Button>
         </Card.Content>
       </Card.Root>
@@ -554,14 +552,14 @@
 <AlertDialog.Root bind:open={deleteDialogOpen}>
   <AlertDialog.Content>
     <AlertDialog.Header>
-      <AlertDialog.Title>Delete Alert</AlertDialog.Title>
+      <AlertDialog.Title>{tm("Delete Alert")}</AlertDialog.Title>
       <AlertDialog.Description>
-        Are you sure you want to delete this alert? This action cannot be undone.
+        {tm("Are you sure you want to delete this alert? This action cannot be undone.")}
       </AlertDialog.Description>
     </AlertDialog.Header>
     <AlertDialog.Footer>
-      <AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
-      <AlertDialog.Action onclick={deleteAlertConfig}>Delete</AlertDialog.Action>
+      <AlertDialog.Cancel>{tm("Cancel")}</AlertDialog.Cancel>
+      <AlertDialog.Action onclick={deleteAlertConfig}>{tm("Delete")}</AlertDialog.Action>
     </AlertDialog.Footer>
   </AlertDialog.Content>
 </AlertDialog.Root>

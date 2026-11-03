@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tm, tmStatus } from "$lib/uiLocale.svelte";
   import { Button } from "$lib/components/ui/button/index.js";
   import { Spinner } from "$lib/components/ui/spinner/index.js";
   import { Badge } from "$lib/components/ui/badge/index.js";
@@ -95,11 +96,11 @@
       if (result.error) {
         toast.error(result.error);
       } else {
-        toast.success(result.is_active === "YES" ? "Alert activated" : "Alert deactivated");
+        toast.success(result.is_active === "YES" ? tm("Alert activated") : tm("Alert deactivated"));
         await fetchConfigs();
       }
     } catch (error) {
-      toast.error("Failed to toggle alert status");
+      toast.error(tm("Failed to toggle alert status"));
     }
   }
 
@@ -140,10 +141,10 @@
     <div class="flex items-center gap-3">
       <Select.Root type="single" value={monitorFilter} onValueChange={handleMonitorChange}>
         <Select.Trigger class="w-48">
-          {monitorFilter ? monitors.find((m) => m.tag === monitorFilter)?.name || monitorFilter : "All Monitors"}
+          {monitorFilter ? monitors.find((m) => m.tag === monitorFilter)?.name || monitorFilter : tm("All Monitors")}
         </Select.Trigger>
         <Select.Content>
-          <Select.Item value="">All Monitors</Select.Item>
+          <Select.Item value="">{tm("All Monitors")}</Select.Item>
           {#each monitors as monitor}
             <Select.Item value={monitor.tag}>{monitor.name}</Select.Item>
           {/each}
@@ -155,7 +156,7 @@
     </div>
     <Button onclick={() => goto(clientResolver(resolve, "/manage/app/alerts/new"))}>
       <PlusIcon class="size-4" />
-      Create Alert
+      {tm("Create Alert")}
     </Button>
   </div>
 
@@ -164,13 +165,13 @@
     <Table.Root>
       <Table.Header>
         <Table.Row>
-          <Table.Head>Monitors</Table.Head>
-          <Table.Head>Alert Type</Table.Head>
-          <Table.Head>Severity</Table.Head>
-          <Table.Head>Description</Table.Head>
-          <Table.Head class="w-24">Triggers</Table.Head>
-          <Table.Head class="w-20 text-center">Active</Table.Head>
-          <Table.Head class="w-32 text-right">Actions</Table.Head>
+          <Table.Head>{tm("Monitors")}</Table.Head>
+          <Table.Head>{tm("Alert Type")}</Table.Head>
+          <Table.Head>{tm("Severity")}</Table.Head>
+          <Table.Head>{tm("Description")}</Table.Head>
+          <Table.Head class="w-24">{tm("Triggers")}</Table.Head>
+          <Table.Head class="w-20 text-center">{tm("Active")}</Table.Head>
+          <Table.Head class="w-32 text-right">{tm("Actions")}</Table.Head>
         </Table.Row>
       </Table.Header>
       <Table.Body>
@@ -180,16 +181,16 @@
               <div class="flex flex-col items-center gap-4">
                 <BellOffIcon class="text-muted-foreground size-16" />
                 <div class="space-y-2">
-                  <h3 class="text-lg font-semibold">No alert configurations</h3>
+                  <h3 class="text-lg font-semibold">{tm("No alert configurations")}</h3>
                   <p class="text-muted-foreground text-sm">
                     {monitorFilter
-                      ? "No alerts found for this monitor."
-                      : "Create an alert to get notified when your monitors have issues."}
+                      ? tm("No alerts found for this monitor.")
+                      : tm("Create an alert to get notified when your monitors have issues.")}
                   </p>
                 </div>
                 <Button onclick={() => goto(clientResolver(resolve, "/manage/app/alerts/new"))}>
                   <PlusIcon class="size-4" />
-                  Create Alert
+                  {tm("Create Alert")}
                 </Button>
               </div>
             </Table.Cell>
@@ -217,11 +218,11 @@
                 {/if}
               </Table.Cell>
               <Table.Cell>
-                <Badge variant="outline">{config.alert_for}</Badge>
+                <Badge variant="outline">{tmStatus(config.alert_for)}</Badge>
               </Table.Cell>
               <Table.Cell>
                 <Badge variant={getSeverityBadgeVariant(config.severity)}>
-                  {config.severity}
+                  {tmStatus(config.severity)}
                 </Badge>
               </Table.Cell>
               <Table.Cell>
@@ -259,7 +260,9 @@
                   <Tooltip.Root>
                     <Tooltip.Trigger>
                       <Badge variant="secondary" class="cursor-pointer text-xs">
-                        {config.triggers.length} trigger{config.triggers.length > 1 ? "s" : ""}
+                        {config.triggers.length === 1
+                          ? tm("1 trigger")
+                          : tm("%count triggers", { count: config.triggers.length })}
                       </Badge>
                     </Tooltip.Trigger>
                     <Tooltip.Content>
@@ -285,7 +288,7 @@
                     onclick={() => goto(clientResolver(resolve, `/manage/app/alerts/${config.id}`))}
                   >
                     <EditIcon class="size-3" />
-                    Edit
+                    {tm("Edit")}
                   </Button>
                   <Button
                     variant="outline"
@@ -293,7 +296,7 @@
                     onclick={() => goto(clientResolver(resolve, `/manage/app/alerts/logs/${config.id}`))}
                   >
                     <ListIcon class="size-3" />
-                    Logs
+                    {tm("Logs")}
                   </Button>
                 </div>
               </Table.Cell>
@@ -309,7 +312,9 @@
     {@const startItem = (pageNo - 1) * limit + 1}
     {@const endItem = Math.min(pageNo * limit, totalCount)}
     <div class="flex items-center justify-between">
-      <span class="text-muted-foreground text-sm">Showing {startItem}-{endItem} of {totalCount}</span>
+      <span class="text-muted-foreground text-sm"
+        >{tm("Showing %from-%to of %total", { from: startItem, to: endItem, total: totalCount })}</span
+      >
       {#if totalPages > 1}
         <div class="flex items-center gap-2">
           <Button variant="outline" size="icon" disabled={pageNo === 1} onclick={() => goToPage(pageNo - 1)}>

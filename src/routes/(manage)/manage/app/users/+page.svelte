@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tm, tmh, tmStatus } from "$lib/uiLocale.svelte";
   import * as Card from "$lib/components/ui/card/index.js";
   import * as Table from "$lib/components/ui/table/index.js";
   import * as Dialog from "$lib/components/ui/dialog/index.js";
@@ -126,7 +127,7 @@
       }
     } catch (error) {
       console.error("Error fetching users:", error);
-      toast.error("Failed to load users");
+      toast.error(tm("Failed to load users"));
     } finally {
       loading = false;
     }
@@ -140,27 +141,27 @@
     const normalizedEmail = normalizeEmail(newUser.email);
 
     if (!normalizedName) {
-      creatingUserError = "Name cannot be empty";
+      creatingUserError = tm("Name cannot be empty");
       return;
     }
     if (normalizedName.length < 2) {
-      creatingUserError = "Name must be at least 2 characters";
+      creatingUserError = tm("Name must be at least 2 characters");
       return;
     }
     if (normalizedName.length > 100) {
-      creatingUserError = "Name must be less than 100 characters";
+      creatingUserError = tm("Name must be less than 100 characters");
       return;
     }
     if (!normalizedEmail) {
-      creatingUserError = "Email cannot be empty";
+      creatingUserError = tm("Email cannot be empty");
       return;
     }
     if (!EMAIL_REGEX.test(normalizedEmail)) {
-      creatingUserError = "Please enter a valid email address";
+      creatingUserError = tm("Please enter a valid email address");
       return;
     }
     if (newUser.role_ids.length === 0) {
-      creatingUserError = "At least one role must be selected";
+      creatingUserError = tm("At least one role must be selected");
       return;
     }
 
@@ -187,10 +188,10 @@
         users = [...users, result];
         showAddUserDialog = false;
         resetNewUser();
-        toast.success("User invited successfully");
+        toast.success(tm("User invited successfully"));
       }
     } catch (error) {
-      creatingUserError = "Error while creating user";
+      creatingUserError = tm("Error while creating user");
     } finally {
       creatingUser = false;
     }
@@ -232,9 +233,9 @@
           data: { email }
         })
       });
-      toast.success("Invitation email resent");
+      toast.success(tm("Invitation email resent"));
     } catch (error) {
-      toast.error("Failed to resend invitation email");
+      toast.error(tm("Failed to resend invitation email"));
     }
   }
 
@@ -252,11 +253,11 @@
       });
       const result = await res.json();
       if (!res.ok || result.error) {
-        throw new Error(result.error || "Failed to send verification email");
+        throw new Error(result.error || tm("Failed to send verification email"));
       }
-      toast.success("Verification email sent");
+      toast.success(tm("Verification email sent"));
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to send verification email";
+      const message = error instanceof Error ? error.message : tm("Failed to send verification email");
       toast.error(message);
     } finally {
       sendingSelfVerification = false;
@@ -295,7 +296,7 @@
         };
       }
     } catch (error) {
-      manualUpdateError = "Error while updating user";
+      manualUpdateError = tm("Error while updating user");
     }
   }
 
@@ -356,11 +357,11 @@
         manualUpdateError = result.error;
       } else {
         toEditUser.monitor_tags = result.monitor_tags;
-        manualSuccess = "Services updated";
+        manualSuccess = tm("Services updated");
         await fetchUsers();
       }
     } catch {
-      manualUpdateError = "Error while updating services";
+      manualUpdateError = tm("Error while updating services");
     } finally {
       toEditUser.actions.updatingServices = false;
     }
@@ -379,7 +380,7 @@
         roles = result;
       }
     } catch {
-      toast.error("Failed to load roles");
+      toast.error(tm("Failed to load roles"));
     }
   }
 
@@ -412,7 +413,7 @@
           fetchUsers();
         }}
       >
-        Active
+        {tm("Active")}
       </Button>
       <Button
         variant={statusFilter === "INACTIVE" ? "default" : "outline"}
@@ -423,7 +424,7 @@
           fetchUsers();
         }}
       >
-        Inactive
+        {tm("Inactive")}
       </Button>
     </div>
     <div class="flex items-center gap-2">
@@ -433,16 +434,15 @@
       {#if hasPermission("users.write")}
         {#if !canSendEmail}
           <p class="text-muted-foreground max-w-xs text-xs">
-            Email service not configured. Cannot invite new users. Please go to
+            {tm("Email service not configured. Cannot invite new users.")}
             <a href={`${GC.DOCS_URL}/v4/setup/email-setup`} target="_blank" class="text-blue-500 underline">
-              setup email
+              {tm("Email setup")}
             </a>
-            for more info.
           </p>
         {/if}
         <Button onclick={() => (showAddUserDialog = true)} disabled={!canSendEmail}>
           <PlusIcon class="h-4 w-4" />
-          Add User
+          {tm("Add User")}
         </Button>
       {/if}
     </div>
@@ -453,13 +453,13 @@
     <Table.Root>
       <Table.Header>
         <Table.Row>
-          <Table.Head>Name</Table.Head>
-          <Table.Head>Email</Table.Head>
-          <Table.Head class="text-center">Auth</Table.Head>
-          <Table.Head class="text-center">Verified</Table.Head>
-          <Table.Head>Role</Table.Head>
-          <Table.Head>Status</Table.Head>
-          <Table.Head class="w-20 text-center">Actions</Table.Head>
+          <Table.Head>{tm("Name")}</Table.Head>
+          <Table.Head>{tm("Email")}</Table.Head>
+          <Table.Head class="text-center">{tm("Auth")}</Table.Head>
+          <Table.Head class="text-center">{tm("Verified")}</Table.Head>
+          <Table.Head>{tm("Role")}</Table.Head>
+          <Table.Head>{tm("Status")}</Table.Head>
+          <Table.Head class="w-20 text-center">{tm("Actions")}</Table.Head>
         </Table.Row>
       </Table.Header>
       <Table.Body>
@@ -468,25 +468,25 @@
             <Table.Cell colspan={7} class="py-8 text-center">
               <div class="flex items-center justify-center gap-2">
                 <Spinner class="size-4" />
-                <span class="text-muted-foreground text-sm">Loading users...</span>
+                <span class="text-muted-foreground text-sm">{tm("Loading users...")}</span>
               </div>
             </Table.Cell>
           </Table.Row>
         {:else if users.length === 0}
           <Table.Row>
-            <Table.Cell colspan={7} class="text-muted-foreground py-8 text-center">No users found.</Table.Cell>
+            <Table.Cell colspan={7} class="text-muted-foreground py-8 text-center">{tm("No users found.")}</Table.Cell>
           </Table.Row>
         {:else}
           {#each users as user (user.id)}
             <Table.Row class={currentUser.id === user.id ? "bg-muted/50" : ""}>
               <Table.Cell class="font-medium"
                 >{user.name}{#if currentUser.id === user.id}
-                  <Badge variant="outline" class="ml-1 text-[10px]">You</Badge>{/if}</Table.Cell
+                  <Badge variant="outline" class="ml-1 text-[10px]">{tm("You")}</Badge>{/if}</Table.Cell
               >
               <Table.Cell>{user.email}</Table.Cell>
               <Table.Cell class="text-center">
                 <Badge variant={user.auth_provider === GC.AUTH_PROVIDER_OIDC ? "default" : "outline"}>
-                  {user.auth_provider === GC.AUTH_PROVIDER_OIDC ? "OIDC" : "Local"}
+                  {user.auth_provider === GC.AUTH_PROVIDER_OIDC ? "OIDC" : tm("Local")}
                 </Badge>
               </Table.Cell>
               <Table.Cell class="text-center">
@@ -508,9 +508,9 @@
               </Table.Cell>
               <Table.Cell>
                 {#if user.is_active}
-                  <span class="text-sm font-semibold text-green-500">ACTIVE</span>
+                  <span class="text-sm font-semibold text-green-500">{tmStatus("ACTIVE")}</span>
                 {:else}
-                  <span class="text-sm font-semibold text-pink-500">INACTIVE</span>
+                  <span class="text-sm font-semibold text-pink-500">{tmStatus("INACTIVE")}</span>
                 {/if}
               </Table.Cell>
               <Table.Cell class="text-center">
@@ -528,7 +528,7 @@
                     {#if sendingSelfVerification}
                       <Spinner class="size-4" />
                     {/if}
-                    Verify Email
+                    {tm("Verify Email")}
                   </Button>
                 {/if}
               </Table.Cell>
@@ -544,7 +544,9 @@
     {@const startItem = (page - 1) * limit + 1}
     {@const endItem = Math.min(page * limit, total)}
     <div class="flex items-center justify-between">
-      <span class="text-muted-foreground text-sm">Showing {startItem}-{endItem} of {total}</span>
+      <span class="text-muted-foreground text-sm"
+        >{tm("Showing %from-%to of %total", { from: startItem, to: endItem, total: total })}</span
+      >
       {#if totalPages > 1}
         <div class="flex items-center gap-2">
           <Button variant="outline" size="icon" disabled={page === 1} onclick={() => goToPage(page - 1)}>
@@ -574,8 +576,8 @@
 <Dialog.Root bind:open={showAddUserDialog}>
   <Dialog.Content class="sm:max-w-md">
     <Dialog.Header>
-      <Dialog.Title>Add New User</Dialog.Title>
-      <Dialog.Description>Add a new user to your project</Dialog.Description>
+      <Dialog.Title>{tm("Add New User")}</Dialog.Title>
+      <Dialog.Description>{tm("Add a new user to your project")}</Dialog.Description>
     </Dialog.Header>
     <form
       onsubmit={(e) => {
@@ -585,16 +587,16 @@
     >
       <div class="space-y-4 py-4">
         <div class="space-y-2">
-          <Label for="name">Name</Label>
+          <Label for="name">{tm("Name")}</Label>
           <Input id="name" type="text" placeholder="John Doe" bind:value={newUser.name} required />
         </div>
         <div class="space-y-2">
-          <Label for="email">Email</Label>
+          <Label for="email">{tm("Email")}</Label>
           <Input id="email" type="email" placeholder="email@example.com" bind:value={newUser.email} required />
         </div>
 
         <div class="space-y-2">
-          <Label>Roles</Label>
+          <Label>{tm("Roles")}</Label>
           <div class="space-y-2">
             {#each activeRoles as role (role.id)}
               <label class="flex items-center gap-2">
@@ -608,7 +610,7 @@
               </label>
             {/each}
             {#if activeRoles.length === 0}
-              <p class="text-muted-foreground text-sm">No roles available</p>
+              <p class="text-muted-foreground text-sm">{tm("No roles available")}</p>
             {/if}
           </div>
         </div>
@@ -617,12 +619,12 @@
         {/if}
       </div>
       <Dialog.Footer>
-        <Button type="button" variant="outline" onclick={() => (showAddUserDialog = false)}>Cancel</Button>
+        <Button type="button" variant="outline" onclick={() => (showAddUserDialog = false)}>{tm("Cancel")}</Button>
         <Button type="submit" disabled={creatingUser}>
           {#if creatingUser}
             <Spinner class="size-4" />
           {/if}
-          Add User
+          {tm("Add User")}
         </Button>
       </Dialog.Footer>
     </form>
@@ -633,8 +635,8 @@
 <Sheet.Root bind:open={showSettingsSheet}>
   <Sheet.Content side="right" class="w-full overflow-y-auto sm:max-w-xl">
     <Sheet.Header>
-      <Sheet.Title>Settings - {toEditUser?.name}</Sheet.Title>
-      <Sheet.Description>Manage user settings and permissions</Sheet.Description>
+      <Sheet.Title>{tm("Settings – %name", { name: toEditUser?.name ?? "" })}</Sheet.Title>
+      <Sheet.Description>{tm("Manage user settings and permissions")}</Sheet.Description>
     </Sheet.Header>
     <div class="px-4">
       {#if toEditUser}
@@ -642,15 +644,15 @@
           <!-- User Info -->
           <div class="space-y-2 text-sm">
             <p>
-              <strong>Created At:</strong>
+              <strong>{tm("Created At:")}</strong>
               <LocalTime value={toEditUser.created_at} format="MMM dd, yyyy HH:mm" />
             </p>
             <p>
-              <strong>Updated At:</strong>
+              <strong>{tm("Updated At:")}</strong>
               <LocalTime value={toEditUser.updated_at} format="MMM dd, yyyy HH:mm" />
             </p>
             <p>
-              <strong>Name:</strong>
+              <strong>{tm("Name:")}</strong>
               {toEditUser.name}
             </p>
           </div>
@@ -659,11 +661,15 @@
             <Card.Root>
               <Card.Content class="">
                 <p class="mb-3 text-sm">
-                  This user hasn't set their password yet. Resend the invitation email to {toEditUser.email}.
+                  {tm("This user hasn't set their password yet. Resend the invitation email to %email.", {
+                    email: toEditUser.email
+                  })}
                 </p>
                 {#if !canSendEmail}
                   <Alert.Root variant="destructive" class="mb-4">
-                    <Alert.Description>Email service not configured. Cannot resend invitation email.</Alert.Description>
+                    <Alert.Description
+                      >{tm("Email service not configured. Cannot resend invitation email.")}</Alert.Description
+                    >
                   </Alert.Root>
                 {/if}
                 <Button
@@ -674,13 +680,13 @@
                     manualSuccess = "";
                     await resendInvitationEmail(toEditUser!.email);
                     toEditUser!.actions.resendingInvitation = false;
-                    manualSuccess = "Invitation email resent successfully";
+                    manualSuccess = tm("Invitation email resent successfully");
                   }}
                 >
                   {#if toEditUser.actions.resendingInvitation}
                     <Spinner class="size-4" />
                   {/if}
-                  Resend Invitation
+                  {tm("Resend Invitation")}
                 </Button>
               </Card.Content>
             </Card.Root>
@@ -690,7 +696,7 @@
           <Card.Root>
             <Card.Content class="p-4">
               <p class="mb-3 text-sm">
-                Change the roles of the user. The user will have different permissions based on assigned roles.
+                {tm("Change the roles of the user. The user will have different permissions based on assigned roles.")}
               </p>
               <div class="space-y-2">
                 {#each activeRoles as role (role.id)}
@@ -706,7 +712,7 @@
                   </label>
                 {/each}
                 {#if activeRoles.length === 0}
-                  <p class="text-muted-foreground text-sm">No roles available</p>
+                  <p class="text-muted-foreground text-sm">{tm("No roles available")}</p>
                 {/if}
               </div>
               <Button
@@ -723,7 +729,7 @@
                 {#if toEditUser.actions.updatingRole}
                   <Spinner class="size-4" />
                 {/if}
-                Update Roles
+                {tm("Update Roles")}
               </Button>
             </Card.Content>
           </Card.Root>
@@ -731,12 +737,15 @@
           <!-- Services the user manages (role Service Manager) -->
           <Card.Root>
             <Card.Content class="p-4">
-              <p class="mb-1 text-sm font-medium">Services this user manages</p>
+              <p class="mb-1 text-sm font-medium">{tm("Services this user manages")}</p>
               <p class="text-muted-foreground mb-3 text-xs">
-                With the role <b>Service Manager</b>, the user signs in to a page with only these services: they can set
-                the status, report problems and plan maintenance, and see nothing else.
+                <span
+                  >{@html tmh(
+                    "With the role **Service Manager**, the user signs in to a page with only these services: they can set the status, report problems and plan maintenance, and see nothing else."
+                  )}</span
+                >
                 {#if !toEditUser.role_ids.includes("service_manager")}
-                  This user does not have that role yet.
+                  {tm("This user does not have that role yet.")}
                 {/if}
               </p>
               <Select.Root
@@ -747,7 +756,7 @@
                 <Select.Trigger class="w-full" disabled={toEditUser.actions.updatingServices}>
                   <span class="truncate">
                     {#if (toEditUser.monitor_tags ?? []).length === 0}
-                      No services
+                      {tm("No services")}
                     {:else}
                       {(toEditUser.monitor_tags ?? []).map(monitorName).join(", ")}
                     {/if}
@@ -768,7 +777,7 @@
                 {#if toEditUser.actions.updatingServices}
                   <Spinner class="size-4" />
                 {/if}
-                Update Services
+                {tm("Update Services")}
               </Button>
             </Card.Content>
           </Card.Root>
@@ -778,7 +787,7 @@
             <Card.Root class="border-destructive">
               <Card.Content class="p-4">
                 <p class="mb-3 text-sm">
-                  Deactivate User. The user will not be able to login. Existing session will get invalidated.
+                  {tm("Deactivate User. The user will not be able to login. Existing session will get invalidated.")}
                 </p>
                 <Button
                   variant="destructive"
@@ -794,14 +803,14 @@
                   {#if toEditUser.actions.deactivatingUser}
                     <Spinner class="size-4" />
                   {/if}
-                  Deactivate User
+                  {tm("Deactivate User")}
                 </Button>
               </Card.Content>
             </Card.Root>
           {:else}
             <Card.Root>
               <Card.Content class="p-4">
-                <p class="mb-3 text-sm">Activate User. The user will be able to login.</p>
+                <p class="mb-3 text-sm">{tm("Activate User. The user will be able to login.")}</p>
                 <Button
                   variant="secondary"
                   disabled={toEditUser.actions.activatingUser}
@@ -816,7 +825,7 @@
                   {#if toEditUser.actions.activatingUser}
                     <Spinner class="size-4" />
                   {/if}
-                  Activate User
+                  {tm("Activate User")}
                 </Button>
               </Card.Content>
             </Card.Root>

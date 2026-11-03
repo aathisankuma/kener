@@ -9,6 +9,7 @@ const ROOTS = [
   "src/routes/(account)",
   "src/lib/components/manage",
   "src/lib/components",
+  "src/lib/alerts",
   "src/lib/uiLocale.svelte.ts",
 ];
 

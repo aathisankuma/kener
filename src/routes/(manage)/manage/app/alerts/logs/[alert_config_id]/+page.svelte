@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tm, tmStatus } from "$lib/uiLocale.svelte";
   import { goto } from "$app/navigation";
   import { onMount } from "svelte";
   import { Button } from "$lib/components/ui/button/index.js";
@@ -107,7 +108,7 @@
         await fetchAlerts();
       }
     } catch (error) {
-      toast.error("Failed to update status");
+      toast.error(tm("Failed to update status"));
     }
   }
 
@@ -139,11 +140,11 @@
       if (result.error) {
         toast.error(result.error);
       } else {
-        toast.success("Alert deleted successfully");
+        toast.success(tm("Alert deleted successfully"));
         await fetchAlerts();
       }
     } catch (error) {
-      toast.error("Failed to delete alert");
+      toast.error(tm("Failed to delete alert"));
     } finally {
       deleteDialogOpen = false;
       alertToDelete = null;
@@ -175,11 +176,11 @@
   <Breadcrumb.Root>
     <Breadcrumb.List>
       <Breadcrumb.Item>
-        <Breadcrumb.Link href={clientResolver(resolve, "/manage/app/alerts")}>Alerts</Breadcrumb.Link>
+        <Breadcrumb.Link href={clientResolver(resolve, "/manage/app/alerts")}>{tm("Alerts")}</Breadcrumb.Link>
       </Breadcrumb.Item>
       <Breadcrumb.Separator />
       <Breadcrumb.Item>
-        <Breadcrumb.Page>Alert Logs</Breadcrumb.Page>
+        <Breadcrumb.Page>{tm("Alert Logs")}</Breadcrumb.Page>
       </Breadcrumb.Item>
     </Breadcrumb.List>
   </Breadcrumb.Root>
@@ -190,12 +191,12 @@
   <div class="flex items-center gap-3">
     <Select.Root type="single" value={statusFilter} onValueChange={handleStatusChange}>
       <Select.Trigger class="w-36">
-        {statusFilter === "ALL" ? "All Status" : statusFilter}
+        {statusFilter === "ALL" ? tm("All Status") : tmStatus(statusFilter)}
       </Select.Trigger>
       <Select.Content>
-        <Select.Item value="ALL">All Status</Select.Item>
-        <Select.Item value="TRIGGERED">Triggered</Select.Item>
-        <Select.Item value="RESOLVED">Resolved</Select.Item>
+        <Select.Item value="ALL">{tm("All Status")}</Select.Item>
+        <Select.Item value="TRIGGERED">{tmStatus("TRIGGERED")}</Select.Item>
+        <Select.Item value="RESOLVED">{tmStatus("RESOLVED")}</Select.Item>
       </Select.Content>
     </Select.Root>
     {#if loading}
@@ -208,11 +209,11 @@
     <div class="flex flex-col items-center gap-4 py-16 text-center">
       <BellOffIcon class="text-muted-foreground size-16" />
       <div class="space-y-2">
-        <h3 class="text-lg font-semibold">No alert logs</h3>
+        <h3 class="text-lg font-semibold">{tm("No alert logs")}</h3>
         <p class="text-muted-foreground text-sm">
           {statusFilter !== "ALL"
             ? `No ${statusFilter.toLowerCase()} alerts found.`
-            : "This alert has not been triggered yet."}
+            : tm("This alert has not been triggered yet.")}
         </p>
       </div>
     </div>
@@ -223,12 +224,12 @@
         <Table.Header>
           <Table.Row>
             <Table.Head class="w-16">ID</Table.Head>
-            <Table.Head class="w-40">Monitor</Table.Head>
-            <Table.Head class="w-40">Status</Table.Head>
-            <Table.Head class="w-32">Incident</Table.Head>
-            <Table.Head class="w-44">Created At</Table.Head>
-            <Table.Head class="w-44">Updated At</Table.Head>
-            <Table.Head class="w-20 text-right">Actions</Table.Head>
+            <Table.Head class="w-40">{tm("Monitor")}</Table.Head>
+            <Table.Head class="w-40">{tm("Status")}</Table.Head>
+            <Table.Head class="w-32">{tm("Incident")}</Table.Head>
+            <Table.Head class="w-44">{tm("Created At")}</Table.Head>
+            <Table.Head class="w-44">{tm("Updated At")}</Table.Head>
+            <Table.Head class="w-20 text-right">{tm("Actions")}</Table.Head>
           </Table.Row>
         </Table.Header>
         <Table.Body>
@@ -248,10 +249,10 @@
                   value={alert.alert_status}
                   onValueChange={(v) => v && updateAlertStatus(alert.id, v as "TRIGGERED" | "RESOLVED")}
                 >
-                  <Select.Trigger class="h-8 w-32">{alert.alert_status}</Select.Trigger>
+                  <Select.Trigger class="h-8 w-32">{tmStatus(alert.alert_status)}</Select.Trigger>
                   <Select.Content>
-                    <Select.Item value="TRIGGERED">TRIGGERED</Select.Item>
-                    <Select.Item value="RESOLVED">RESOLVED</Select.Item>
+                    <Select.Item value="TRIGGERED">{tmStatus("TRIGGERED")}</Select.Item>
+                    <Select.Item value="RESOLVED">{tmStatus("RESOLVED")}</Select.Item>
                   </Select.Content>
                 </Select.Root>
               </Table.Cell>
@@ -272,7 +273,8 @@
               <Table.Cell class="text-muted-foreground text-sm"><LocalTime value={alert.updated_at} /></Table.Cell>
               <Table.Cell class="text-right">
                 <Button variant="destructive" size="sm" class="text-xs" onclick={() => openDeleteDialog(alert)}>
-                  <TrashIcon class="size-3" /> Delete
+                  <TrashIcon class="size-3" />
+                  {tm("Delete")}
                 </Button>
               </Table.Cell>
             </Table.Row>
@@ -287,7 +289,9 @@
     {@const startItem = (pageNo - 1) * limit + 1}
     {@const endItem = Math.min(pageNo * limit, totalCount)}
     <div class="flex items-center justify-between">
-      <span class="text-muted-foreground text-sm">Showing {startItem}-{endItem} of {totalCount}</span>
+      <span class="text-muted-foreground text-sm"
+        >{tm("Showing %from-%to of %total", { from: startItem, to: endItem, total: totalCount })}</span
+      >
       {#if totalPages > 1}
         <div class="flex items-center gap-2">
           <Button variant="outline" size="icon" disabled={pageNo === 1} onclick={() => goToPage(pageNo - 1)}>
@@ -317,9 +321,9 @@
 <AlertDialog.Root bind:open={deleteDialogOpen}>
   <AlertDialog.Content>
     <AlertDialog.Header>
-      <AlertDialog.Title>Delete Alert</AlertDialog.Title>
+      <AlertDialog.Title>{tm("Delete Alert")}</AlertDialog.Title>
       <AlertDialog.Description>
-        Are you sure you want to delete this alert? This action cannot be undone.
+        {tm("Are you sure you want to delete this alert? This action cannot be undone.")}
       </AlertDialog.Description>
     </AlertDialog.Header>
 
@@ -327,14 +331,15 @@
       <div class="flex items-center gap-3 py-2">
         <Checkbox id="delete-incident" bind:checked={deleteIncident} />
         <label for="delete-incident" class="text-sm">
-          Also delete associated incident <span class="text-primary font-medium">#{alertToDelete.incident_id}</span>
+          {tm("Also delete associated incident")}
+          <span class="text-primary font-medium">#{alertToDelete.incident_id}</span>
         </label>
       </div>
     {/if}
 
     <AlertDialog.Footer>
-      <AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
-      <AlertDialog.Action onclick={confirmDelete}>Delete</AlertDialog.Action>
+      <AlertDialog.Cancel>{tm("Cancel")}</AlertDialog.Cancel>
+      <AlertDialog.Action onclick={confirmDelete}>{tm("Delete")}</AlertDialog.Action>
     </AlertDialog.Footer>
   </AlertDialog.Content>
 </AlertDialog.Root>

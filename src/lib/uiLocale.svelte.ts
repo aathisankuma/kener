@@ -115,6 +115,12 @@ export function tmStatus(code: string | null | undefined): string {
       return tm("ACTIVE");
     case "INACTIVE":
       return tm("INACTIVE");
+    case "STATUS":
+      return tm("STATUS");
+    case "LATENCY":
+      return tm("LATENCY");
+    case "UPTIME":
+      return tm("UPTIME");
     default:
       return code ?? "";
   }
