@@ -222,6 +222,13 @@
     "1 report in the last minutes": "1 Meldung in den letzten Minuten",
     "%count reports in the last minutes": "%count Meldungen in den letzten Minuten",
     "Could not send the report": "Meldung konnte nicht gesendet werden",
-    "Sign in to report a problem": "Zum Melden anmelden"
+    "Sign in to report a problem": "Zum Melden anmelden",
+    "INSECURE": "UNSICHER",
+    "UNKNOWN": "UNBEKANNT",
+    "Issued By": "Ausgestellt von",
+    "Expires At": "Läuft ab am",
+    "Open events page": "Ereignisseite öffnen",
+    "Time Remaining": "Verbleibende Zeit",
+    "SECURED": "GESICHERT"
   }
 }
