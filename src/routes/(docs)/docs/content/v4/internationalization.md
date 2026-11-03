@@ -67,6 +67,16 @@ node scripts/sort-translations.js
 - `check-translations` reports missing/unused keys.
 - `sort-translations` normalizes key order in locale files.
 
+### Admin and sign-in language {#localization-admin}
+
+The admin area (**Manage**) and the sign-in pages are available in English, German, French and Italian.
+
+- Each user picks a language with the language menu: in the admin header, or in the lower right corner of the sign-in pages.
+- The choice is stored in the browser (cookie `kener-ui-locale`) and applies to that browser only.
+- Without a choice, Kener uses the status page's default locale if it is one of these four, otherwise English.
+
+These texts live in `src/lib/locales/manage/{de,fr,it}.json`, with the English text as the key. `src/lib/uiLocale.test.ts` fails when a text of the admin area has no translation in one of the languages.
+
 ## Timezone handling {#timezone}
 
 ### How it works {#timezone-how-it-works}
