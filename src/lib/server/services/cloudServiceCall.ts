@@ -1,7 +1,20 @@
 import axios from "axios";
 import GC from "../../global-constants.js";
 import type { CloudServiceMonitor, MonitoringResult } from "../types/monitor.js";
-import { ChosenComponents, GetCloudProvider, IsAzureResourceId, type CloudProvider } from "../../cloudServices.js";
+import {
+  ChosenComponents,
+  ChosenComponentsFor,
+  GetCloudProvider,
+  IsAzureResourceId,
+  type CloudProvider,
+} from "../../cloudServices.js";
+import {
+  FetchUptimeRobotPage,
+  FindUptimeRobotMonitor,
+  IsPausedUptimeRobotMonitor,
+  MapUptimeRobotStatus,
+  UptimeRobotPageStatus,
+} from "../uptimeRobotClient.js";
 import { WorstStatus } from "../instatusClient.js";
 import { FetchAzureCurrent, MapAzureAvailability } from "../azureResourceHealth.js";
 import {
@@ -100,6 +113,7 @@ class CloudServiceCall {
       if (provider.kind === "m365") return await this.checkM365(provider);
       if (provider.kind === "azure") return await this.checkAzure();
       if (provider.kind === "instatus") return await this.checkInstatus(provider);
+      if (provider.kind === "uptimerobot") return await this.checkUptimeRobot(provider);
       return await this.checkStatuspage(provider);
     } catch (err: unknown) {
       const error = err as { code?: string; message?: string };
@@ -215,6 +229,46 @@ class CloudServiceCall {
       return this.fail(GC.ERROR, `Unknown page status "${summary.page.status}"`);
     }
     return { status, latency, type: GC.REALTIME, raw_status: String(summary.page.status) };
+  }
+
+  // ---------------------------------------------------------------- UptimeRobot
+
+  private async checkUptimeRobot(provider: CloudProvider): Promise<MonitoringResult> {
+    const data = this.monitor.type_data;
+    const base = StatuspageBase(provider, data);
+    if (!base) {
+      return this.fail(GC.ERROR, "Status page URL is missing or not http(s)");
+    }
+    const chosen = ChosenComponentsFor(provider, data);
+    const started = Date.now();
+    const page = await FetchUptimeRobotPage(base, data.timeout || 10000);
+    const latency = Date.now() - started;
+
+    if (chosen.length === 0) {
+      const result = UptimeRobotPageStatus(page.monitors);
+      if (!result) return this.fail(GC.ERROR, "The page lists no monitors that are checked");
+      return { status: result.status, latency, type: GC.REALTIME, raw_status: result.raw };
+    }
+
+    const found: Array<{ name: string; status: string }> = [];
+    const missing: string[] = [];
+    const paused: string[] = [];
+    for (const component of chosen) {
+      const match = FindUptimeRobotMonitor(page.monitors, component);
+      if (!match) missing.push(component);
+      else if (IsPausedUptimeRobotMonitor(match)) paused.push(match.name);
+      else found.push({ name: match.name, status: match.statusClass });
+    }
+    if (missing.length > 0) {
+      return this.fail(
+        GC.ERROR,
+        `Component${missing.length > 1 ? "s" : ""} ${missing.map((m) => `"${m}"`).join(", ")} not found. Available: ${page.monitors.map((m) => m.name).join(", ") || "none"}`,
+      );
+    }
+    if (found.length === 0) {
+      return this.fail(GC.ERROR, `Not checked by the provider right now (paused): ${paused.join(", ")}`);
+    }
+    return this.worstOf(found, (s) => MapUptimeRobotStatus(s), latency);
   }
 
   // ---------------------------------------------------------------- Azure

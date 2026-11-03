@@ -7,8 +7,10 @@
 //   Graph (needs an app registration with the ServiceHealth.Read.All application permission).
 // - "azure" providers are one Azure resource, e.g. an Azure OpenAI account, read from Azure Resource
 //   Health (the same app registration, with the Reader role on the resource).
+// - "uptimerobot" providers publish an UptimeRobot status page. UptimeRobot documents no API for
+//   it, so Kener reads what the page itself loads (see server/uptimeRobotClient.ts).
 
-export type CloudProviderKind = "statuspage" | "instatus" | "m365" | "azure";
+export type CloudProviderKind = "statuspage" | "instatus" | "m365" | "azure" | "uptimerobot";
 
 export interface CloudProvider {
   id: string;
@@ -23,12 +25,24 @@ export interface CloudProvider {
   m365Match?: string[];
   /** Web page whose icon is the service's icon. Statuspage providers use their status page. */
   iconSite?: string;
+  /**
+   * Components saved by an earlier version of this service, which no longer exist on its page.
+   * They are ignored, so such a monitor follows the whole page.
+   */
+  legacyComponents?: string[];
 }
 
 /** Provider id for any other Atlassian Statuspage, entered by URL. */
 export const CLOUD_CUSTOM_STATUSPAGE = "statuspage-custom";
 /** Provider id for any other Instatus page, entered by URL. */
 export const CLOUD_CUSTOM_INSTATUS = "instatus-custom";
+/** Provider id for any other UptimeRobot status page, entered by URL. */
+export const CLOUD_CUSTOM_UPTIMEROBOT = "uptimerobot-custom";
+
+/** Provider ids whose status page URL the admin enters. */
+export function IsCustomStatusPage(id: string | undefined): boolean {
+  return id === CLOUD_CUSTOM_STATUSPAGE || id === CLOUD_CUSTOM_INSTATUS || id === CLOUD_CUSTOM_UPTIMEROBOT;
+}
 /** Provider id for any other Microsoft 365 service, entered by its Graph name or id. */
 export const CLOUD_CUSTOM_M365 = "m365-custom";
 
@@ -51,8 +65,10 @@ export function IsAzureResourceId(value: unknown): boolean {
 }
 
 /** Provider kinds whose status comes from a public page, so a URL and a component apply. */
-export function IsStatusPageKind(kind: CloudProviderKind | undefined): kind is "statuspage" | "instatus" {
-  return kind === "statuspage" || kind === "instatus";
+export function IsStatusPageKind(
+  kind: CloudProviderKind | undefined,
+): kind is "statuspage" | "instatus" | "uptimerobot" {
+  return kind === "statuspage" || kind === "instatus" || kind === "uptimerobot";
 }
 
 export const CLOUD_PROVIDERS: CloudProvider[] = [
@@ -242,15 +258,15 @@ export const CLOUD_PROVIDERS: CloudProvider[] = [
     url: "https://status.deepcloud.swiss",
   },
   {
-    // status.swiss21.org runs on UptimeRobot, which has no public status API; the Abacus page
-    // lists Swiss21 as one of its components.
+    // Swiss21's own page, run on UptimeRobot, lists each Swiss21 service (AbaNinja, Portal, …).
+    // Earlier versions read the "Swiss21 Services" component of the Abacus page instead.
     id: "swiss21",
-    label: "Swiss21 (via Abacus status page)",
+    label: "Swiss21",
     group: "Abacus",
-    kind: "instatus",
-    url: "https://status.abaservices.ch",
-    defaultComponent: "Swiss21 Services",
+    kind: "uptimerobot",
+    url: "https://status.swiss21.org",
     iconSite: "https://swiss21.org",
+    legacyComponents: ["Swiss21 Services"],
   },
 
   // Other services that publish a Statuspage
@@ -298,6 +314,9 @@ export function GetCloudProvider(id: string | undefined): CloudProvider | undefi
   }
   if (id === CLOUD_CUSTOM_INSTATUS) {
     return { id, label: "Other Instatus page (URL)", group: "Other", kind: "instatus" };
+  }
+  if (id === CLOUD_CUSTOM_UPTIMEROBOT) {
+    return { id, label: "Other UptimeRobot page (URL)", group: "Other", kind: "uptimerobot" };
   }
   if (id === CLOUD_CUSTOM_AZURE) {
     return {
@@ -448,4 +467,13 @@ export function ChosenComponents(data: { component?: unknown; components?: unkno
     }
   }
   return out;
+}
+
+/** The components a monitor follows on its provider's page, without the provider's legacy names. */
+export function ChosenComponentsFor(
+  provider: Pick<CloudProvider, "legacyComponents"> | undefined,
+  data: { component?: unknown; components?: unknown } | null | undefined,
+): string[] {
+  const legacy = new Set((provider?.legacyComponents ?? []).map((c) => c.toLowerCase()));
+  return ChosenComponents(data).filter((c) => !legacy.has(c.toLowerCase()));
 }

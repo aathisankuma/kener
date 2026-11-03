@@ -12,6 +12,8 @@
     CLOUD_CUSTOM_INSTATUS,
     CLOUD_CUSTOM_M365,
     CLOUD_CUSTOM_STATUSPAGE,
+    CLOUD_CUSTOM_UPTIMEROBOT,
+    IsCustomStatusPage,
     GetCloudProvider,
     CloudServicesInUse,
     ChosenComponents,
@@ -44,6 +46,12 @@
   // Several components; a monitor saved with the older single `component` keeps it as the first.
   if (!Array.isArray(data.components)) data.components = ChosenComponents(data);
   data.component = "";
+  // Components of an earlier version of the service (e.g. Swiss21 read from the Abacus page) no
+  // longer exist on its page: drop them, so the monitor follows the whole page until one is picked.
+  {
+    const legacy = (GetCloudProvider(data.provider)?.legacyComponents ?? []).map((c) => c.toLowerCase());
+    if (legacy.length > 0) data.components = data.components.filter((c: string) => !legacy.includes(c.toLowerCase()));
+  }
 
   let provider = $derived(GetCloudProvider(data.provider));
   const inUse = $derived(CloudServicesInUse(otherMonitors));
@@ -58,7 +66,7 @@
   const duplicate = $derived(
     usedHere.find((u) => setKey(u.component ? u.component.split(", ") : []) === setKey(ChosenComponents(data)))
   );
-  let isCustomPage = $derived(data.provider === CLOUD_CUSTOM_STATUSPAGE || data.provider === CLOUD_CUSTOM_INSTATUS);
+  let isCustomPage = $derived(IsCustomStatusPage(data.provider));
   let statuspageBase = $derived(
     (provider?.url || (isCustomPage ? data.statuspageUrl : "") || "").trim().replace(/\/+$/, "")
   );
@@ -141,6 +149,7 @@
             {#if group === "Other"}
               <Select.Item value={CLOUD_CUSTOM_STATUSPAGE}>Other Statuspage (URL)…</Select.Item>
               <Select.Item value={CLOUD_CUSTOM_INSTATUS}>Other Instatus page (URL)…</Select.Item>
+              <Select.Item value={CLOUD_CUSTOM_UPTIMEROBOT}>Other UptimeRobot page (URL)…</Select.Item>
             {/if}
           </Select.Group>
         {/each}
@@ -177,6 +186,10 @@
         <p class="text-muted-foreground text-xs">
           {#if provider?.kind === "instatus"}
             Any page run on Instatus ("Powered by Instatus" in its footer): it answers at <code>/v3/summary.json</code>.
+          {:else if provider?.kind === "uptimerobot"}
+            Any public status page run on UptimeRobot (its footer links to uptimerobot.com), with its own address or at <code
+              >stats.uptimerobot.com/…</code
+            >. Each of its monitors can be picked as a component.
           {:else}
             Any page run on Atlassian Statuspage: it answers at <code>/api/v2/status.json</code>.
           {/if}
@@ -244,16 +257,18 @@
       {/if}
     </div>
 
-    <div class="flex items-start gap-2">
-      <Switch id="cloud-ignore-minor" bind:checked={data.ignoreMinor} />
-      <div>
-        <Label for="cloud-ignore-minor">Ignore minor issues</Label>
-        <p class="text-muted-foreground text-xs">
-          Minor incidents and degraded performance count as UP, so small problems elsewhere in the world do not turn the
-          card yellow. On for new monitors; turn it off to see every minor issue.
-        </p>
+    {#if provider?.kind !== "uptimerobot"}
+      <div class="flex items-start gap-2">
+        <Switch id="cloud-ignore-minor" bind:checked={data.ignoreMinor} />
+        <div>
+          <Label for="cloud-ignore-minor">Ignore minor issues</Label>
+          <p class="text-muted-foreground text-xs">
+            Minor incidents and degraded performance count as UP, so small problems elsewhere in the world do not turn
+            the card yellow. On for new monitors; turn it off to see every minor issue.
+          </p>
+        </div>
       </div>
-    </div>
+    {/if}
   {:else if IsMicrosoftKind(provider?.kind)}
     {#if provider?.kind === "azure"}
       <div class="flex flex-col gap-2">

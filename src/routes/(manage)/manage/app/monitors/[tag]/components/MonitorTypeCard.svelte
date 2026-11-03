@@ -47,13 +47,7 @@
     MonitorDocker,
     MonitorCloud
   } from "../types/index.js";
-  import {
-    GetCloudProvider,
-    IsAzureResourceId,
-    CLOUD_CUSTOM_INSTATUS,
-    CLOUD_CUSTOM_M365,
-    CLOUD_CUSTOM_STATUSPAGE
-  } from "$lib/cloudServices.js";
+  import { GetCloudProvider, IsAzureResourceId, CLOUD_CUSTOM_M365, IsCustomStatusPage } from "$lib/cloudServices.js";
 
   interface Props {
     monitor: MonitorRecord;
@@ -323,11 +317,7 @@
         const data = typeData as any;
         const provider = GetCloudProvider(data.provider);
         if (!provider) return false;
-        if (
-          (data.provider === CLOUD_CUSTOM_STATUSPAGE || data.provider === CLOUD_CUSTOM_INSTATUS) &&
-          !IsValidURL(data.statuspageUrl || "")
-        )
-          return false;
+        if (IsCustomStatusPage(data.provider) && !IsValidURL(data.statuspageUrl || "")) return false;
         // Microsoft 365 credentials may stay empty: the check then uses M365_TENANT_ID,
         // M365_CLIENT_ID and M365_CLIENT_SECRET from the environment.
         if (provider.kind === "azure" && !IsAzureResourceId(data.azureResourceId)) return false;

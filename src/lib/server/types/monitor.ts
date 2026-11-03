@@ -137,7 +137,7 @@ export interface PrometheusMonitorTypeData {
 
 export interface CloudServiceMonitorTypeData {
   provider: string; // an id from CLOUD_PROVIDERS in $lib/cloudServices, or a custom provider id
-  statuspageUrl?: string; // custom status page base URL ("statuspage-custom", "instatus-custom")
+  statuspageUrl?: string; // custom status page base URL ("statuspage-custom", "instatus-custom", "uptimerobot-custom")
   component?: string; // older single component; read when `components` is empty
   components?: string[]; // components to follow (Statuspage, Instatus), by name, "Group / Name" or id; empty = whole page
   m365Service?: string; // Microsoft 365 service name or id (provider "m365-custom")

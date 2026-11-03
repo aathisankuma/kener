@@ -5,6 +5,7 @@ import GC from "../global-constants.js";
 import type { CloudServiceMonitorTypeData } from "./types/monitor.js";
 import {
   ChosenComponents,
+  ChosenComponentsFor,
   GetCloudProvider,
   type CloudComponent,
   type CloudDetails,
@@ -32,6 +33,12 @@ import {
   type InstatusMaintenance,
 } from "./instatusClient.js";
 import { AzureComponent, AzureIncidents, FetchAzureCurrent, FetchAzureHistory } from "./azureResourceHealth.js";
+import {
+  FetchUptimeRobotPage,
+  FindUptimeRobotMonitor,
+  IsPausedUptimeRobotMonitor,
+  MapUptimeRobotStatus,
+} from "./uptimeRobotClient.js";
 
 /** ISO date -> UTC seconds, or null. */
 function toSeconds(value: unknown): number | null {
@@ -279,6 +286,58 @@ async function instatusDetails(provider: CloudProvider, data: CloudServiceMonito
   };
 }
 
+// ---------------------------------------------------------------- UptimeRobot
+
+/** Outages listed on an UptimeRobot page are shown for this long. */
+const UPTIMEROBOT_OUTAGE_DAYS = 30;
+
+async function uptimeRobotDetails(provider: CloudProvider, data: CloudServiceMonitorTypeData): Promise<CloudDetails> {
+  const base = StatuspageBase(provider, data);
+  if (!base) throw new Error("Status page URL is missing or not http(s)");
+  const page = await FetchUptimeRobotPage(base, data.timeout || 10000);
+  const only = ChosenComponentsFor(provider, data);
+  const shown =
+    only.length > 0
+      ? only.map((name) => FindUptimeRobotMonitor(page.monitors, name)).filter((m): m is NonNullable<typeof m> => !!m)
+      : page.monitors;
+  const now = Math.floor(Date.now() / 1000);
+
+  // The page publishes no incidents, only each monitor's latest outage.
+  const incidents: CloudIncident[] = shown
+    .filter((m) => m.lastDowntime && m.lastDowntime.at >= now - UPTIMEROBOT_OUTAGE_DAYS * 86400)
+    .map((m) => {
+      const down = m.lastDowntime!;
+      const ongoing = MapUptimeRobotStatus(m.statusClass) === GC.DOWN;
+      return {
+        id: `${m.id}-${down.at}`,
+        title: `${m.name}: ${down.reason}`,
+        impact: GC.DOWN as CloudStatus,
+        status: ongoing ? "down" : "resolved",
+        resolved: !ongoing,
+        startedAt: down.at,
+        resolvedAt: ongoing ? null : down.at + down.durationSeconds,
+        url: base,
+        affected: [m.name],
+        updates: [],
+      };
+    })
+    .sort((a, b) => b.startedAt - a.startedAt);
+
+  return {
+    provider: { label: provider.label, kind: "uptimerobot", pageUrl: base },
+    components: shown.map((m) => ({
+      id: m.id,
+      name: m.name,
+      description: IsPausedUptimeRobotMonitor(m) ? "Paused by the provider" : null,
+      status: (MapUptimeRobotStatus(m.statusClass) ?? GC.UP) as CloudStatus,
+      group: m.group,
+    })),
+    incidents,
+    maintenances: [],
+    fetchedAt: now,
+  };
+}
+
 // ---------------------------------------------------------------- Azure
 
 async function azureDetails(provider: CloudProvider, data: CloudServiceMonitorTypeData): Promise<CloudDetails> {
@@ -430,9 +489,11 @@ export async function GetCloudServiceDetails(
       ? m365Details(provider, data)
       : provider.kind === "instatus"
         ? instatusDetails(provider, data)
-        : provider.kind === "azure"
-          ? azureDetails(provider, data)
-          : statuspageDetails(provider, data);
+        : provider.kind === "uptimerobot"
+          ? uptimeRobotDetails(provider, data)
+          : provider.kind === "azure"
+            ? azureDetails(provider, data)
+            : statuspageDetails(provider, data);
   detailsCache.set(cacheKey, { at: Date.now(), data: result });
   result.catch(() => detailsCache.delete(cacheKey));
   return result;

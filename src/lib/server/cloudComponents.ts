@@ -5,6 +5,7 @@ import { GetCloudProvider } from "../cloudServices.js";
 import type { CloudServiceMonitorTypeData } from "./types/monitor.js";
 import { CloudHttpOptions, StatuspageBase } from "./cloudProviderClient.js";
 import { FetchInstatusComponents, InstatusComponentLabel } from "./instatusClient.js";
+import { FetchUptimeRobotPage } from "./uptimeRobotClient.js";
 
 /** Component names to choose from, in the provider's order. Throws with a reason to show. */
 export async function ListCloudComponents(data: CloudServiceMonitorTypeData): Promise<string[]> {
@@ -15,6 +16,10 @@ export async function ListCloudComponents(data: CloudServiceMonitorTypeData): Pr
   const base = StatuspageBase(provider, data);
   if (!base) throw new Error("Status page URL is missing or not http(s)");
   const timeout = Math.min(data.timeout || 10000, 15000);
+
+  if (provider.kind === "uptimerobot") {
+    return (await FetchUptimeRobotPage(base, timeout)).monitors.map((m) => m.name);
+  }
 
   if (provider.kind === "instatus") {
     const components = await FetchInstatusComponents(base, timeout);

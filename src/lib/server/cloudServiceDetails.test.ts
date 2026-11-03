@@ -287,13 +287,13 @@ describe("GetCloudServiceDetails: Instatus", () => {
     ]);
   });
 
-  it("shows only Swiss21 for the Swiss21 monitor and says whose incidents are listed", async () => {
+  it("shows only the followed component and says whose incidents are listed", async () => {
     abacus();
-    const details = await GetCloudServiceDetails("swiss21", {
-      provider: "swiss21",
+    const details = await GetCloudServiceDetails("abacus-swiss21", {
+      provider: "abacus-cloud",
       component: "Swiss21 Services",
     });
-    expect(details.provider.label).toBe("Swiss21 (via Abacus status page)");
+    expect(details.provider.label).toBe("Abacus Cloud Services");
     expect(details.components.map((c) => c.name)).toEqual(["Swiss21 Services"]);
     expect(details.incidentsFromPage).toBe("Abacus Cloud Services");
   });

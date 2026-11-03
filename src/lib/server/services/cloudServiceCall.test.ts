@@ -189,10 +189,10 @@ describe("Instatus providers", () => {
     expect(mockedAxios).toHaveBeenCalledTimes(1);
   });
 
-  it("follows Swiss21 through its component on the Abacus page", async () => {
+  it("follows one component of the Abacus page", async () => {
     routes({ "https://status.abaservices.ch/v3/components.json": ABACUS_COMPONENTS });
     const result = await new CloudServiceCall(
-      monitor({ provider: "swiss21", component: "Swiss21 Services" }),
+      monitor({ provider: "abacus-cloud", component: "Swiss21 Services" }),
     ).execute();
     expect(result).toMatchObject({ status: "DEGRADED", raw_status: "PARTIALOUTAGE" });
   });

@@ -34,7 +34,7 @@ No login is needed. Kener reads the public `/api/v2/status.json`, or `/api/v2/co
 
 Abacus Cloud Services (`status.abaservices.ch`) and DeepCloud (`status.deepcloud.swiss`) publish their status with Instatus. Pick them under **Abacus**; for any other Instatus page (its footer reads "Powered by Instatus") pick **Other Instatus page (URL)**. No login is needed: Kener reads the public `/v3/summary.json`, or `/v3/components.json` when components are set.
 
-**Swiss21** runs its page on UptimeRobot, which offers no public status API. **Swiss21 (via Abacus status page)** follows the component `Swiss21 Services` of the Abacus page instead.
+To follow Swiss21 as Abacus sees it, pick **Abacus Cloud Services** with the component `Swiss21 Services`. For Swiss21's own page, see [UptimeRobot pages](#uptimerobot).
 
 **Load list** shows the page's components. A name that appears in two groups, like `Kundenportal`, is listed as `Group / Name`.
 
@@ -46,6 +46,23 @@ Abacus Cloud Services (`status.abaservices.ch`) and DeepCloud (`status.deepcloud
 | `MAJOROUTAGE`            | DOWN                                         |
 | `UNDERMAINTENANCE`       | MAINTENANCE                                  |
 | `HASISSUES` (whole page) | the worst active incident or component       |
+
+## Swiss21 and other UptimeRobot pages {#uptimerobot}
+
+**Swiss21** (`status.swiss21.org`) publishes its status with UptimeRobot. Pick **Swiss21** under **Abacus**, then **Load list** to pick services such as `AbaNinja` or `Portal`, or leave the component empty for the whole page. For any other public UptimeRobot page (its footer links to uptimerobot.com, or its address is `stats.uptimerobot.com/…`), pick **Other UptimeRobot page (URL)**.
+
+UptimeRobot documents no API for its status pages. Kener reads the data the page itself loads, `/api/getMonitorList/{page id}`, with the page id taken from the page. If UptimeRobot changes this, the monitor reports an error until Kener is updated.
+
+| UptimeRobot shows | Kener records                                                             |
+| :---------------- | :------------------------------------------------------------------------ |
+| Up                | `UP`                                                                      |
+| Down              | `DOWN`                                                                    |
+| Paused            | Not counted; a monitor that follows only paused services reports an error |
+| Whole page        | `DOWN` when every service is down, `DEGRADED` when some are, else `UP`    |
+
+**Ignore minor issues** does not apply: UptimeRobot only knows up and down. UptimeRobot publishes no incidents, so the [detail page](#detail-page) lists each service's latest outage of the last 30 days.
+
+A monitor saved with **Swiss21 (via Abacus status page)** by an earlier version now reads Swiss21's own page and follows all its services. Edit it to pick single services.
 
 ## Microsoft 365 {#microsoft-365}
 
