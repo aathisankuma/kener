@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tm, tmh } from "$lib/uiLocale.svelte";
   import { page } from "$app/state";
   import { goto } from "$app/navigation";
   import * as Card from "$lib/components/ui/card/index.js";
@@ -148,11 +149,11 @@
           pageSettings = structuredClone(defaultPageSettings);
         }
       } else {
-        toast.error("Page not found");
+        toast.error(tm("Page not found"));
         goto(clientResolver(resolve, "/manage/app/pages"));
       }
     } catch (e) {
-      toast.error("Failed to load page");
+      toast.error(tm("Failed to load page"));
       goto(clientResolver(resolve, "/manage/app/pages"));
     } finally {
       loading = false;
@@ -171,7 +172,7 @@
         monitors = result;
       }
     } catch (e) {
-      console.error("Failed to fetch monitors", e);
+      console.error(tm("Failed to fetch monitors"), e);
     }
   }
 
@@ -209,7 +210,7 @@
       if (result.error) {
         toast.error(result.error);
       } else {
-        toast.success(isNew ? "Page created successfully" : "Page updated successfully");
+        toast.success(isNew ? tm("Page created successfully") : tm("Page updated successfully"));
         if (isNew && result.id) {
           // Navigate to the newly created page
           goto(clientResolver(resolve, `/manage/app/pages/${result.id}`));
@@ -219,7 +220,7 @@
         }
       }
     } catch (e) {
-      toast.error(isNew ? "Failed to create page" : "Failed to update page");
+      toast.error(isNew ? tm("Failed to create page") : tm("Failed to update page"));
     } finally {
       saving = false;
     }
@@ -246,12 +247,12 @@
       if (result.error) {
         toast.error(result.error);
       } else {
-        toast.success("Monitor added to page");
+        toast.success(tm("Monitor added to page"));
         selectedMonitors = [...selectedMonitors, selectedMonitorTag];
         selectedMonitorTag = "";
       }
     } catch (e) {
-      toast.error("Failed to add monitor");
+      toast.error(tm("Failed to add monitor"));
     } finally {
       addingMonitor = false;
     }
@@ -275,11 +276,11 @@
       if (result.error) {
         toast.error(result.error);
       } else {
-        toast.success("Page deleted successfully");
+        toast.success(tm("Page deleted successfully"));
         goto(clientResolver(resolve, "/manage/app/pages"));
       }
     } catch (e) {
-      toast.error("Failed to delete page");
+      toast.error(tm("Failed to delete page"));
     } finally {
       deleting = false;
     }
@@ -306,11 +307,11 @@
       if (result.error) {
         toast.error(result.error);
       } else {
-        toast.success("Monitor removed from page");
+        toast.success(tm("Monitor removed from page"));
         selectedMonitors = selectedMonitors.filter((t) => t !== monitorTag);
       }
     } catch (e) {
-      toast.error("Failed to remove monitor");
+      toast.error(tm("Failed to remove monitor"));
     } finally {
       removingMonitor = null;
     }
@@ -346,7 +347,7 @@
         toast.error(result.error);
       }
     } catch (e) {
-      toast.error("Failed to reorder monitors");
+      toast.error(tm("Failed to reorder monitors"));
     } finally {
       reordering = false;
     }
@@ -361,7 +362,7 @@
     // Validate file type
     const allowedTypes = ["image/png", "image/jpeg", "image/jpg", "image/svg+xml", "image/webp"];
     if (!allowedTypes.includes(file.type)) {
-      toast.error("Invalid file type. Allowed: PNG, JPG, SVG, WebP");
+      toast.error(tm("Invalid file type. Allowed: PNG, JPG, SVG, WebP"));
       return;
     }
 
@@ -392,7 +393,7 @@
       });
 
       if (!response.ok) {
-        toast.error("Failed to upload logo");
+        toast.error(tm("Failed to upload logo"));
         return;
       }
       const result = await response.json();
@@ -400,10 +401,10 @@
         toast.error(result.error);
       } else {
         formData.page_logo = result.url;
-        toast.success("Logo uploaded successfully");
+        toast.success(tm("Logo uploaded successfully"));
       }
     } catch (e) {
-      toast.error("Failed to upload logo");
+      toast.error(tm("Failed to upload logo"));
     } finally {
       uploadingLogo = false;
       input.value = "";
@@ -438,7 +439,7 @@
 
     const allowedTypes = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
     if (!allowedTypes.includes(file.type)) {
-      toast.error("Invalid file type. Allowed: PNG, JPG, WebP");
+      toast.error(tm("Invalid file type. Allowed: PNG, JPG, WebP"));
       return;
     }
 
@@ -466,7 +467,7 @@
       });
 
       if (!response.ok) {
-        toast.error("Failed to upload social preview image");
+        toast.error(tm("Failed to upload social preview image"));
         return;
       }
       const result = await response.json();
@@ -474,10 +475,10 @@
         toast.error(result.error);
       } else {
         pageSettings.socialPagePreviewImage = result.url;
-        toast.success("Social preview image uploaded");
+        toast.success(tm("Social preview image uploaded"));
       }
     } catch (e) {
-      toast.error("Failed to upload social preview image");
+      toast.error(tm("Failed to upload social preview image"));
     } finally {
       uploadingSocialPreview = false;
       input.value = "";
@@ -513,10 +514,10 @@
       if (result.error) {
         toast.error(result.error);
       } else {
-        toast.success("Page settings saved successfully");
+        toast.success(tm("Page settings saved successfully"));
       }
     } catch (e) {
-      toast.error("Failed to save page settings");
+      toast.error(tm("Failed to save page settings"));
     } finally {
       if (source === "display") savingDisplaySettings = false;
       else savingSeoSettings = false;
@@ -540,11 +541,11 @@
       <Breadcrumb.Root>
         <Breadcrumb.List>
           <Breadcrumb.Item>
-            <Breadcrumb.Link href={clientResolver(resolve, "/manage/app/pages")}>Pages</Breadcrumb.Link>
+            <Breadcrumb.Link href={clientResolver(resolve, "/manage/app/pages")}>{tm("Pages")}</Breadcrumb.Link>
           </Breadcrumb.Item>
           <Breadcrumb.Separator />
           <Breadcrumb.Item>
-            <Breadcrumb.Page>{isNew ? "New Page" : currentPage?.page_title || "Edit Page"}</Breadcrumb.Page>
+            <Breadcrumb.Page>{isNew ? tm("New Page") : currentPage?.page_title || tm("Edit Page")}</Breadcrumb.Page>
           </Breadcrumb.Item>
         </Breadcrumb.List>
       </Breadcrumb.Root>
@@ -556,7 +557,7 @@
             size="sm"
             href={clientResolver(resolve, `/${currentPage?.page_path}`)}
           >
-            View
+            {tm("View")}
           </Button>
         {/if}
       </div>
@@ -565,16 +566,16 @@
     <!-- General Information Card -->
     <Card.Root>
       <Card.Header>
-        <Card.Title>General Information</Card.Title>
+        <Card.Title>{tm("General Information")}</Card.Title>
         <Card.Description>
-          {isNew ? "Create a new status page" : "Update page settings"}
+          {isNew ? tm("Create a new status page") : tm("Update page settings")}
         </Card.Description>
       </Card.Header>
       <Card.Content class="space-y-4">
         <!-- Path -->
         <div class="space-y-2">
           <Label for="page-path">
-            Path <span class="text-destructive">*</span>
+            {tm("Path")} <span class="text-destructive">*</span>
           </Label>
           <Input
             id="page-path"
@@ -584,32 +585,32 @@
           />
           <p class="text-muted-foreground text-xs">
             {!isNew && currentPage?.page_path === ""
-              ? "Home page path cannot be changed"
-              : "URL path for the page (e.g., services, infrastructure). Will be made URL-friendly."}
+              ? tm("Home page path cannot be changed")
+              : tm("URL path for the page (e.g., services, infrastructure). Will be made URL-friendly.")}
           </p>
         </div>
 
         <!-- Title -->
         <div class="space-y-2">
           <Label for="page-title">
-            Title <span class="text-destructive">*</span>
+            {tm("Title")} <span class="text-destructive">*</span>
           </Label>
-          <Input id="page-title" type="text" bind:value={formData.page_title} placeholder="Services Status" />
-          <p class="text-muted-foreground text-xs">Page title shown in browser tab</p>
+          <Input id="page-title" type="text" bind:value={formData.page_title} placeholder={tm("Services Status")} />
+          <p class="text-muted-foreground text-xs">{tm("Page title shown in browser tab")}</p>
         </div>
 
         <!-- Header -->
         <div class="space-y-2">
           <Label for="page-header">
-            Header <span class="text-destructive">*</span>
+            {tm("Header")} <span class="text-destructive">*</span>
           </Label>
-          <Input id="page-header" type="text" bind:value={formData.page_header} placeholder="Services Status" />
-          <p class="text-muted-foreground text-xs">Main heading displayed on the page</p>
+          <Input id="page-header" type="text" bind:value={formData.page_header} placeholder={tm("Services Status")} />
+          <p class="text-muted-foreground text-xs">{tm("Main heading displayed on the page")}</p>
         </div>
 
         <!-- Subheader -->
         <div class="space-y-2">
-          <Label for="page-subheader">Page Content</Label>
+          <Label for="page-subheader">{tm("Page Content")}</Label>
           <div class="overflow-hidden rounded-md border">
             <CodeMirror
               bind:value={formData.page_subheader}
@@ -624,18 +625,18 @@
               }}
             />
           </div>
-          <p class="text-muted-foreground text-xs">Supports Markdown. Optional content below the header.</p>
+          <p class="text-muted-foreground text-xs">{tm("Supports Markdown. Optional content below the header.")}</p>
         </div>
 
         <!-- Logo Upload -->
         <div class="space-y-2">
-          <Label>Page Logo</Label>
+          <Label>{tm("Page Logo")}</Label>
           <div class="flex items-start gap-4">
             <div class="bg-muted flex h-16 w-16 items-center justify-center rounded-lg border">
               {#if formData.page_logo}
                 <img
                   src={clientResolver(resolve, formData.page_logo)}
-                  alt="Logo"
+                  alt={tm("Logo")}
                   class="max-h-14 max-w-14 object-contain"
                 />
               {:else}
@@ -652,10 +653,10 @@
                 >
                   {#if uploadingLogo}
                     <Loader class="h-4 w-4 animate-spin" />
-                    Uploading...
+                    {tm("Uploading...")}
                   {:else}
                     <UploadIcon class="h-4 w-4" />
-                    Upload
+                    {tm("Upload")}
                   {/if}
                 </Button>
                 <input
@@ -672,7 +673,7 @@
                   </Button>
                 {/if}
               </div>
-              <p class="text-muted-foreground text-xs">Optional logo for this page (max 256x256px)</p>
+              <p class="text-muted-foreground text-xs">{tm("Optional logo for this page (max 256x256px)")}</p>
             </div>
           </div>
         </div>
@@ -681,10 +682,10 @@
         <Button onclick={savePage} disabled={saving || !isFormValid}>
           {#if saving}
             <Loader class="h-4 w-4 animate-spin" />
-            {isNew ? "Creating..." : "Saving..."}
+            {isNew ? "Creating..." : tm("Saving...")}
           {:else}
             <SaveIcon class="h-4 w-4" />
-            {isNew ? "Create Page" : "Save Changes"}
+            {isNew ? tm("Create Page") : tm("Save Changes")}
           {/if}
         </Button>
       </Card.Footer>
@@ -694,8 +695,8 @@
     {#if !isNew && currentPage}
       <Card.Root>
         <Card.Header>
-          <Card.Title>Page Monitors</Card.Title>
-          <Card.Description>Select which monitors to display on this page</Card.Description>
+          <Card.Title>{tm("Page Monitors")}</Card.Title>
+          <Card.Description>{tm("Select which monitors to display on this page")}</Card.Description>
         </Card.Header>
         <Card.Content class="space-y-4">
           <!-- Add Monitor -->
@@ -705,7 +706,7 @@
                 {#if selectedMonitorTag}
                   {monitors.find((m) => m.tag === selectedMonitorTag)?.name || selectedMonitorTag}
                 {:else}
-                  Select a monitor to add
+                  {tm("Select a monitor to add")}
                 {/if}
               </Select.Trigger>
               <Select.Content>
@@ -713,7 +714,7 @@
                   <Select.Item value={monitor.tag}>{monitor.name} ({monitor.tag})</Select.Item>
                 {/each}
                 {#if availableMonitors.length === 0}
-                  <div class="text-muted-foreground px-2 py-1 text-sm">No available monitors</div>
+                  <div class="text-muted-foreground px-2 py-1 text-sm">{tm("No available monitors")}</div>
                 {/if}
               </Select.Content>
             </Select.Root>
@@ -722,14 +723,14 @@
                 <Loader class="h-4 w-4 animate-spin" />
               {:else}
                 <PlusIcon class="h-4 w-4" />
-                Add
+                {tm("Add")}
               {/if}
             </Button>
           </div>
 
           <!-- Current Monitors -->
           <div class="space-y-2">
-            <Label>Current Monitors</Label>
+            <Label>{tm("Current Monitors")}</Label>
             {#if selectedMonitors.length > 0}
               <div class="space-y-2">
                 {#each selectedMonitors as monitorTag, i (monitorTag)}
@@ -774,7 +775,7 @@
               </div>
             {:else}
               <div class="text-muted-foreground bg-muted rounded-lg p-4 text-center text-sm">
-                No monitors added to this page yet
+                {tm("No monitors added to this page yet")}
               </div>
             {/if}
           </div>
@@ -784,22 +785,22 @@
       <!-- Page Settings Card -->
       <Card.Root>
         <Card.Header>
-          <Card.Title>Display Settings</Card.Title>
-          <Card.Description>Configure what content is shown on this status page</Card.Description>
+          <Card.Title>{tm("Display Settings")}</Card.Title>
+          <Card.Description>{tm("Configure what content is shown on this status page")}</Card.Description>
         </Card.Header>
         <Card.Content class="space-y-6">
           <!-- Monitor Status History Days -->
           <div class="space-y-4">
             <div>
-              <Label class="text-base font-medium">Monitor Status History</Label>
+              <Label class="text-base font-medium">{tm("Monitor Status History")}</Label>
               <p class="text-muted-foreground text-sm">
-                Configure how many days of status history to display on the status page
+                {tm("Configure how many days of status history to display on the status page")}
               </p>
             </div>
 
             <div class="grid grid-cols-2 gap-4">
               <div class="space-y-2">
-                <Label for="history-desktop">Desktop (days)</Label>
+                <Label for="history-desktop">{tm("Desktop (days)")}</Label>
                 <Input
                   id="history-desktop"
                   type="number"
@@ -809,10 +810,10 @@
                   bind:value={pageSettings.monitor_status_history_days.desktop}
                   class={isHistoryDesktopValid ? "" : "border-destructive"}
                 />
-                <p class="text-muted-foreground text-xs">Number of days shown on desktop screens</p>
+                <p class="text-muted-foreground text-xs">{tm("Number of days shown on desktop screens")}</p>
               </div>
               <div class="space-y-2">
-                <Label for="history-mobile">Mobile (days)</Label>
+                <Label for="history-mobile">{tm("Mobile (days)")}</Label>
                 <Input
                   id="history-mobile"
                   type="number"
@@ -822,7 +823,7 @@
                   bind:value={pageSettings.monitor_status_history_days.mobile}
                   class={isHistoryMobileValid ? "" : "border-destructive"}
                 />
-                <p class="text-muted-foreground text-xs">Number of days shown on mobile screens</p>
+                <p class="text-muted-foreground text-xs">{tm("Number of days shown on mobile screens")}</p>
               </div>
             </div>
           </div>
@@ -832,30 +833,30 @@
           <!-- Monitor Layout Style -->
           <div class="space-y-4">
             <div>
-              <Label class="text-base font-medium">Monitor Layout Style</Label>
-              <p class="text-muted-foreground text-sm">Choose how monitors are displayed on the status page</p>
+              <Label class="text-base font-medium">{tm("Monitor Layout Style")}</Label>
+              <p class="text-muted-foreground text-sm">{tm("Choose how monitors are displayed on the status page")}</p>
             </div>
             <Select.Root type="single" bind:value={pageSettings.monitor_layout_style}>
               <Select.Trigger class="w-full">
                 {#if pageSettings.monitor_layout_style === "default-list"}
-                  Default List
+                  {tm("Default List")}
                 {:else if pageSettings.monitor_layout_style === "default-grid"}
-                  Default Grid
+                  {tm("Default Grid")}
                 {:else if pageSettings.monitor_layout_style === "compact-list"}
-                  Compact List
+                  {tm("Compact List")}
                 {:else}
-                  Compact Grid
+                  {tm("Compact Grid")}
                 {/if}
               </Select.Trigger>
               <Select.Content>
-                <Select.Item value="default-list">Default List</Select.Item>
-                <Select.Item value="default-grid">Default Grid</Select.Item>
-                <Select.Item value="compact-list">Compact List</Select.Item>
-                <Select.Item value="compact-grid">Compact Grid</Select.Item>
+                <Select.Item value="default-list">{tm("Default List")}</Select.Item>
+                <Select.Item value="default-grid">{tm("Default Grid")}</Select.Item>
+                <Select.Item value="compact-list">{tm("Compact List")}</Select.Item>
+                <Select.Item value="compact-grid">{tm("Compact Grid")}</Select.Item>
               </Select.Content>
             </Select.Root>
             <p class="text-muted-foreground text-xs">
-              Default is <code class="bg-muted rounded px-1 font-mono">default-list</code>
+              <span>{@html tmh("Default is `default-list`.")}</span>
             </p>
           </div>
         </Card.Content>
@@ -863,10 +864,10 @@
           <Button onclick={() => savePageSettings("display")} disabled={savingDisplaySettings}>
             {#if savingDisplaySettings}
               <Loader class="h-4 w-4 animate-spin" />
-              Saving...
+              {tm("Saving...")}
             {:else}
               <SaveIcon class="h-4 w-4" />
-              Save Preferences
+              {tm("Save Preferences")}
             {/if}
           </Button>
         </Card.Footer>
@@ -875,9 +876,11 @@
       <!-- Social Preview & SEO Card -->
       <Card.Root>
         <Card.Header>
-          <Card.Title>Social Preview & SEO</Card.Title>
+          <Card.Title>{tm("Social Preview & SEO")}</Card.Title>
           <Card.Description
-            >Optional social preview image and meta tags for this page. Leave empty to use site defaults.</Card.Description
+            >{tm(
+              "Optional social preview image and meta tags for this page. Leave empty to use site defaults."
+            )}</Card.Description
           >
         </Card.Header>
         <Card.Content class="space-y-4">
@@ -887,7 +890,7 @@
               {#if pageSettings.socialPagePreviewImage}
                 <img
                   src={clientResolver(resolve, pageSettings.socialPagePreviewImage)}
-                  alt="Social preview"
+                  alt={tm("Social preview")}
                   class="h-full w-full rounded-lg object-cover"
                 />
               {:else}
@@ -906,10 +909,10 @@
                 >
                   {#if uploadingSocialPreview}
                     <Loader class="h-4 w-4 animate-spin" />
-                    Uploading...
+                    {tm("Uploading...")}
                   {:else}
                     <UploadIcon class="h-4 w-4" />
-                    Upload Social Preview
+                    {tm("Upload Social Preview")}
                   {/if}
                 </Button>
                 <input
@@ -929,40 +932,40 @@
               {#if pageSettings.socialPagePreviewImage}
                 <p class="text-muted-foreground truncate text-xs">{pageSettings.socialPagePreviewImage}</p>
               {:else}
-                <p class="text-muted-foreground text-xs">Optional. Leave empty to use site default.</p>
+                <p class="text-muted-foreground text-xs">{tm("Optional. Leave empty to use site default.")}</p>
               {/if}
             </div>
           </div>
 
           <div class="space-y-2">
-            <Label for="page-metaPageTitle">Meta Title</Label>
+            <Label for="page-metaPageTitle">{tm("Meta Title")}</Label>
             <Input
               id="page-metaPageTitle"
               type="text"
               bind:value={pageSettings.metaPageTitle}
-              placeholder="Custom page title for search engines"
+              placeholder={tm("Custom page title for search engines")}
             />
-            <p class="text-muted-foreground text-xs">Overrides the default page title in search results</p>
+            <p class="text-muted-foreground text-xs">{tm("Overrides the default page title in search results")}</p>
           </div>
           <div class="space-y-2">
-            <Label for="page-metaPageDescription">Meta Description</Label>
+            <Label for="page-metaPageDescription">{tm("Meta Description")}</Label>
             <Textarea
               id="page-metaPageDescription"
               bind:value={pageSettings.metaPageDescription}
-              placeholder="Custom description for search engines"
+              placeholder={tm("Custom description for search engines")}
               rows={3}
             />
-            <p class="text-muted-foreground text-xs">Shown as the snippet text in search engine results</p>
+            <p class="text-muted-foreground text-xs">{tm("Shown as the snippet text in search engine results")}</p>
           </div>
         </Card.Content>
         <Card.Footer class="flex justify-end">
           <Button onclick={() => savePageSettings("seo")} disabled={savingSeoSettings}>
             {#if savingSeoSettings}
               <Loader class="h-4 w-4 animate-spin" />
-              Saving...
+              {tm("Saving...")}
             {:else}
               <SaveIcon class="h-4 w-4" />
-              Save
+              {tm("Save")}
             {/if}
           </Button>
         </Card.Footer>
@@ -972,17 +975,21 @@
       {#if currentPage.page_path !== ""}
         <Card.Root class="border-destructive">
           <Card.Header>
-            <Card.Title class="text-destructive">Danger Zone</Card.Title>
-            <Card.Description>Irreversible actions for this page</Card.Description>
+            <Card.Title class="text-destructive">{tm("Danger Zone")}</Card.Title>
+            <Card.Description>{tm("Irreversible actions for this page")}</Card.Description>
           </Card.Header>
           <Card.Content class="space-y-4">
             <div class="space-y-2">
-              <Label for="delete-confirm">Delete Page</Label>
+              <Label for="delete-confirm">{tm("Delete Page")}</Label>
               <p class="text-muted-foreground text-sm">
-                Once you delete a page, there is no going back. Please be certain.
+                {tm("Once you delete a page, there is no going back. Please be certain.")}
               </p>
               <p class="text-muted-foreground text-sm">
-                Type <code class="bg-muted rounded px-1 font-mono">delete {currentPage.page_path || "home"}</code> to confirm:
+                <span
+                  >{@html tmh("Type **%phrase** to confirm", {
+                    phrase: `delete ${currentPage.page_path || "home"}`
+                  })}</span
+                >
               </p>
               <Input
                 id="delete-confirm"
@@ -996,10 +1003,10 @@
             <Button variant="destructive" onclick={deletePage} disabled={!canDelete || deleting}>
               {#if deleting}
                 <Loader class="h-4 w-4 animate-spin" />
-                Deleting...
+                {tm("Deleting...")}
               {:else}
                 <TrashIcon class="h-4 w-4" />
-                Delete Page
+                {tm("Delete Page")}
               {/if}
             </Button>
           </Card.Footer>

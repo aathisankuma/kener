@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tm, tmh } from "$lib/uiLocale.svelte";
   import { page } from "$app/state";
   import { goto } from "$app/navigation";
   import * as Alert from "$lib/components/ui/alert/index.js";
@@ -114,12 +115,12 @@
           }
         };
       } else {
-        toast.error("Trigger not found");
+        toast.error(tm("Trigger not found"));
         goto(clientResolver(resolve, "/manage/app/triggers"));
       }
     } catch (error) {
       console.error("Error fetching trigger:", error);
-      toast.error("Failed to load trigger");
+      toast.error(tm("Failed to load trigger"));
     } finally {
       loading = false;
     }
@@ -140,32 +141,32 @@
 
     // Validation
     if (!trigger.name.trim()) {
-      invalidFormMessage = "Trigger Name is required";
+      invalidFormMessage = tm("Trigger Name is required");
       return;
     }
 
     if (!trigger.trigger_type) {
-      invalidFormMessage = "Trigger Type is required";
+      invalidFormMessage = tm("Trigger Type is required");
       return;
     }
 
     if (trigger.trigger_type === "email") {
       if (!trigger.trigger_meta.to.trim()) {
-        invalidFormMessage = "To Email Address is required";
+        invalidFormMessage = tm("To Email Address is required");
         return;
       }
       if (!validateNameEmailPattern(trigger.trigger_meta.from).isValid) {
-        invalidFormMessage = "Invalid Sender. Format: Name <email@example.com>";
+        invalidFormMessage = tm("Invalid Sender. Format: Name <email@example.com>");
         return;
       }
     } else {
       // URL validation for non-email triggers
       if (!trigger.trigger_meta.url.trim()) {
-        invalidFormMessage = "Trigger URL is required";
+        invalidFormMessage = tm("Trigger URL is required");
         return;
       }
       if (!IsValidURL(trigger.trigger_meta.url)) {
-        invalidFormMessage = "Invalid URL";
+        invalidFormMessage = tm("Invalid URL");
         return;
       }
     }
@@ -191,13 +192,13 @@
       if (result.error) {
         invalidFormMessage = result.error;
       } else {
-        toast.success(trigger.id ? "Trigger updated successfully" : "Trigger created successfully");
+        toast.success(trigger.id ? tm("Trigger updated successfully") : tm("Trigger created successfully"));
         if (isNew) {
           goto(clientResolver(resolve, "/manage/app/triggers"));
         }
       }
     } catch (error) {
-      invalidFormMessage = "Failed to save trigger";
+      invalidFormMessage = tm("Failed to save trigger");
     } finally {
       saving = false;
     }
@@ -205,7 +206,7 @@
 
   async function testTrigger() {
     if (!trigger.id) {
-      toast.error("Please save the trigger first");
+      toast.error(tm("Please save the trigger first"));
       return;
     }
 
@@ -225,11 +226,11 @@
         toast.error(result.error);
       } else {
         testing = "success";
-        toast.success("Test trigger sent successfully");
+        toast.success(tm("Test trigger sent successfully"));
       }
     } catch (error) {
       testing = "error";
-      toast.error("Failed to test trigger");
+      toast.error(tm("Failed to test trigger"));
     } finally {
       setTimeout(() => {
         testing = "idle";
@@ -262,11 +263,11 @@
       if (result.error) {
         toast.error(result.error);
       } else {
-        toast.success("Trigger deleted successfully");
+        toast.success(tm("Trigger deleted successfully"));
         goto(clientResolver(resolve, "/manage/app/triggers"));
       }
     } catch (error) {
-      toast.error("Failed to delete trigger");
+      toast.error(tm("Failed to delete trigger"));
     } finally {
       isDeleting = false;
       deleteDialogOpen = false;
@@ -284,11 +285,11 @@
   <Breadcrumb.Root>
     <Breadcrumb.List>
       <Breadcrumb.Item>
-        <Breadcrumb.Link href={clientResolver(resolve, "/manage/app/triggers")}>Triggers</Breadcrumb.Link>
+        <Breadcrumb.Link href={clientResolver(resolve, "/manage/app/triggers")}>{tm("Triggers")}</Breadcrumb.Link>
       </Breadcrumb.Item>
       <Breadcrumb.Separator />
       <Breadcrumb.Item>
-        <Breadcrumb.Page>{isNew ? "New Trigger" : trigger.name || "Edit Trigger"}</Breadcrumb.Page>
+        <Breadcrumb.Page>{isNew ? tm("New Trigger") : trigger.name || tm("Edit Trigger")}</Breadcrumb.Page>
       </Breadcrumb.Item>
     </Breadcrumb.List>
   </Breadcrumb.Root>
@@ -300,8 +301,8 @@
   {:else}
     <Card.Root>
       <Card.Header>
-        <Card.Title>{isNew ? "New Trigger" : "Edit Trigger"}</Card.Title>
-        <Card.Description>Configure notification triggers for your monitors</Card.Description>
+        <Card.Title>{isNew ? tm("New Trigger") : tm("Edit Trigger")}</Card.Title>
+        <Card.Description>{tm("Configure notification triggers for your monitors")}</Card.Description>
       </Card.Header>
       <Card.Content class="space-y-6">
         <!-- Error Message -->
@@ -311,8 +312,8 @@
 
         <!-- Trigger Type Selection -->
         <div class="space-y-3">
-          <Label>Trigger Type</Label>
-          <p class="text-muted-foreground text-sm">Select the type of notification to send</p>
+          <Label>{tm("Trigger Type")}</Label>
+          <p class="text-muted-foreground text-sm">{tm("Select the type of notification to send")}</p>
           <Select.Root
             type="single"
             value={trigger.trigger_type}
@@ -325,7 +326,7 @@
               <Select.Item value="webhook">Webhook</Select.Item>
               <Select.Item value="discord">Discord</Select.Item>
               <Select.Item value="slack">Slack</Select.Item>
-              <Select.Item value="email">Email</Select.Item>
+              <Select.Item value="email">{tm("Email")}</Select.Item>
             </Select.Content>
           </Select.Root>
         </div>
@@ -333,8 +334,8 @@
         <!-- Status Toggle -->
         <div class="flex items-center justify-between rounded-lg border p-4">
           <div>
-            <Label>Status</Label>
-            <p class="text-muted-foreground text-sm">Enable or disable this trigger</p>
+            <Label>{tm("Status")}</Label>
+            <p class="text-muted-foreground text-sm">{tm("Enable or disable this trigger")}</p>
           </div>
           <Switch
             checked={trigger.trigger_status === "ACTIVE"}
@@ -345,15 +346,15 @@
         <!-- Name -->
         <div class="space-y-2">
           <Label for="trigger-name">
-            Name <span class="text-destructive">*</span>
+            {tm("Name")} <span class="text-destructive">*</span>
           </Label>
-          <Input id="trigger-name" bind:value={trigger.name} placeholder="My Trigger" />
+          <Input id="trigger-name" bind:value={trigger.name} placeholder={tm("My Trigger")} />
         </div>
 
         <!-- Description -->
         <div class="space-y-2">
-          <Label for="trigger-desc">Description</Label>
-          <Input id="trigger-desc" bind:value={trigger.trigger_desc} placeholder="Optional description" />
+          <Label for="trigger-desc">{tm("Description")}</Label>
+          <Input id="trigger-desc" bind:value={trigger.trigger_desc} placeholder={tm("Optional description")} />
         </div>
 
         <!-- URL (for non-email) -->
@@ -363,7 +364,7 @@
               URL <span class="text-destructive">*</span>
             </Label>
             <Input id="trigger-url" bind:value={trigger.trigger_meta.url} placeholder="https://example.com/webhook" />
-            <p class="text-muted-foreground text-xs">The URL to send notifications to</p>
+            <p class="text-muted-foreground text-xs">{tm("The URL to send notifications to")}</p>
           </div>
         {/if}
 
@@ -371,12 +372,12 @@
         {#if trigger.trigger_type === "webhook"}
           <!-- Headers -->
           <div class="space-y-3">
-            <Label>Headers</Label>
+            <Label>{tm("Headers")}</Label>
             <div class="space-y-2">
               {#each trigger.trigger_meta.headers as header, index}
                 <div class="flex gap-2">
-                  <Input bind:value={header.key} placeholder="Header Key" class="flex-1" />
-                  <Input bind:value={header.value} placeholder="Header Value" class="flex-1" />
+                  <Input bind:value={header.key} placeholder={tm("Header Key")} class="flex-1" />
+                  <Input bind:value={header.value} placeholder={tm("Header Value")} class="flex-1" />
                   <Button variant="ghost" size="icon" onclick={() => removeHeader(index)}>
                     <XIcon class="size-4" />
                   </Button>
@@ -385,22 +386,21 @@
             </div>
             <Button variant="outline" size="sm" onclick={addHeader}>
               <PlusIcon class="size-4" />
-              Add Header
+              {tm("Add Header")}
             </Button>
           </div>
 
           <!-- Custom Body -->
           <div class="space-y-3">
             <div>
-              <Label>Custom Webhook Body</Label>
-              <p class="text-muted-foreground text-sm">Override the default JSON payload</p>
+              <Label>{tm("Custom Webhook Body")}</Label>
+              <p class="text-muted-foreground text-sm">{tm("Override the default JSON payload")}</p>
             </div>
             <p class="text-muted-foreground text-xs">
-              Use Mustache variables like <code class="bg-muted rounded px-1">{"{{variable}}"}</code>. Available:
-              alert_id, alert_name, alert_for, alert_value, alert_status, alert_severity, alert_message, alert_source,
-              alert_timestamp, alert_cta_url, alert_cta_text, alert_incident_id, alert_incident_url,
-              alert_failure_threshold, alert_success_threshold, is_resolved, is_triggered, site_url, site_name,
-              site_logo_url, colors_up, colors_down, colors_degraded, colors_maintenance
+              <span>{@html tmh("Use Mustache variables like `{{variable}}`. Available:")}</span>
+              alert_id, alert_name, alert_for, alert_value, alert_status, alert_severity, alert_message, alert_source, alert_timestamp,
+              alert_cta_url, alert_cta_text, alert_incident_id, alert_incident_url, alert_failure_threshold, alert_success_threshold,
+              is_resolved, is_triggered, site_url, site_name, site_logo_url, colors_up, colors_down, colors_degraded, colors_maintenance
             </p>
             <div class="overflow-hidden rounded-md border">
               <Textarea bind:value={trigger.trigger_meta.webhook_body} />
@@ -412,15 +412,14 @@
         {#if trigger.trigger_type === "discord"}
           <div class="space-y-3">
             <div>
-              <Label>Custom Discord Payload</Label>
-              <p class="text-muted-foreground text-sm">Override the default Discord message</p>
+              <Label>{tm("Custom Discord Payload")}</Label>
+              <p class="text-muted-foreground text-sm">{tm("Override the default Discord message")}</p>
             </div>
             <p class="text-muted-foreground text-xs">
-              Use Mustache variables. Available: alert_id, alert_name, alert_for, alert_value, alert_status,
-              alert_severity, alert_message, alert_source, alert_timestamp, alert_cta_url, alert_cta_text,
-              alert_incident_id, alert_incident_url, alert_failure_threshold, alert_success_threshold, is_resolved,
-              is_triggered, site_url, site_name, site_logo_url, colors_up, colors_down, colors_degraded,
-              colors_maintenance
+              {tm("Use Mustache variables. Available:")} alert_id, alert_name, alert_for, alert_value, alert_status, alert_severity,
+              alert_message, alert_source, alert_timestamp, alert_cta_url, alert_cta_text, alert_incident_id, alert_incident_url,
+              alert_failure_threshold, alert_success_threshold, is_resolved, is_triggered, site_url, site_name, site_logo_url,
+              colors_up, colors_down, colors_degraded, colors_maintenance
             </p>
             <div class="overflow-hidden rounded-md border">
               <Textarea bind:value={trigger.trigger_meta.discord_body} />
@@ -432,15 +431,14 @@
         {#if trigger.trigger_type === "slack"}
           <div class="space-y-3">
             <div>
-              <Label>Custom Slack Payload</Label>
-              <p class="text-muted-foreground text-sm">Override the default Slack message</p>
+              <Label>{tm("Custom Slack Payload")}</Label>
+              <p class="text-muted-foreground text-sm">{tm("Override the default Slack message")}</p>
             </div>
             <p class="text-muted-foreground text-xs">
-              Use Mustache variables. Available: alert_id, alert_name, alert_for, alert_value, alert_status,
-              alert_severity, alert_message, alert_source, alert_timestamp, alert_cta_url, alert_cta_text,
-              alert_incident_id, alert_incident_url, alert_failure_threshold, alert_success_threshold, is_resolved,
-              is_triggered, site_url, site_name, site_logo_url, colors_up, colors_down, colors_degraded,
-              colors_maintenance
+              {tm("Use Mustache variables. Available:")} alert_id, alert_name, alert_for, alert_value, alert_status, alert_severity,
+              alert_message, alert_source, alert_timestamp, alert_cta_url, alert_cta_text, alert_incident_id, alert_incident_url,
+              alert_failure_threshold, alert_success_threshold, is_resolved, is_triggered, site_url, site_name, site_logo_url,
+              colors_up, colors_down, colors_degraded, colors_maintenance
             </p>
             <div class="overflow-hidden rounded-md border">
               <Textarea bind:value={trigger.trigger_meta.slack_body} />
@@ -454,20 +452,20 @@
           {#if page.data.canSendEmail === false}
             <Alert.Root variant="destructive">
               <AlertCircleIcon />
-              <Alert.Title>Email is not setup</Alert.Title>
+              <Alert.Title>{tm("Email is not setup")}</Alert.Title>
               <Alert.Description>
                 <p>
-                  Please visit the email set up documentation <a
-                    class="underline"
-                    href={clientResolver(resolve, "https://kener.ing/docs/v4/setup/email-setup")}>here</a
-                  >.
+                  {tm("Please visit the email set up documentation:")}
+                  <a class="underline" href={clientResolver(resolve, "https://kener.ing/docs/v4/setup/email-setup")}
+                    >{tm("Email setup")}</a
+                  >
                 </p>
               </Alert.Description>
             </Alert.Root>
           {/if}
           <div class="space-y-2">
             <Label for="email-to">
-              To (comma separated) <span class="text-destructive">*</span>
+              {tm("To (comma separated)")} <span class="text-destructive">*</span>
             </Label>
             <Input
               id="email-to"
@@ -477,24 +475,23 @@
           </div>
           <div class="space-y-2">
             <Label for="email-from">
-              From <span class="text-destructive">*</span>
+              {tm("From")} <span class="text-destructive">*</span>
             </Label>
             <Input id="email-from" bind:value={trigger.trigger_meta.from} placeholder="Alerts <alert@example.com>" />
-            <p class="text-muted-foreground text-xs">Format: Name &lt;email@example.com&gt;</p>
+            <p class="text-muted-foreground text-xs">{tm("Format: Name <email@example.com>")}</p>
           </div>
 
           <!-- Custom Email Template -->
           <div class="space-y-3">
             <div>
-              <Label>Custom HTML Template</Label>
-              <p class="text-muted-foreground text-sm">Create your own email design</p>
+              <Label>{tm("Custom HTML Template")}</Label>
+              <p class="text-muted-foreground text-sm">{tm("Create your own email design")}</p>
             </div>
             <p class="text-muted-foreground text-xs">
-              Use Mustache variables. Available: alert_id, alert_name, alert_for, alert_value, alert_status,
-              alert_severity, alert_message, alert_source, alert_timestamp, alert_cta_url, alert_cta_text,
-              alert_incident_id, alert_incident_url, alert_failure_threshold, alert_success_threshold, is_resolved,
-              is_triggered, site_url, site_name, site_logo_url, colors_up, colors_down, colors_degraded,
-              colors_maintenance
+              {tm("Use Mustache variables. Available:")} alert_id, alert_name, alert_for, alert_value, alert_status, alert_severity,
+              alert_message, alert_source, alert_timestamp, alert_cta_url, alert_cta_text, alert_incident_id, alert_incident_url,
+              alert_failure_threshold, alert_success_threshold, is_resolved, is_triggered, site_url, site_name, site_logo_url,
+              colors_up, colors_down, colors_degraded, colors_maintenance
             </p>
             <div class="overflow-hidden rounded-md border">
               <CodeMirror
@@ -517,7 +514,7 @@
             {:else if testing === "error"}
               <XIcon class="size-4 text-red-500" />
             {/if}
-            Test Trigger
+            {tm("Test Trigger")}
           </Button>
         {/if}
         <Button onclick={saveTrigger} disabled={saving}>
@@ -526,7 +523,7 @@
           {:else}
             <SaveIcon class="size-4" />
           {/if}
-          {isNew ? "Create" : "Save"} Trigger
+          {isNew ? tm("Create Trigger") : tm("Save Trigger")}
         </Button>
       </Card.Footer>
     </Card.Root>
@@ -535,18 +532,18 @@
     {#if !isNew}
       <Card.Root class="border-destructive">
         <Card.Header>
-          <Card.Title class="text-destructive">Danger Zone</Card.Title>
-          <Card.Description>Permanently delete this trigger. This action cannot be undone.</Card.Description>
+          <Card.Title class="text-destructive">{tm("Danger Zone")}</Card.Title>
+          <Card.Description>{tm("Permanently delete this trigger. This action cannot be undone.")}</Card.Description>
         </Card.Header>
         <Card.Content>
           <p class="text-muted-foreground text-sm">
-            Deleting this trigger will also remove it from all alert configurations that use it.
+            {tm("Deleting this trigger will also remove it from all alert configurations that use it.")}
           </p>
         </Card.Content>
         <Card.Footer class="flex justify-end">
           <Button variant="destructive" onclick={() => (deleteDialogOpen = true)}>
             <Trash2Icon class="size-4" />
-            Delete Trigger
+            {tm("Delete Trigger")}
           </Button>
         </Card.Footer>
       </Card.Root>
@@ -558,24 +555,25 @@
 <AlertDialog.Root bind:open={deleteDialogOpen}>
   <AlertDialog.Content>
     <AlertDialog.Header>
-      <AlertDialog.Title>Delete Trigger</AlertDialog.Title>
+      <AlertDialog.Title>{tm("Delete Trigger")}</AlertDialog.Title>
       <AlertDialog.Description>
-        This action cannot be undone. This will permanently delete the trigger and remove it from all alert
-        configurations.
+        {tm(
+          "This action cannot be undone. This will permanently delete the trigger and remove it from all alert configurations."
+        )}
       </AlertDialog.Description>
     </AlertDialog.Header>
     <div class="space-y-4 py-4">
       <p class="text-sm">
-        To confirm, type <span class="bg-muted rounded px-1.5 py-0.5 font-mono text-sm">{trigger.name}</span> below:
+        <span>{@html tmh("To confirm, type **%name** below:", { name: trigger.name })}</span>
       </p>
-      <Input bind:value={deleteConfirmName} placeholder="Type trigger name to confirm" />
+      <Input bind:value={deleteConfirmName} placeholder={tm("Type trigger name to confirm")} />
     </div>
     <AlertDialog.Footer>
       <AlertDialog.Cancel
         disabled={isDeleting}
         onclick={() => {
           deleteConfirmName = "";
-        }}>Cancel</AlertDialog.Cancel
+        }}>{tm("Cancel")}</AlertDialog.Cancel
       >
       <Button variant="destructive" onclick={deleteTrigger} disabled={isDeleting || deleteConfirmName !== trigger.name}>
         {#if isDeleting}
@@ -583,7 +581,7 @@
         {:else}
           <Trash2Icon class="size-4" />
         {/if}
-        Delete Trigger
+        {tm("Delete Trigger")}
       </Button>
     </AlertDialog.Footer>
   </AlertDialog.Content>

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tm, tmh } from "$lib/uiLocale.svelte";
   import { Button } from "$lib/components/ui/button/index.js";
   import { Spinner } from "$lib/components/ui/spinner/index.js";
   import { Badge } from "$lib/components/ui/badge/index.js";
@@ -84,7 +85,7 @@
       }
     } catch (error) {
       console.error("Error fetching templates:", error);
-      toast.error("Failed to load templates");
+      toast.error(tm("Failed to load templates"));
     } finally {
       loading = false;
     }
@@ -92,7 +93,7 @@
 
   async function updateTemplate() {
     if (!selectedTemplateId) {
-      toast.error("Please select a template");
+      toast.error(tm("Please select a template"));
       return;
     }
 
@@ -115,7 +116,7 @@
       if (result.error) {
         toast.error(result.error);
       } else {
-        toast.success("Template updated successfully");
+        toast.success(tm("Template updated successfully"));
         // Update local state
         const index = templates.findIndex((t) => t.template_id === selectedTemplateId);
         if (index !== -1) {
@@ -129,7 +130,7 @@
       }
     } catch (error) {
       console.error("Error updating template:", error);
-      toast.error("Failed to update template");
+      toast.error(tm("Failed to update template"));
     } finally {
       saving = false;
     }
@@ -150,8 +151,8 @@
     <Card.Root>
       <Card.Content class="flex flex-col items-center justify-center py-12">
         <MailIcon class="text-muted-foreground mb-4 size-12" />
-        <h3 class="mb-2 text-lg font-semibold">No Templates Found</h3>
-        <p class="text-muted-foreground text-center">There are no email templates configured yet.</p>
+        <h3 class="mb-2 text-lg font-semibold">{tm("No Templates Found")}</h3>
+        <p class="text-muted-foreground text-center">{tm("There are no email templates configured yet.")}</p>
       </Card.Content>
     </Card.Root>
   {:else}
@@ -159,14 +160,14 @@
       <Card.Header>
         <Card.Title class="flex items-center gap-2">
           <FileTextIcon class="size-5" />
-          Edit Template
+          {tm("Edit Template")}
         </Card.Title>
-        <Card.Description>Select a template from the dropdown to view and edit its content</Card.Description>
+        <Card.Description>{tm("Select a template from the dropdown to view and edit its content")}</Card.Description>
       </Card.Header>
       <Card.Content class="space-y-6">
         <!-- Template Selector -->
         <div class="space-y-2">
-          <Label for="template-select">Select Template</Label>
+          <Label for="template-select">{tm("Select Template")}</Label>
           <Select.Root
             type="single"
             value={selectedTemplateId}
@@ -178,7 +179,7 @@
               {#if selectedTemplateId}
                 {formatTemplateId(selectedTemplateId)}
               {:else}
-                Select a template...
+                {tm("Select a template...")}
               {/if}
             </Select.Trigger>
             <Select.Content>
@@ -194,20 +195,22 @@
         {#if selectedTemplateId}
           <!-- Subject -->
           <div class="space-y-2">
-            <Label for="template-subject">Subject</Label>
-            <Input id="template-subject" bind:value={templateSubject} placeholder="Email subject line" />
+            <Label for="template-subject">{tm("Subject")}</Label>
+            <Input id="template-subject" bind:value={templateSubject} placeholder={tm("Email subject line")} />
             <p class="text-muted-foreground text-xs">
-              The subject line for the email. You can use Mustache variables like <code class="bg-muted rounded px-1"
-                >{"{{variable}}"}</code
+              <span
+                >{@html tmh(
+                  "The subject line for the email. You can use Mustache variables like `{{variable}}`."
+                )}</span
               >
             </p>
           </div>
 
           <!-- HTML Body -->
           <div class="space-y-2">
-            <Label>HTML Body</Label>
+            <Label>{tm("HTML Body")}</Label>
             <p class="text-muted-foreground text-xs">
-              The HTML content of the email. Use Mustache variables for dynamic content.
+              {tm("The HTML content of the email. Use Mustache variables for dynamic content.")}
             </p>
             <div class="overflow-hidden rounded-md border">
               <CodeMirror
@@ -221,14 +224,14 @@
 
           <!-- Text Body -->
           <div class="space-y-2">
-            <Label for="template-text-body">Text Body</Label>
+            <Label for="template-text-body">{tm("Text Body")}</Label>
             <p class="text-muted-foreground text-xs">
-              Plain text version of the email for clients that don't support HTML
+              {tm("Plain text version of the email for clients that don't support HTML")}
             </p>
             <Textarea
               id="template-text-body"
               bind:value={templateTextBody}
-              placeholder="Plain text email content"
+              placeholder={tm("Plain text email content")}
               rows={8}
             />
           </div>
@@ -242,7 +245,7 @@
             {:else}
               <SaveIcon class="size-4" />
             {/if}
-            Update Template
+            {tm("Update Template")}
           </Button>
         </Card.Footer>
       {/if}

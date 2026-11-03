@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tm, tmStatus } from "$lib/uiLocale.svelte";
   import { Button } from "$lib/components/ui/button/index.js";
   import { Spinner } from "$lib/components/ui/spinner/index.js";
   import { Badge } from "$lib/components/ui/badge/index.js";
@@ -55,7 +56,7 @@
       }
     } catch (error) {
       console.error("Error fetching triggers:", error);
-      toast.error("Failed to load triggers");
+      toast.error(tm("Failed to load triggers"));
     } finally {
       loading = false;
     }
@@ -87,12 +88,12 @@
     <div class="flex items-center gap-3">
       <Select.Root type="single" value={statusFilter} onValueChange={handleStatusChange}>
         <Select.Trigger class="w-36">
-          {statusFilter === "ALL" ? "All Status" : statusFilter}
+          {statusFilter === "ALL" ? tm("All Status") : tmStatus(statusFilter)}
         </Select.Trigger>
         <Select.Content>
-          <Select.Item value="ALL">All Status</Select.Item>
-          <Select.Item value="ACTIVE">Active</Select.Item>
-          <Select.Item value="INACTIVE">Inactive</Select.Item>
+          <Select.Item value="ALL">{tm("All Status")}</Select.Item>
+          <Select.Item value="ACTIVE">{tm("Active")}</Select.Item>
+          <Select.Item value="INACTIVE">{tm("Inactive")}</Select.Item>
         </Select.Content>
       </Select.Root>
       {#if loading}
@@ -101,21 +102,21 @@
     </div>
     <Button href={clientResolver(resolve, "/manage/app/triggers/new")}>
       <PlusIcon class="size-4" />
-      New Trigger
+      {tm("New Trigger")}
     </Button>
   </div>
 
   <!-- Triggers List -->
   {#if paginatedTriggers.length === 0 && !loading}
-    <div class="text-muted-foreground py-8 text-center">No triggers found</div>
+    <div class="text-muted-foreground py-8 text-center">{tm("No triggers found")}</div>
   {:else}
     <div class="ktable rounded-xl border">
       <Table.Root>
         <Table.Header>
           <Table.Row>
-            <Table.Head class="w-[280px]">Name</Table.Head>
-            <Table.Head class="w-[140px]">Type</Table.Head>
-            <Table.Head class="w-[140px]">Status</Table.Head>
+            <Table.Head class="w-[280px]">{tm("Name")}</Table.Head>
+            <Table.Head class="w-[140px]">{tm("Type")}</Table.Head>
+            <Table.Head class="w-[140px]">{tm("Status")}</Table.Head>
             <Table.Head class="w-[160px] text-right"></Table.Head>
           </Table.Row>
         </Table.Header>
@@ -129,7 +130,7 @@
               </Table.Cell>
               <Table.Cell>
                 <Badge variant={trigger.trigger_status === "ACTIVE" ? "default" : "secondary"}>
-                  {trigger.trigger_status}
+                  {tmStatus(trigger.trigger_status)}
                 </Badge>
               </Table.Cell>
               <Table.Cell class="text-right">
@@ -139,7 +140,7 @@
                   href={clientResolver(resolve, `/manage/app/triggers/${trigger.id}`)}
                 >
                   <SettingsIcon class="mr-1 size-4" />
-                  Configure
+                  {tm("Configure")}
                 </Button>
               </Table.Cell>
             </Table.Row>
@@ -154,7 +155,9 @@
     {@const startItem = (pageNo - 1) * limit + 1}
     {@const endItem = Math.min(pageNo * limit, totalCount)}
     <div class="flex items-center justify-between">
-      <span class="text-muted-foreground text-sm">Showing {startItem}-{endItem} of {totalCount}</span>
+      <span class="text-muted-foreground text-sm"
+        >{tm("Showing %from-%to of %total", { from: startItem, to: endItem, total: totalCount })}</span
+      >
       {#if totalPages > 1}
         <div class="flex items-center gap-2">
           <Button variant="outline" size="icon" disabled={pageNo === 1} onclick={() => goToPage(pageNo - 1)}>

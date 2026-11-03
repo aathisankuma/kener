@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tm } from "$lib/uiLocale.svelte";
   import { goto } from "$app/navigation";
   import { onMount } from "svelte";
   import * as Table from "$lib/components/ui/table/index.js";
@@ -37,7 +38,7 @@
         pages = result;
       }
     } catch (e) {
-      error = e instanceof Error ? e.message : "Failed to fetch pages";
+      error = e instanceof Error ? e.message : tm("Failed to fetch pages");
     } finally {
       loading = false;
     }
@@ -53,7 +54,7 @@
   <div class="mb-4 flex justify-end">
     <Button class="cursor-pointer" onclick={() => goto(clientResolver(resolve, "/manage/app/pages/new"))}>
       <Plus class="size-4" />
-      New Page
+      {tm("New Page")}
     </Button>
   </div>
 
@@ -64,7 +65,7 @@
           <Spinner />
         </Item.Media>
         <Item.Content>
-          <Item.Title class="line-clamp-1">Loading Pages....</Item.Title>
+          <Item.Title class="line-clamp-1">{tm("Loading Pages....")}</Item.Title>
         </Item.Content>
       </Item.Root>
     </div>
@@ -73,15 +74,17 @@
       {error}
     </div>
   {:else if pages.length === 0}
-    <div class="text-muted-foreground py-8 text-center">No pages found. Create your first page to get started.</div>
+    <div class="text-muted-foreground py-8 text-center">
+      {tm("No pages found. Create your first page to get started.")}
+    </div>
   {:else}
     <div class="ktable rounded-xl border">
       <Table.Root>
         <Table.Header>
           <Table.Row>
-            <Table.Head class="w-[340px]">Page</Table.Head>
-            <Table.Head class="w-[220px]">Path</Table.Head>
-            <Table.Head class="w-[150px]">Monitors</Table.Head>
+            <Table.Head class="w-[340px]">{tm("Page")}</Table.Head>
+            <Table.Head class="w-[220px]">{tm("Path")}</Table.Head>
+            <Table.Head class="w-[150px]">{tm("Monitors")}</Table.Head>
             <Table.Head class="w-[120px] text-right"></Table.Head>
           </Table.Row>
         </Table.Header>
@@ -117,22 +120,26 @@
               </Table.Cell>
               <Table.Cell>
                 {#if page.monitors && page.monitors.length > 0}
-                  <Badge variant="secondary">{page.monitors.length} monitor{page.monitors.length > 1 ? "s" : ""}</Badge>
+                  <Badge variant="secondary"
+                    >{page.monitors.length === 1
+                      ? tm("1 monitor")
+                      : tm("%count monitors", { count: page.monitors.length })}</Badge
+                  >
                 {:else}
-                  <Badge variant="outline" class="text-muted-foreground">No monitors</Badge>
+                  <Badge variant="outline" class="text-muted-foreground">{tm("No monitors")}</Badge>
                 {/if}
               </Table.Cell>
 
               <Table.Cell class="text-right">
                 <Button variant="ghost" target="_blank" size="sm" href={clientResolver(resolve, `/${page.page_path}`)}>
-                  View
+                  {tm("View")}
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
                   onclick={() => goto(clientResolver(resolve, `/manage/app/pages/${page.id}`))}
                 >
-                  Edit
+                  {tm("Edit")}
                 </Button>
               </Table.Cell>
             </Table.Row>
