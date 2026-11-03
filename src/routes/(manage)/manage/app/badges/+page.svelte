@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tm } from "$lib/uiLocale.svelte";
   import { onMount } from "svelte";
   import { Button } from "$lib/components/ui/button/index.js";
   import { Label } from "$lib/components/ui/label/index.js";
@@ -42,11 +43,11 @@
 
   // Duration presets in seconds
   const durationPresets = [
-    { label: "1 Hour", value: 3600 },
-    { label: "24 Hours", value: 86400 },
-    { label: "7 Days", value: 604800 },
-    { label: "30 Days", value: 2592000 },
-    { label: "90 Days", value: 7776000 }
+    { label: tm("1 Hour"), value: 3600 },
+    { label: tm("24 Hours"), value: 86400 },
+    { label: tm("7 Days"), value: 604800 },
+    { label: tm("30 Days"), value: 2592000 },
+    { label: tm("90 Days"), value: 7776000 }
   ];
 
   // Build the badge URL
@@ -169,16 +170,16 @@
     <div class="flex flex-col gap-6">
       <Card.Root>
         <Card.Header>
-          <Card.Title>Badge Generator</Card.Title>
+          <Card.Title>{tm("Badge Generator")}</Card.Title>
           <Card.Description>
-            Create a customizable badge to display the status, uptime, or latency of your monitors
+            {tm("Create a customizable badge to display the status, uptime, or latency of your monitors")}
           </Card.Description>
         </Card.Header>
         <Card.Content>
           <div class="grid grid-cols-2 gap-4">
             <div class="flex flex-col gap-4 border-r pr-4">
               <div class="flex flex-col gap-2">
-                <Label for="monitor-select">Monitor</Label>
+                <Label for="monitor-select">{tm("Monitor")}</Label>
                 <Select.Root
                   type="single"
                   value={badgeConfig.tag}
@@ -188,11 +189,11 @@
                 >
                   <Select.Trigger id="monitor-select" class="w-full">
                     {badgeConfig.tag === "_"
-                      ? "All Monitors"
-                      : monitors.find((m) => m.tag === badgeConfig.tag)?.name || "Select a monitor"}
+                      ? tm("All Monitors")
+                      : monitors.find((m) => m.tag === badgeConfig.tag)?.name || tm("Select a monitor")}
                   </Select.Trigger>
                   <Select.Content>
-                    <Select.Item value="_">All Monitors</Select.Item>
+                    <Select.Item value="_">{tm("All Monitors")}</Select.Item>
                     {#each monitors as monitor (monitor.tag)}
                       <Select.Item value={monitor.tag}>{monitor.name}</Select.Item>
                     {/each}
@@ -202,7 +203,7 @@
 
               <!-- Badge Type -->
               <div class="flex flex-col gap-2">
-                <Label for="badge-type">Badge Type</Label>
+                <Label for="badge-type">{tm("Badge Type")}</Label>
                 <Select.Root
                   type="single"
                   value={badgeConfig.badgeType}
@@ -214,18 +215,18 @@
                     {badgeConfig.badgeType}
                   </Select.Trigger>
                   <Select.Content>
-                    <Select.Item value="status">Status</Select.Item>
-                    <Select.Item value="uptime">Uptime</Select.Item>
-                    <Select.Item value="latency">Latency</Select.Item>
+                    <Select.Item value="status">{tm("Status")}</Select.Item>
+                    <Select.Item value="uptime">{tm("Uptime")}</Select.Item>
+                    <Select.Item value="latency">{tm("Latency")}</Select.Item>
                   </Select.Content>
                 </Select.Root>
                 <p class="text-muted-foreground text-xs">
                   {#if badgeConfig.badgeType === "status"}
-                    Shows current real-time status (UP, DOWN, DEGRADED)
+                    {tm("Shows current real-time status (UP, DOWN, DEGRADED)")}
                   {:else if badgeConfig.badgeType === "uptime"}
-                    Shows uptime percentage over a time period
+                    {tm("Shows uptime percentage over a time period")}
                   {:else}
-                    Shows latency over a time period
+                    {tm("Shows latency over a time period")}
                   {/if}
                 </p>
               </div>
@@ -233,7 +234,7 @@
               <!-- Locale (only for status badges) -->
               {#if badgeConfig.badgeType === "status" && activatedLocales.length > 0}
                 <div class="flex flex-col gap-2">
-                  <Label for="badge-locale">Language</Label>
+                  <Label for="badge-locale">{tm("Language")}</Label>
                   <Select.Root
                     type="single"
                     value={badgeConfig.locale || "en"}
@@ -250,14 +251,16 @@
                       {/each}
                     </Select.Content>
                   </Select.Root>
-                  <p class="text-muted-foreground text-xs">Status text will be shown in the selected language</p>
+                  <p class="text-muted-foreground text-xs">
+                    {tm("Status text will be shown in the selected language")}
+                  </p>
                 </div>
               {/if}
 
               <!-- Duration (only for uptime/latency) -->
               {#if badgeConfig.badgeType !== "status"}
                 <div class="flex flex-col gap-2">
-                  <Label for="duration">Time Period</Label>
+                  <Label for="duration">{tm("Time Period")}</Label>
                   <Select.Root
                     type="single"
                     value={badgeConfig.sinceLast.toString()}
@@ -279,8 +282,8 @@
                 <!-- Hide Duration Toggle -->
                 <div class="flex items-center justify-between">
                   <div class="space-y-0.5">
-                    <Label for="hide-duration">Hide Duration</Label>
-                    <p class="text-muted-foreground text-xs">Don't show the time period on the badge</p>
+                    <Label for="hide-duration">{tm("Hide Duration")}</Label>
+                    <p class="text-muted-foreground text-xs">{tm("Don't show the time period on the badge")}</p>
                   </div>
                   <Switch
                     id="hide-duration"
@@ -293,7 +296,7 @@
               <!-- Latency Metric (only for latency) -->
               {#if badgeConfig.badgeType === "latency"}
                 <div class="flex flex-col gap-2">
-                  <Label for="latency-metric">Latency Metric</Label>
+                  <Label for="latency-metric">{tm("Latency Metric")}</Label>
                   <Select.Root
                     type="single"
                     value={badgeConfig.metric}
@@ -303,24 +306,26 @@
                   >
                     <Select.Trigger id="latency-metric" class="w-full capitalize">
                       {badgeConfig.metric === "average"
-                        ? "Average"
+                        ? tm("Average")
                         : badgeConfig.metric === "maximum"
-                          ? "Maximum"
-                          : "Minimum"}
+                          ? tm("Maximum")
+                          : tm("Minimum")}
                     </Select.Trigger>
                     <Select.Content>
-                      <Select.Item value="average">Average</Select.Item>
-                      <Select.Item value="maximum">Maximum</Select.Item>
-                      <Select.Item value="minimum">Minimum</Select.Item>
+                      <Select.Item value="average">{tm("Average")}</Select.Item>
+                      <Select.Item value="maximum">{tm("Maximum")}</Select.Item>
+                      <Select.Item value="minimum">{tm("Minimum")}</Select.Item>
                     </Select.Content>
                   </Select.Root>
-                  <p class="text-muted-foreground text-xs">Select which latency metric to display on the badge</p>
+                  <p class="text-muted-foreground text-xs">
+                    {tm("Select which latency metric to display on the badge")}
+                  </p>
                 </div>
               {/if}
 
               <!-- Badge Style -->
               <div class="flex flex-col gap-2">
-                <Label for="badge-style">Style</Label>
+                <Label for="badge-style">{tm("Style")}</Label>
                 <Select.Root
                   type="single"
                   value={badgeConfig.style}
@@ -341,14 +346,18 @@
 
               <!-- Custom Label -->
               <div class="flex flex-col gap-2">
-                <Label for="custom-label">Custom Label</Label>
-                <Input id="custom-label" bind:value={badgeConfig.label} placeholder="Leave empty to use monitor name" />
+                <Label for="custom-label">{tm("Custom Label")}</Label>
+                <Input
+                  id="custom-label"
+                  bind:value={badgeConfig.label}
+                  placeholder={tm("Leave empty to use monitor name")}
+                />
               </div>
 
               <!-- Colors -->
               <div class="grid grid-cols-2 gap-4">
                 <div class="flex flex-col gap-2">
-                  <Label>Label Color</Label>
+                  <Label>{tm("Label Color")}</Label>
                   <div class="flex items-center gap-2">
                     <ColorPicker
                       bind:hex={badgeConfig.labelColor}
@@ -360,7 +369,7 @@
                   </div>
                 </div>
                 <div class="flex flex-col gap-2">
-                  <Label>Badge Color</Label>
+                  <Label>{tm("Badge Color")}</Label>
                   <div class="flex items-center gap-2">
                     <ColorPicker bind:hex={badgeConfig.color} label="" --picker-width="150px" --picker-height="150px" />
                     <Input bind:value={badgeConfig.color} class="w-24 font-mono text-xs" />
@@ -372,23 +381,23 @@
               {#if badgeConfig.tag}
                 <div>
                   <p class="flex items-center justify-between">
-                    <span>Preview</span>
+                    <span>{tm("Preview")}</span>
                     <Button variant="ghost" size="icon-sm" onclick={refreshPreview} disabled={!badgeConfig.tag}>
                       <RefreshCwIcon class="size-4" />
                     </Button>
                   </p>
-                  <p class="text-muted-foreground text-sm">See how your badge will look</p>
+                  <p class="text-muted-foreground text-sm">{tm("See how your badge will look")}</p>
                 </div>
                 <!-- Badge Preview -->
                 <div class="bg-muted/50 flex items-center justify-center rounded-lg border p-8">
                   {#key previewKey}
-                    <img src={badgeUrl} alt="Badge preview" class="max-w-full" />
+                    <img src={badgeUrl} alt={tm("Badge preview")} class="max-w-full" />
                   {/key}
                 </div>
 
                 <!-- URL -->
                 <div class="space-y-2">
-                  <Label>Badge URL</Label>
+                  <Label>{tm("Badge URL")}</Label>
                   <div class="flex gap-2">
                     <Input value={badgeUrl} readonly class="font-mono text-xs" />
                     <CopyButton text={badgeUrl}>
@@ -420,7 +429,7 @@
                 </div>
               {:else}
                 <div class="text-muted-foreground flex items-center justify-center py-12 text-center">
-                  Select a monitor to preview the badge
+                  {tm("Select a monitor to preview the badge")}
                 </div>
               {/if}
             </div>

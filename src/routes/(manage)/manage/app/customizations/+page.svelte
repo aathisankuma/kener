@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tm, tmh } from "$lib/uiLocale.svelte";
   import { Button } from "$lib/components/ui/button/index.js";
   import { Input } from "$lib/components/ui/input/index.js";
   import { Textarea } from "$lib/components/ui/textarea/index.js";
@@ -207,7 +208,7 @@
   </div>
 </div>`;
     } catch (e) {
-      toast.error("Failed to load settings");
+      toast.error(tm("Failed to load settings"));
     } finally {
       loading = false;
     }
@@ -229,10 +230,10 @@
       if (result.error) {
         toast.error(result.error);
       } else {
-        toast.success("Footer saved successfully");
+        toast.success(tm("Footer saved successfully"));
       }
     } catch (e) {
-      toast.error("Failed to save footer");
+      toast.error(tm("Failed to save footer"));
     } finally {
       savingFooter = false;
     }
@@ -253,10 +254,10 @@
       if (result.error) {
         toast.error(result.error);
       } else {
-        toast.success("Status colors saved successfully");
+        toast.success(tm("Status colors saved successfully"));
       }
     } catch (e) {
-      toast.error("Failed to save colors");
+      toast.error(tm("Failed to save colors"));
     } finally {
       savingColors = false;
     }
@@ -277,10 +278,10 @@
       if (result.error) {
         toast.error(result.error);
       } else {
-        toast.success("Font settings saved successfully");
+        toast.success(tm("Font settings saved successfully"));
       }
     } catch (e) {
-      toast.error("Failed to save font settings");
+      toast.error(tm("Failed to save font settings"));
     } finally {
       savingFont = false;
     }
@@ -301,10 +302,10 @@
       if (result.error) {
         toast.error(result.error);
       } else {
-        toast.success("Custom CSS saved successfully");
+        toast.success(tm("Custom CSS saved successfully"));
       }
     } catch (e) {
-      toast.error("Failed to save custom CSS");
+      toast.error(tm("Failed to save custom CSS"));
     } finally {
       savingCSS = false;
     }
@@ -325,10 +326,10 @@
       if (result.error) {
         toast.error(result.error);
       } else {
-        toast.success("Theme settings saved successfully");
+        toast.success(tm("Theme settings saved successfully"));
       }
     } catch (e) {
-      toast.error("Failed to save theme settings");
+      toast.error(tm("Failed to save theme settings"));
     } finally {
       savingTheme = false;
     }
@@ -365,10 +366,10 @@
         toast.error(result.error);
       } else {
         announcement.reshowAfterInHours = reshowAfterInHours == null ? "" : String(reshowAfterInHours);
-        toast.success("Announcement settings saved successfully");
+        toast.success(tm("Announcement settings saved successfully"));
       }
     } catch (e) {
-      toast.error("Failed to save announcement settings");
+      toast.error(tm("Failed to save announcement settings"));
     } finally {
       savingAnnouncement = false;
     }
@@ -418,10 +419,10 @@
         toast.error(result.error);
       } else {
         orderedPageIds = displayPages.map((p) => p.id);
-        toast.success("Page ordering saved successfully");
+        toast.success(tm("Page ordering saved successfully"));
       }
     } catch (e) {
-      toast.error("Failed to save page ordering");
+      toast.error(tm("Failed to save page ordering"));
     } finally {
       savingPageOrdering = false;
     }
@@ -464,9 +465,9 @@
     <!-- Footer HTML Section -->
     <Card.Root>
       <Card.Header class="border-b">
-        <Card.Title>Site Footer</Card.Title>
+        <Card.Title>{tm("Site Footer")}</Card.Title>
         <Card.Description>
-          Customize the footer HTML of your status page. Use HTML to add links, text, and other content.
+          {tm("Customize the footer HTML of your status page. Use HTML to add links, text, and other content.")}
         </Card.Description>
       </Card.Header>
       <Card.Content class="pt-6">
@@ -488,12 +489,12 @@
         </div>
       </Card.Content>
       <Card.Footer class="flex justify-between border-t pt-6">
-        <Button variant="outline" onclick={resetFooter}>Reset to Default</Button>
+        <Button variant="outline" onclick={resetFooter}>{tm("Reset to Default")}</Button>
         <Button onclick={saveFooter} disabled={savingFooter}>
           {#if savingFooter}
             <Loader class="h-4 w-4 animate-spin" />
           {/if}
-          Save Footer
+          {tm("Save Footer")}
         </Button>
       </Card.Footer>
     </Card.Root>
@@ -501,10 +502,11 @@
     <!-- Status Colors Section -->
     <Card.Root>
       <Card.Header class="border-b">
-        <Card.Title>Status Colors</Card.Title>
+        <Card.Title>{tm("Status Colors")}</Card.Title>
         <Card.Description
-          >Customize the colors used to represent different monitor statuses. Set separate colors for light and dark
-          themes.</Card.Description
+          >{tm(
+            "Customize the colors used to represent different monitor statuses. Set separate colors for light and dark themes."
+          )}</Card.Description
         >
       </Card.Header>
       <Card.Content class="pt-6">
@@ -512,9 +514,9 @@
           <Table.Root>
             <Table.Header>
               <Table.Row>
-                <Table.Head>Name</Table.Head>
-                <Table.Head>Light</Table.Head>
-                <Table.Head>Dark</Table.Head>
+                <Table.Head>{tm("Name")}</Table.Head>
+                <Table.Head>{tm("Light")}</Table.Head>
+                <Table.Head>{tm("Dark")}</Table.Head>
               </Table.Row>
             </Table.Header>
             <Table.Body>
@@ -619,7 +621,7 @@
                 </Table.Cell>
               </Table.Row>
               <Table.Row>
-                <Table.Cell class="font-medium">Accent</Table.Cell>
+                <Table.Cell class="font-medium">{tm("Accent")}</Table.Cell>
                 <Table.Cell>
                   <ColorPicker
                     bind:hex={colors.ACCENT}
@@ -644,7 +646,7 @@
                 </Table.Cell>
               </Table.Row>
               <Table.Row>
-                <Table.Cell class="font-medium">Accent Foreground</Table.Cell>
+                <Table.Cell class="font-medium">{tm("Accent Foreground")}</Table.Cell>
                 <Table.Cell>
                   <ColorPicker
                     bind:hex={colors.ACCENT_FOREGROUND}
@@ -677,7 +679,7 @@
           {#if savingColors}
             <Loader class="h-4 w-4 animate-spin" />
           {/if}
-          Save Colors
+          {tm("Save Colors")}
         </Button>
       </Card.Footer>
     </Card.Root>
@@ -686,25 +688,26 @@
     <Card.Root>
       <Card.Header class="border-b">
         <Card.Title class="flex items-center gap-2">
-          Font
+          {tm("Font")}
           <Tooltip.Root>
             <Tooltip.Trigger>
               <Info class="text-muted-foreground h-4 w-4" />
             </Tooltip.Trigger>
             <Tooltip.Content class="max-w-xs">
               <p>
-                You can use any web font by providing the CSS URL and font family name. Popular sources include Google
-                Fonts and Bunny Fonts.
+                {tm(
+                  "You can use any web font by providing the CSS URL and font family name. Popular sources include Google Fonts and Bunny Fonts."
+                )}
               </p>
             </Tooltip.Content>
           </Tooltip.Root>
         </Card.Title>
-        <Card.Description>Customize the font used throughout your status page.</Card.Description>
+        <Card.Description>{tm("Customize the font used throughout your status page.")}</Card.Description>
       </Card.Header>
       <Card.Content class="pt-6">
         <div class="grid gap-4 md:grid-cols-2">
           <div>
-            <Label for="font-url">Font CSS URL</Label>
+            <Label for="font-url">{tm("Font CSS URL")}</Label>
             <Input
               bind:value={font.cssSrc}
               type="text"
@@ -712,24 +715,24 @@
               placeholder="https://fonts.bunny.net/css?family=lato:400,700&display=swap"
               class="mt-1"
             />
-            <p class="text-muted-foreground mt-1 text-xs">The URL to the CSS file that loads the font</p>
+            <p class="text-muted-foreground mt-1 text-xs">{tm("The URL to the CSS file that loads the font")}</p>
           </div>
           <div>
-            <Label for="font-family">Font Family Name</Label>
+            <Label for="font-family">{tm("Font Family Name")}</Label>
             <Input bind:value={font.family} type="text" id="font-family" placeholder="Lato" class="mt-1" />
-            <p class="text-muted-foreground mt-1 text-xs">The name of the font family as defined in the CSS</p>
+            <p class="text-muted-foreground mt-1 text-xs">{tm("The name of the font family as defined in the CSS")}</p>
           </div>
         </div>
 
         <p class="text-muted-foreground mt-4 text-sm">
-          Want to upload and use custom fonts? Read more about it in the
+          {tm("Want to upload and use custom fonts? Read more about it in the documentation:")}
           <a
             href="https://kener.ing/docs/v4/guides/custom-fonts"
             target="_blank"
             class="text-foreground underline underline-offset-4"
           >
-            documentation
-          </a>.
+            {tm("Custom fonts")}
+          </a>
         </p>
       </Card.Content>
       <Card.Footer class="flex justify-end border-t pt-6">
@@ -737,7 +740,7 @@
           {#if savingFont}
             <Loader class="h-4 w-4 animate-spin" />
           {/if}
-          Save Font
+          {tm("Save Font")}
         </Button>
       </Card.Footer>
     </Card.Root>
@@ -745,28 +748,30 @@
     <!-- Theme Configuration Section -->
     <Card.Root>
       <Card.Header class="border-b">
-        <Card.Title>Theme</Card.Title>
-        <Card.Description>Configure the default theme and user preferences for your status page.</Card.Description>
+        <Card.Title>{tm("Theme")}</Card.Title>
+        <Card.Description
+          >{tm("Configure the default theme and user preferences for your status page.")}</Card.Description
+        >
       </Card.Header>
       <Card.Content class="space-y-6 pt-6">
         <div class="space-y-3">
-          <Label>Default Theme</Label>
+          <Label>{tm("Default Theme")}</Label>
           <RadioGroup.Root bind:value={theme} class="flex flex-col gap-3">
             <div class="flex items-center space-x-2">
               <RadioGroup.Item value="light" id="theme-light" />
-              <Label for="theme-light" class="cursor-pointer font-normal">Light</Label>
+              <Label for="theme-light" class="cursor-pointer font-normal">{tm("Light")}</Label>
             </div>
             <div class="flex items-center space-x-2">
               <RadioGroup.Item value="dark" id="theme-dark" />
-              <Label for="theme-dark" class="cursor-pointer font-normal">Dark</Label>
+              <Label for="theme-dark" class="cursor-pointer font-normal">{tm("Dark")}</Label>
             </div>
             <div class="flex items-center space-x-2">
               <RadioGroup.Item value="system" id="theme-system" />
-              <Label for="theme-system" class="cursor-pointer font-normal">System</Label>
+              <Label for="theme-system" class="cursor-pointer font-normal">{tm("System")}</Label>
             </div>
           </RadioGroup.Root>
           <p class="text-muted-foreground text-xs">
-            The theme that will be used by default when users visit your status page.
+            {tm("The theme that will be used by default when users visit your status page.")}
           </p>
         </div>
 
@@ -777,9 +782,9 @@
             onCheckedChange={(checked) => (themeToggle = checked ? "YES" : "NO")}
           />
           <div class="space-y-1">
-            <Label for="theme-toggle" class="cursor-pointer">Allow users to toggle theme</Label>
+            <Label for="theme-toggle" class="cursor-pointer">{tm("Allow users to toggle theme")}</Label>
             <p class="text-muted-foreground text-sm">
-              When enabled, users can switch between light and dark themes using a toggle button.
+              {tm("When enabled, users can switch between light and dark themes using a toggle button.")}
             </p>
           </div>
         </div>
@@ -789,7 +794,7 @@
           {#if savingTheme}
             <Loader class="h-4 w-4 animate-spin" />
           {/if}
-          Save Theme
+          {tm("Save Theme")}
         </Button>
       </Card.Footer>
     </Card.Root>
@@ -797,17 +802,17 @@
     <!-- Announcement Section -->
     <Card.Root>
       <Card.Header class="border-b">
-        <Card.Title>Announcement</Card.Title>
-        <Card.Description>Configure a site-wide announcement message shown to visitors.</Card.Description>
+        <Card.Title>{tm("Announcement")}</Card.Title>
+        <Card.Description>{tm("Configure a site-wide announcement message shown to visitors.")}</Card.Description>
       </Card.Header>
       <Card.Content class="space-y-4 pt-6">
         <div class="grid gap-4 md:grid-cols-2">
           <div class="space-y-2">
-            <Label for="announcement-title">Title</Label>
-            <Input id="announcement-title" bind:value={announcement.title} placeholder="Scheduled Maintenance" />
+            <Label for="announcement-title">{tm("Title")}</Label>
+            <Input id="announcement-title" bind:value={announcement.title} placeholder={tm("Scheduled Maintenance")} />
           </div>
           <div class="space-y-2">
-            <Label for="announcement-type">Type</Label>
+            <Label for="announcement-type">{tm("Type")}</Label>
             <Select.Root
               type="single"
               value={announcement.type}
@@ -824,29 +829,29 @@
         </div>
 
         <div class="space-y-2">
-          <Label for="announcement-message">Message</Label>
+          <Label for="announcement-message">{tm("Message")}</Label>
           <Textarea
             id="announcement-message"
             bind:value={announcement.message}
-            placeholder="We are currently performing infrastructure upgrades."
+            placeholder={tm("We are currently performing infrastructure upgrades.")}
             rows={4}
           />
         </div>
 
         <div class="grid gap-4 md:grid-cols-3">
           <div class="space-y-2">
-            <Label for="announcement-reshow">Reshow After (hours)</Label>
+            <Label for="announcement-reshow">{tm("Reshow After (hours)")}</Label>
             <Input
               id="announcement-reshow"
               type="number"
               min="0"
               bind:value={announcement.reshowAfterInHours}
-              placeholder="Leave empty to never reshow automatically"
+              placeholder={tm("Leave empty to never reshow automatically")}
             />
-            <p class="text-muted-foreground text-xs">Leave empty for null.</p>
+            <p class="text-muted-foreground text-xs">{tm("Leave empty for null.")}</p>
           </div>
           <div class="space-y-2">
-            <Label for="announcement-cta">CTA URL (optional)</Label>
+            <Label for="announcement-cta">{tm("CTA URL (optional)")}</Label>
             <Input
               id="announcement-cta-url"
               bind:value={announcement.ctaURL}
@@ -854,8 +859,8 @@
             />
           </div>
           <div class="space-y-2">
-            <Label for="announcement-cta-text">CTA Text (optional)</Label>
-            <Input id="announcement-cta-text" bind:value={announcement.ctaText} placeholder="Learn more" />
+            <Label for="announcement-cta-text">{tm("CTA Text (optional)")}</Label>
+            <Input id="announcement-cta-text" bind:value={announcement.ctaText} placeholder={tm("Learn more")} />
           </div>
         </div>
 
@@ -866,8 +871,8 @@
             onCheckedChange={(checked) => (announcement.cancellable = checked === true)}
           />
           <div class="space-y-1">
-            <Label for="announcement-cancellable" class="cursor-pointer">Cancellable</Label>
-            <p class="text-muted-foreground text-sm">Allow users to dismiss the announcement.</p>
+            <Label for="announcement-cancellable" class="cursor-pointer">{tm("Cancellable")}</Label>
+            <p class="text-muted-foreground text-sm">{tm("Allow users to dismiss the announcement.")}</p>
           </div>
         </div>
       </Card.Content>
@@ -876,7 +881,7 @@
           {#if savingAnnouncement}
             <Loader class="h-4 w-4 animate-spin" />
           {/if}
-          Save Announcement
+          {tm("Save Announcement")}
         </Button>
       </Card.Footer>
     </Card.Root>
@@ -884,9 +889,9 @@
     <!-- Page Ordering Section -->
     <Card.Root>
       <Card.Header class="border-b">
-        <Card.Title>Page Ordering</Card.Title>
+        <Card.Title>{tm("Page Ordering")}</Card.Title>
         <Card.Description>
-          Control the display order of pages in the page switcher. New pages will appear at the end of the list.
+          {tm("Control the display order of pages in the page switcher. New pages will appear at the end of the list.")}
         </Card.Description>
       </Card.Header>
       <Card.Content class="space-y-4 pt-6">
@@ -897,9 +902,9 @@
             onCheckedChange={(checked) => (pageOrderingEnabled = checked === true)}
           />
           <div class="space-y-1">
-            <Label for="page-ordering-enabled" class="cursor-pointer">Enable custom page ordering</Label>
+            <Label for="page-ordering-enabled" class="cursor-pointer">{tm("Enable custom page ordering")}</Label>
             <p class="text-muted-foreground text-sm">
-              When enabled, pages will be displayed in the order below instead of the default creation order.
+              {tm("When enabled, pages will be displayed in the order below instead of the default creation order.")}
             </p>
           </div>
         </div>
@@ -909,7 +914,7 @@
             <Spinner class="h-5 w-5" />
           </div>
         {:else if allPages.length === 0}
-          <p class="text-muted-foreground py-4 text-center text-sm">No pages found.</p>
+          <p class="text-muted-foreground py-4 text-center text-sm">{tm("No pages found.")}</p>
         {:else}
           <div class="rounded-lg border">
             {#each displayPages as page, index (page.id)}
@@ -955,7 +960,7 @@
           {#if savingPageOrdering}
             <Loader class="h-4 w-4 animate-spin" />
           {/if}
-          Save Page Ordering
+          {tm("Save Page Ordering")}
         </Button>
       </Card.Footer>
     </Card.Root>
@@ -963,17 +968,20 @@
     <!-- Custom CSS Section -->
     <Card.Root>
       <Card.Header class="border-b">
-        <Card.Title>Custom CSS</Card.Title>
+        <Card.Title>{tm("Custom CSS")}</Card.Title>
         <Card.Description>
-          Add custom CSS to further customize the appearance of your status page. Do not include &lt;style&gt; tags.
-          Learn more in the
+          <span
+            >{@html tmh(
+              "Add custom CSS to further customize the appearance of your status page. Do not include `<style>` tags. Learn more in the documentation:"
+            )}</span
+          >
           <a
             href="https://kener.ing/docs/v4/guides/custom-js-css-guide"
             target="_blank"
             class="text-foreground underline underline-offset-4"
           >
-            documentation
-          </a>.
+            {tm("Custom CSS and JS")}
+          </a>
         </Card.Description>
       </Card.Header>
       <Card.Content class="pt-6">
@@ -999,7 +1007,7 @@
           {#if savingCSS}
             <Loader class="h-4 w-4 animate-spin" />
           {/if}
-          Save Custom CSS
+          {tm("Save Custom CSS")}
         </Button>
       </Card.Footer>
     </Card.Root>

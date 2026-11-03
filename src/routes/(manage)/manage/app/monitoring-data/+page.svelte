@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tm, tmh, tmStatus } from "$lib/uiLocale.svelte";
   import { Button } from "$lib/components/ui/button/index.js";
   import { Spinner } from "$lib/components/ui/spinner/index.js";
   import { Badge } from "$lib/components/ui/badge/index.js";
@@ -158,13 +159,13 @@
       if (result.error) {
         toast.error(result.error);
       } else {
-        toast.success("Monitoring data deleted successfully");
+        toast.success(tm("Monitoring data deleted successfully"));
         monitorTagFilter = "ALL";
         pageNo = 1;
         fetchData();
       }
     } catch (e) {
-      toast.error("Failed to delete monitoring data");
+      toast.error(tm("Failed to delete monitoring data"));
     } finally {
       deleting = false;
     }
@@ -265,7 +266,7 @@
     <div class="flex items-center gap-2">
       <Button variant={showFilters ? "default" : "outline"} size="sm" onclick={() => (showFilters = !showFilters)}>
         <FilterIcon class="size-4" />
-        Filters
+        {tm("Filters")}
         {#if hasActiveFilters}
           <Badge variant="secondary" class="ml-1 px-1.5 py-0 text-[10px]">ON</Badge>
         {/if}
@@ -278,7 +279,7 @@
     {#if showFilters}
       <div class="bg-muted/50 flex flex-wrap items-end gap-3 rounded-lg border p-3">
         <div class="flex flex-col gap-1">
-          <Label for="start-datetime" class="text-muted-foreground text-xs font-medium">From</Label>
+          <Label for="start-datetime" class="text-muted-foreground text-xs font-medium">{tm("From")}</Label>
           <Input
             id="start-datetime"
             type="datetime-local"
@@ -288,7 +289,7 @@
           />
         </div>
         <div class="flex flex-col gap-1">
-          <Label for="end-datetime" class="text-muted-foreground text-xs font-medium">To</Label>
+          <Label for="end-datetime" class="text-muted-foreground text-xs font-medium">{tm("To")}</Label>
           <Input
             id="end-datetime"
             type="datetime-local"
@@ -298,13 +299,13 @@
           />
         </div>
         <div class="flex flex-col gap-1">
-          <span class="text-muted-foreground text-xs font-medium">Monitor</span>
+          <span class="text-muted-foreground text-xs font-medium">{tm("Monitor")}</span>
           <Select.Root type="single" value={monitorTagFilter} onValueChange={handleMonitorChange}>
             <Select.Trigger class="w-48">
-              {monitorTagFilter === "ALL" ? "All Monitors" : monitorTagFilter}
+              {monitorTagFilter === "ALL" ? tm("All Monitors") : monitorTagFilter}
             </Select.Trigger>
             <Select.Content>
-              <Select.Item value="ALL">All Monitors</Select.Item>
+              <Select.Item value="ALL">{tm("All Monitors")}</Select.Item>
               {#each monitors as monitor (monitor.tag)}
                 <Select.Item value={monitor.tag}>{monitor.name || monitor.tag}</Select.Item>
               {/each}
@@ -312,13 +313,13 @@
           </Select.Root>
         </div>
         <div class="flex flex-col gap-1">
-          <span class="text-muted-foreground text-xs font-medium">Status</span>
+          <span class="text-muted-foreground text-xs font-medium">{tm("Status")}</span>
           <Select.Root type="single" value={statusFilter} onValueChange={handleStatusChange}>
-            <Select.Trigger class="w-36" aria-label="Status">
-              {statusFilter === "ALL" ? "All Statuses" : statusFilter}
+            <Select.Trigger class="w-36" aria-label={tm("Status")}>
+              {statusFilter === "ALL" ? tm("All Statuses") : statusFilter}
             </Select.Trigger>
             <Select.Content>
-              <Select.Item value="ALL">All Statuses</Select.Item>
+              <Select.Item value="ALL">{tm("All Statuses")}</Select.Item>
               <Select.Item value={GC.UP}>UP</Select.Item>
               <Select.Item value={GC.DOWN}>DOWN</Select.Item>
               <Select.Item value={GC.DEGRADED}>DEGRADED</Select.Item>
@@ -327,21 +328,21 @@
         </div>
         <Button size="sm" onclick={applyFilters}>
           <SearchIcon class="size-4" />
-          Search
+          {tm("Search")}
         </Button>
         <Button size="sm" variant="destructive" onclick={openDeleteDialog} disabled={deleting}>
           {#if deleting}
             <Spinner class="size-4" />
-            Deleting...
+            {tm("Deleting...")}
           {:else}
             <TrashIcon class="size-4" />
-            Delete
+            {tm("Delete")}
           {/if}
         </Button>
         {#if hasActiveFilters}
           <Button variant="ghost" size="sm" onclick={clearFilters}>
             <XIcon class="size-4" />
-            Clear
+            {tm("Clear")}
           </Button>
         {/if}
       </div>
@@ -353,18 +354,20 @@
     <Table.Root>
       <Table.Header>
         <Table.Row>
-          <Table.Head>Monitor Tag</Table.Head>
-          <Table.Head class="w-48">Timestamp</Table.Head>
-          <Table.Head class="w-24">Status</Table.Head>
-          <Table.Head class="w-24">Latency</Table.Head>
-          <Table.Head class="w-24">Type</Table.Head>
-          <Table.Head>Error Message</Table.Head>
+          <Table.Head>{tm("Monitor Tag")}</Table.Head>
+          <Table.Head class="w-48">{tm("Timestamp")}</Table.Head>
+          <Table.Head class="w-24">{tm("Status")}</Table.Head>
+          <Table.Head class="w-24">{tm("Latency")}</Table.Head>
+          <Table.Head class="w-24">{tm("Type")}</Table.Head>
+          <Table.Head>{tm("Error Message")}</Table.Head>
         </Table.Row>
       </Table.Header>
       <Table.Body>
         {#if monitoringData.length === 0 && !loading}
           <Table.Row>
-            <Table.Cell colspan={6} class="text-muted-foreground py-8 text-center">No monitoring data found</Table.Cell>
+            <Table.Cell colspan={6} class="text-muted-foreground py-8 text-center"
+              >{tm("No monitoring data found")}</Table.Cell
+            >
           </Table.Row>
         {:else}
           {#each monitoringData as row (row.monitor_tag + "_" + row.timestamp)}
@@ -427,7 +430,9 @@
     {@const startItem = (pageNo - 1) * limit + 1}
     {@const endItem = Math.min(pageNo * limit, totalCount)}
     <div class="flex items-center justify-between">
-      <span class="text-muted-foreground text-sm">Showing {startItem}-{endItem} of {totalCount}</span>
+      <span class="text-muted-foreground text-sm"
+        >{tm("Showing %from-%to of %total", { from: startItem, to: endItem, total: totalCount })}</span
+      >
       {#if totalPages > 1}
         <div class="flex items-center gap-2">
           <Button variant="outline" size="icon" disabled={pageNo === 1} onclick={() => goToPage(pageNo - 1)}>
@@ -456,24 +461,24 @@
 <AlertDialog.Root bind:open={deleteDialogOpen}>
   <AlertDialog.Content>
     <AlertDialog.Header>
-      <AlertDialog.Title>Delete Monitoring Data</AlertDialog.Title>
+      <AlertDialog.Title>{tm("Delete Monitoring Data")}</AlertDialog.Title>
       <AlertDialog.Description>
-        This will delete monitoring data for
-        {#if monitorTagFilter === "ALL"}
-          <strong>all monitors</strong>
-        {:else}
-          <strong>{monitorTagFilter}</strong>
-        {/if}
-        {#if statusFilter !== "ALL"}
-          with status <strong>{statusFilter}</strong>
-        {/if}
-        from {startDateTime} to {endDateTime}.
-        This action cannot be undone.
+        <span
+          >{@html tmh(
+            "This will delete monitoring data for **%monitors**%status from %from to %to. This action cannot be undone.",
+            {
+              monitors: monitorTagFilter === "ALL" ? tm("all monitors") : monitorTagFilter,
+              status: statusFilter !== "ALL" ? tm(" with status %status", { status: tmStatus(statusFilter) }) : "",
+              from: startDateTime,
+              to: endDateTime
+            }
+          )}</span
+        >
       </AlertDialog.Description>
     </AlertDialog.Header>
     <AlertDialog.Footer>
-      <AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
-      <AlertDialog.Action onclick={deleteFilteredData}>Delete</AlertDialog.Action>
+      <AlertDialog.Cancel>{tm("Cancel")}</AlertDialog.Cancel>
+      <AlertDialog.Action onclick={deleteFilteredData}>{tm("Delete")}</AlertDialog.Action>
     </AlertDialog.Footer>
   </AlertDialog.Content>
 </AlertDialog.Root>

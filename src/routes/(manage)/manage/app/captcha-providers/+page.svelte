@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tm } from "$lib/uiLocale.svelte";
   import ProviderSettingsPanel from "$lib/components/manage/ProviderSettingsPanel.svelte";
   import type { ProviderDefinition } from "$lib/client/types/provider-settings.js";
 
@@ -53,7 +54,7 @@
 
 <ProviderSettingsPanel
   initialProviders={captchaProviders}
-  description="Add your CAPTCHA provider Site Key/Secret Key here. Only one provider can be active at a time."
+  description={tm("Add your CAPTCHA provider Site Key/Secret Key here. Only one provider can be active at a time.")}
   learnMoreUrl="https://kener.ing/docs/v4/captcha"
   enforceSingleActive
 />

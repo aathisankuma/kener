@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tm } from "$lib/uiLocale.svelte";
   import { onMount } from "svelte";
   import { Button } from "$lib/components/ui/button/index.js";
   import { Label } from "$lib/components/ui/label/index.js";
@@ -41,10 +42,10 @@
 
   // Days presets
   const daysPresets = [
-    { label: "7 Days", value: 7 },
-    { label: "30 Days", value: 30 },
-    { label: "60 Days", value: 60 },
-    { label: "90 Days", value: 90 }
+    { label: tm("7 Days"), value: 7 },
+    { label: tm("30 Days"), value: 30 },
+    { label: tm("60 Days"), value: 60 },
+    { label: tm("90 Days"), value: 90 }
   ];
 
   // Height presets
@@ -190,9 +191,9 @@
     <div class="flex flex-col gap-6">
       <Card.Root>
         <Card.Header>
-          <Card.Title>Embed Generator</Card.Title>
+          <Card.Title>{tm("Embed Generator")}</Card.Title>
           <Card.Description>
-            Create customizable embeds to display the status or latency of your monitors on external websites
+            {tm("Create customizable embeds to display the status or latency of your monitors on external websites")}
           </Card.Description>
         </Card.Header>
         <Card.Content>
@@ -201,7 +202,7 @@
             <div class="flex flex-col gap-4 border-r pr-4">
               <!-- Embed Type -->
               <div class="flex flex-col gap-2">
-                <Label for="embed-type">Embed Type</Label>
+                <Label for="embed-type">{tm("Embed Type")}</Label>
                 <Select.Root
                   type="single"
                   value={embedConfig.embedType}
@@ -211,24 +212,24 @@
                 >
                   <Select.Trigger id="embed-type" class="w-full capitalize">
                     {embedConfig.embedType === "status"
-                      ? "Status Bar"
+                      ? tm("Status Bar")
                       : embedConfig.embedType === "latency"
-                        ? "Latency Chart"
-                        : "Live Events"}
+                        ? tm("Latency Chart")
+                        : tm("Live Events")}
                   </Select.Trigger>
                   <Select.Content>
-                    <Select.Item value="status">Status Bar</Select.Item>
-                    <Select.Item value="latency">Latency Chart</Select.Item>
-                    <Select.Item value="events">Live Events</Select.Item>
+                    <Select.Item value="status">{tm("Status Bar")}</Select.Item>
+                    <Select.Item value="latency">{tm("Latency Chart")}</Select.Item>
+                    <Select.Item value="events">{tm("Live Events")}</Select.Item>
                   </Select.Content>
                 </Select.Root>
                 <p class="text-muted-foreground text-xs">
                   {#if embedConfig.embedType === "status"}
-                    Shows a status bar with uptime percentage and daily status indicators
+                    {tm("Shows a status bar with uptime percentage and daily status indicators")}
                   {:else if embedConfig.embedType === "latency"}
-                    Shows a latency trend chart over time
+                    {tm("Shows a latency trend chart over time")}
                   {:else}
-                    Shows ongoing incidents and maintenance events in real time
+                    {tm("Shows ongoing incidents and maintenance events in real time")}
                   {/if}
                 </p>
               </div>
@@ -236,7 +237,7 @@
               <!-- Monitor Selection (status & latency only) -->
               {#if embedConfig.embedType !== "events"}
                 <div class="flex flex-col gap-2">
-                  <Label for="monitor-select">Monitor</Label>
+                  <Label for="monitor-select">{tm("Monitor")}</Label>
                   <Select.Root
                     type="single"
                     value={embedConfig.tag}
@@ -245,7 +246,7 @@
                     }}
                   >
                     <Select.Trigger id="monitor-select" class="w-full">
-                      {monitors.find((m) => m.tag === embedConfig.tag)?.name || "Select a monitor"}
+                      {monitors.find((m) => m.tag === embedConfig.tag)?.name || tm("Select a monitor")}
                     </Select.Trigger>
                     <Select.Content>
                       {#each monitors as monitor (monitor.tag)}
@@ -258,21 +259,21 @@
 
               <!-- Theme -->
               <div class="flex flex-col gap-2">
-                <Label>Theme</Label>
+                <Label>{tm("Theme")}</Label>
                 <div class="flex gap-2">
                   <Button
                     variant={embedConfig.theme === "light" ? "default" : "outline"}
                     size="sm"
                     onclick={() => (embedConfig.theme = "light")}
                   >
-                    Light
+                    {tm("Light")}
                   </Button>
                   <Button
                     variant={embedConfig.theme === "dark" ? "default" : "outline"}
                     size="sm"
                     onclick={() => (embedConfig.theme = "dark")}
                   >
-                    Dark
+                    {tm("Dark")}
                   </Button>
                 </div>
               </div>
@@ -280,7 +281,7 @@
               <!-- Events-specific options -->
               {#if embedConfig.embedType === "events"}
                 <div class="flex flex-col gap-2">
-                  <Label>Show</Label>
+                  <Label>{tm("Show")}</Label>
                   <div class="flex flex-col gap-2">
                     <label class="flex items-center gap-2">
                       <Checkbox
@@ -289,7 +290,7 @@
                           embedConfig.showIncidents = !!v;
                         }}
                       />
-                      <span class="text-sm">Incidents</span>
+                      <span class="text-sm">{tm("Incidents")}</span>
                     </label>
                     <label class="flex items-center gap-2">
                       <Checkbox
@@ -298,16 +299,16 @@
                           embedConfig.showMaintenance = !!v;
                         }}
                       />
-                      <span class="text-sm">Maintenance</span>
+                      <span class="text-sm">{tm("Maintenance")}</span>
                     </label>
                   </div>
                 </div>
 
                 <!-- Monitor Tags Filter (optional) -->
                 <div class="flex flex-col gap-2">
-                  <Label>Filter by Monitors</Label>
+                  <Label>{tm("Filter by Monitors")}</Label>
                   <p class="text-muted-foreground text-xs">
-                    Select monitors to filter events. Leave empty to show all global events.
+                    {tm("Select monitors to filter events. Leave empty to show all global events.")}
                   </p>
                   <div class="flex max-h-40 flex-col gap-1.5 overflow-y-auto rounded-md border p-2">
                     {#each monitors as monitor (monitor.tag)}
@@ -331,7 +332,7 @@
                       class="text-muted-foreground self-start text-xs underline hover:no-underline"
                       onclick={() => (embedConfig.selectedTags = [])}
                     >
-                      Clear selection
+                      {tm("Clear selection")}
                     </button>
                   {/if}
                 </div>
@@ -340,7 +341,7 @@
               <!-- Days (status & latency only) -->
               {#if embedConfig.embedType !== "events"}
                 <div class="flex flex-col gap-2">
-                  <Label for="days-select">Time Period</Label>
+                  <Label for="days-select">{tm("Time Period")}</Label>
                   <Select.Root
                     type="single"
                     value={embedConfig.days.toString()}
@@ -363,7 +364,7 @@
               <!-- Height (only for latency) -->
               {#if embedConfig.embedType === "latency"}
                 <div class="flex flex-col gap-2">
-                  <Label for="height-select">Chart Height</Label>
+                  <Label for="height-select">{tm("Chart Height")}</Label>
                   <Select.Root
                     type="single"
                     value={embedConfig.height.toString()}
@@ -384,7 +385,7 @@
 
                 <!-- Latency Metric -->
                 <div class="flex flex-col gap-2">
-                  <Label for="metric-select">Latency Metric</Label>
+                  <Label for="metric-select">{tm("Latency Metric")}</Label>
                   <Select.Root
                     type="single"
                     value={embedConfig.metric}
@@ -394,24 +395,26 @@
                   >
                     <Select.Trigger id="metric-select" class="w-full capitalize">
                       {embedConfig.metric === "average"
-                        ? "Average"
+                        ? tm("Average")
                         : embedConfig.metric === "maximum"
-                          ? "Maximum"
-                          : "Minimum"}
+                          ? tm("Maximum")
+                          : tm("Minimum")}
                     </Select.Trigger>
                     <Select.Content>
-                      <Select.Item value="average">Average</Select.Item>
-                      <Select.Item value="maximum">Maximum</Select.Item>
-                      <Select.Item value="minimum">Minimum</Select.Item>
+                      <Select.Item value="average">{tm("Average")}</Select.Item>
+                      <Select.Item value="maximum">{tm("Maximum")}</Select.Item>
+                      <Select.Item value="minimum">{tm("Minimum")}</Select.Item>
                     </Select.Content>
                   </Select.Root>
-                  <p class="text-muted-foreground text-xs">Select which latency metric to display in the chart</p>
+                  <p class="text-muted-foreground text-xs">
+                    {tm("Select which latency metric to display in the chart")}
+                  </p>
                 </div>
               {/if}
 
               <!-- Format -->
               <div class="flex flex-col gap-2">
-                <Label>Embed Format</Label>
+                <Label>{tm("Embed Format")}</Label>
                 <div class="flex gap-2">
                   <Button
                     variant={embedConfig.format === "iframe" ? "default" : "outline"}
@@ -430,9 +433,9 @@
                 </div>
                 <p class="text-muted-foreground text-xs">
                   {#if embedConfig.format === "iframe"}
-                    Use an iframe to embed the widget. Works on most websites.
+                    {tm("Use an iframe to embed the widget. Works on most websites.")}
                   {:else}
-                    Use a script tag for dynamic embedding. May require CSP configuration.
+                    {tm("Use a script tag for dynamic embedding. May require CSP configuration.")}
                   {/if}
                 </p>
               </div>
@@ -443,12 +446,12 @@
               {#if embedConfig.tag || embedConfig.embedType === "events"}
                 <div>
                   <p class="flex items-center justify-between">
-                    <span class="text-sm font-semibold">Preview</span>
+                    <span class="text-sm font-semibold">{tm("Preview")}</span>
                     <Button variant="ghost" size="icon-sm" onclick={refreshPreview}>
                       <RefreshCwIcon class="h-4 w-4" />
                     </Button>
                   </p>
-                  <p class="text-muted-foreground text-sm">See how your embed will look</p>
+                  <p class="text-muted-foreground text-sm">{tm("See how your embed will look")}</p>
                 </div>
 
                 <!-- Embed Preview -->
@@ -459,7 +462,7 @@
                   {#key previewKey}
                     {#key embedConfig}
                       <iframe
-                        title="Embed preview"
+                        title={tm("Embed preview")}
                         src={previewUrl}
                         width="100%"
                         height={embedConfig.embedType === "status"
@@ -476,7 +479,7 @@
 
                 <!-- Embed URL -->
                 <div class="space-y-2">
-                  <Label>Embed URL</Label>
+                  <Label>{tm("Embed URL")}</Label>
                   <div class="flex gap-2">
                     <Input readonly value={previewUrl} class="font-mono text-xs" />
                     <CopyButton variant="outline" size="icon" text={previewUrl}>
@@ -487,7 +490,7 @@
 
                 <!-- Embed Code -->
                 <div class="space-y-2">
-                  <Label>Embed Code</Label>
+                  <Label>{tm("Embed Code")}</Label>
                   <div class="flex gap-2">
                     <Input readonly value={htmlSnippet} class="font-mono text-xs" />
                     <CopyButton variant="outline" size="icon" text={htmlSnippet}>
@@ -497,7 +500,7 @@
                 </div>
               {:else}
                 <div class="text-muted-foreground flex items-center justify-center py-12 text-center">
-                  Select a monitor to preview the embed
+                  {tm("Select a monitor to preview the embed")}
                 </div>
               {/if}
             </div>

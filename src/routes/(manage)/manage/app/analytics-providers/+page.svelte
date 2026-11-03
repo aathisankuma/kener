@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tm } from "$lib/uiLocale.svelte";
   import ProviderSettingsPanel from "$lib/components/manage/ProviderSettingsPanel.svelte";
   import type { ProviderDefinition } from "$lib/client/types/provider-settings.js";
 
@@ -176,6 +177,6 @@
 
 <ProviderSettingsPanel
   initialProviders={analyticsProviders}
-  description="Add your analytics ID/Key here. You can add multiple analytics providers."
+  description={tm("Add your analytics ID/Key here. You can add multiple analytics providers.")}
   learnMoreUrl="https://kener.ing/docs/v4/analytics"
 />

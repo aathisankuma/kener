@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tm, tmh } from "$lib/uiLocale.svelte";
   import { Button } from "$lib/components/ui/button/index.js";
   import { Input } from "$lib/components/ui/input/index.js";
   import { Label } from "$lib/components/ui/label/index.js";
@@ -111,7 +112,7 @@
         originalMaskedSecret = settings.client_secret;
       }
     } catch {
-      toast.error("Failed to load OIDC settings");
+      toast.error(tm("Failed to load OIDC settings"));
     } finally {
       loading = false;
     }
@@ -131,10 +132,10 @@
       if (result?.error) {
         toast.error(result.error);
       } else {
-        toast.success("OIDC settings saved");
+        toast.success(tm("OIDC settings saved"));
       }
     } catch {
-      toast.error("Failed to save OIDC settings");
+      toast.error(tm("Failed to save OIDC settings"));
     } finally {
       saving = false;
     }
@@ -154,13 +155,13 @@
       };
       testResult = result;
       if (result.success) {
-        toast.success("Connection successful");
+        toast.success(tm("Connection successful"));
       } else {
-        toast.error(result.error || "Connection failed");
+        toast.error(result.error || tm("Connection failed"));
       }
     } catch {
-      toast.error("Connection test failed");
-      testResult = { success: false, error: "Network error" };
+      toast.error(tm("Connection test failed"));
+      testResult = { success: false, error: tm("Network error") };
     } finally {
       testing = false;
     }
@@ -176,7 +177,7 @@
         mappings = result;
       }
     } catch {
-      toast.error("Failed to load group mappings");
+      toast.error(tm("Failed to load group mappings"));
     } finally {
       loadingMappings = false;
     }
@@ -195,11 +196,11 @@
 
   async function addMapping() {
     if (!newMappingGroup.trim()) {
-      toast.error("Please enter an OIDC group name");
+      toast.error(tm("Please enter an OIDC group name"));
       return;
     }
     if (!newMappingRoleId) {
-      toast.error("Please select a Kener role");
+      toast.error(tm("Please select a Kener role"));
       return;
     }
 
@@ -218,7 +219,7 @@
         await loadMappings();
       }
     } catch {
-      toast.error("Failed to add mapping");
+      toast.error(tm("Failed to add mapping"));
     } finally {
       addingMapping = false;
     }
@@ -239,11 +240,11 @@
       if (result?.error) {
         toast.error(result.error);
       } else {
-        toast.success("Mapping deleted");
+        toast.success(tm("Mapping deleted"));
         await loadMappings();
       }
     } catch {
-      toast.error("Failed to delete mapping");
+      toast.error(tm("Failed to delete mapping"));
     } finally {
       deletingMapping = false;
       deleteDialogOpen = false;
@@ -274,9 +275,11 @@
     <!-- ============ OIDC Settings Card ============ -->
     <Card.Root>
       <Card.Header>
-        <Card.Title>OpenID Connect Settings</Card.Title>
+        <Card.Title>{tm("OpenID Connect Settings")}</Card.Title>
         <Card.Description>
-          Configure an OIDC provider (e.g. Keycloak, Azure AD, Authentik) to allow single sign-on for your users.
+          {tm(
+            "Configure an OIDC provider (e.g. Keycloak, Azure AD, Authentik) to allow single sign-on for your users."
+          )}
         </Card.Description>
       </Card.Header>
       <Card.Content>
@@ -284,8 +287,10 @@
           <!-- Enable/Disable -->
           <div class="flex items-center justify-between">
             <div>
-              <Label>Enable OpenID Connect</Label>
-              <p class="text-muted-foreground text-sm">Allow users to sign in using an external identity provider.</p>
+              <Label>{tm("Enable OpenID Connect")}</Label>
+              <p class="text-muted-foreground text-sm">
+                {tm("Allow users to sign in using an external identity provider.")}
+              </p>
             </div>
             <Switch bind:checked={settings.enabled} />
           </div>
@@ -295,40 +300,43 @@
           {#if settings.enabled}
             <!-- Provider Name -->
             <div class="grid gap-2">
-              <Label for="provider_name">Provider Name</Label>
+              <Label for="provider_name">{tm("Provider Name")}</Label>
               <Input
                 id="provider_name"
                 bind:value={settings.provider_name}
                 placeholder="e.g. Keycloak, Azure AD, Authentik"
               />
               <p class="text-muted-foreground text-xs">
-                Displayed on the login button: "Sign in with {settings.provider_name || "..."}"
+                {tm('Displayed on the login button: "Sign in with %name"', { name: settings.provider_name || "..." })}
               </p>
             </div>
 
             <!-- Issuer URL -->
             <div class="grid gap-2">
-              <Label for="issuer_url">Issuer URL</Label>
+              <Label for="issuer_url">{tm("Issuer URL")}</Label>
               <Input
                 id="issuer_url"
                 bind:value={settings.issuer_url}
                 placeholder="https://keycloak.example.com/realms/myrealm"
               />
               <p class="text-muted-foreground text-xs">
-                The base URL of the OIDC provider. Must support
-                <code>.well-known/openid-configuration</code> discovery.
+                <span
+                  >{@html tmh(
+                    "The base URL of the OIDC provider. Must support `.well-known/openid-configuration` discovery."
+                  )}</span
+                >
               </p>
             </div>
 
             <!-- Client ID -->
             <div class="grid gap-2">
-              <Label for="client_id">Client ID</Label>
+              <Label for="client_id">{tm("Client ID")}</Label>
               <Input id="client_id" bind:value={settings.client_id} placeholder="kener-client" />
             </div>
 
             <!-- Client Secret -->
             <div class="grid gap-2">
-              <Label for="client_secret">Client Secret</Label>
+              <Label for="client_secret">{tm("Client Secret")}</Label>
               <div class="relative">
                 <Input
                   id="client_secret"
@@ -353,21 +361,23 @@
 
             <!-- Scopes -->
             <div class="grid gap-2">
-              <Label for="scopes">Scopes</Label>
+              <Label for="scopes">{tm("Scopes")}</Label>
               <Input id="scopes" bind:value={settings.scopes} placeholder="openid profile email" />
               <p class="text-muted-foreground text-xs">
-                Space-separated list of OIDC scopes. Add your provider's group scope if needed (e.g. "openid profile
-                email groups").
+                {tm(
+                  'Space-separated list of OIDC scopes. Add your provider\'s group scope if needed (e.g. "openid profile email groups").'
+                )}
               </p>
             </div>
 
             <!-- Groups Claim -->
             <div class="grid gap-2">
-              <Label for="groups_claim">Groups Claim Name</Label>
+              <Label for="groups_claim">{tm("Groups Claim Name")}</Label>
               <Input id="groups_claim" bind:value={settings.groups_claim} placeholder="groups" />
               <p class="text-muted-foreground text-xs">
-                The claim in the ID token that contains the user's group memberships. Common values: "groups" (Keycloak,
-                Authentik), "roles", "cognito:groups" (AWS).
+                {tm(
+                  'The claim in the ID token that contains the user\'s group memberships. Common values: "groups" (Keycloak, Authentik), "roles", "cognito:groups" (AWS).'
+                )}
               </p>
             </div>
 
@@ -376,9 +386,11 @@
             <!-- Allow Local Login -->
             <div class="flex items-center justify-between">
               <div>
-                <Label>Allow local login</Label>
+                <Label>{tm("Allow local login")}</Label>
                 <p class="text-muted-foreground text-sm">
-                  When disabled, users can only sign in via the OIDC provider. The password login form will be hidden.
+                  {tm(
+                    "When disabled, users can only sign in via the OIDC provider. The password login form will be hidden."
+                  )}
                 </p>
               </div>
               <Switch bind:checked={settings.allow_local_login} />
@@ -387,10 +399,11 @@
             <!-- Auto-Create Users -->
             <div class="flex items-center justify-between">
               <div>
-                <Label>Auto-create users on first login</Label>
+                <Label>{tm("Auto-create users on first login")}</Label>
                 <p class="text-muted-foreground text-sm">
-                  When enabled, a new Kener user is created automatically on first OIDC login. When disabled, users must
-                  be pre-created.
+                  {tm(
+                    "When enabled, a new Kener user is created automatically on first OIDC login. When disabled, users must be pre-created."
+                  )}
                 </p>
               </div>
               <Switch bind:checked={settings.auto_create_users} />
@@ -398,7 +411,7 @@
 
             <!-- Default Role -->
             <div class="grid gap-2">
-              <Label>Default Role</Label>
+              <Label>{tm("Default Role")}</Label>
               <Select.Root
                 type="single"
                 value={settings.default_role_id}
@@ -407,7 +420,7 @@
                 }}
               >
                 <Select.Trigger class="w-full">
-                  {getRoleName(settings.default_role_id) || "Select a role..."}
+                  {getRoleName(settings.default_role_id) || tm("Select a role...")}
                 </Select.Trigger>
                 <Select.Content>
                   {#each roles as role (role.id)}
@@ -418,7 +431,7 @@
                 </Select.Content>
               </Select.Root>
               <p class="text-muted-foreground text-xs">
-                Assigned when a user's OIDC groups don't match any mapping below.
+                {tm("Assigned when a user's OIDC groups don't match any mapping below.")}
               </p>
             </div>
 
@@ -434,10 +447,10 @@
                 <div class="mb-2 flex items-center gap-2">
                   {#if testResult.success}
                     <CheckCircleIcon class="h-5 w-5 text-green-600 dark:text-green-400" />
-                    <span class="font-medium text-green-800 dark:text-green-200">Connection successful</span>
+                    <span class="font-medium text-green-800 dark:text-green-200">{tm("Connection successful")}</span>
                   {:else}
                     <XCircleIcon class="h-5 w-5 text-red-600 dark:text-red-400" />
-                    <span class="font-medium text-red-800 dark:text-red-200">Connection failed</span>
+                    <span class="font-medium text-red-800 dark:text-red-200">{tm("Connection failed")}</span>
                   {/if}
                 </div>
                 {#if testResult.success}
@@ -469,7 +482,7 @@
             {:else}
               <PlayIcon class="mr-2 h-4 w-4" />
             {/if}
-            Test Connection
+            {tm("Test Connection")}
           </Button>
         {:else}
           <div></div>
@@ -480,7 +493,7 @@
           {:else}
             <SaveIcon class="mr-2 h-4 w-4" />
           {/if}
-          Save Settings
+          {tm("Save Settings")}
         </Button>
       </Card.Footer>
     </Card.Root>
@@ -489,21 +502,22 @@
     {#if settings.enabled}
       <Card.Root>
         <Card.Header>
-          <Card.Title>Group → Role Mapping</Card.Title>
+          <Card.Title>{tm("Group → Role Mapping")}</Card.Title>
           <Card.Description>
-            Map OIDC group names to Kener roles. When a user signs in via OIDC, their group memberships determine which
-            roles they get in Kener. Roles are synchronized on every login.
+            {tm(
+              "Map OIDC group names to Kener roles. When a user signs in via OIDC, their group memberships determine which roles they get in Kener. Roles are synchronized on every login."
+            )}
           </Card.Description>
         </Card.Header>
         <Card.Content>
           <!-- Add new mapping -->
           <div class="mb-6 flex items-end gap-3">
             <div class="grid flex-1 gap-2">
-              <Label for="new_group">OIDC Group</Label>
+              <Label for="new_group">{tm("OIDC Group")}</Label>
               <Input id="new_group" bind:value={newMappingGroup} placeholder="e.g. Windows-Admins" />
             </div>
             <div class="grid flex-1 gap-2">
-              <Label>Kener Role</Label>
+              <Label>{tm("Kener Role")}</Label>
               <Select.Root
                 type="single"
                 value={newMappingRoleId}
@@ -512,7 +526,7 @@
                 }}
               >
                 <Select.Trigger class="w-full">
-                  {newMappingRoleId ? getRoleName(newMappingRoleId) : "Select a role..."}
+                  {newMappingRoleId ? getRoleName(newMappingRoleId) : tm("Select a role...")}
                 </Select.Trigger>
                 <Select.Content>
                   {#each roles as role (role.id)}
@@ -529,7 +543,7 @@
               {:else}
                 <PlusIcon class="mr-2 h-4 w-4" />
               {/if}
-              Add
+              {tm("Add")}
             </Button>
           </div>
 
@@ -540,16 +554,16 @@
             </div>
           {:else if mappings.length === 0}
             <div class="text-muted-foreground rounded-lg border border-dashed py-8 text-center">
-              <p>No group mappings configured yet.</p>
-              <p class="mt-1 text-sm">Add a mapping above to assign Kener roles based on OIDC groups.</p>
+              <p>{tm("No group mappings configured yet.")}</p>
+              <p class="mt-1 text-sm">{tm("Add a mapping above to assign Kener roles based on OIDC groups.")}</p>
             </div>
           {:else}
             <Table.Root>
               <Table.Header>
                 <Table.Row>
-                  <Table.Head class="pl-4">OIDC Group</Table.Head>
-                  <Table.Head>Kener Role</Table.Head>
-                  <Table.Head class="pr-4 text-right">Actions</Table.Head>
+                  <Table.Head class="pl-4">{tm("OIDC Group")}</Table.Head>
+                  <Table.Head>{tm("Kener Role")}</Table.Head>
+                  <Table.Head class="pr-4 text-right">{tm("Actions")}</Table.Head>
                 </Table.Row>
               </Table.Header>
               <Table.Body>
@@ -577,27 +591,36 @@
       <!-- ============ Info Card ============ -->
       <Card.Root>
         <Card.Header>
-          <Card.Title>How it works</Card.Title>
+          <Card.Title>{tm("How it works")}</Card.Title>
         </Card.Header>
         <Card.Content>
           <div class="text-muted-foreground space-y-3 text-sm">
             <p>
-              <strong>On every OIDC login</strong>, Kener reads the user's group memberships from the ID token (using
-              the claim name configured above) and updates their roles accordingly.
+              <span
+                >{@html tmh(
+                  "**On every OIDC login**, Kener reads the user's group memberships from the ID token (using the claim name configured above) and updates their roles accordingly."
+                )}</span
+              >
             </p>
             <p>
-              <strong>Roles from OIDC mappings</strong> are fully synchronized: if a user is removed from an OIDC group, they
-              lose the corresponding Kener role on next login.
+              <span
+                >{@html tmh(
+                  "**Roles from OIDC mappings** are fully synchronized: if a user is removed from an OIDC group, they lose the corresponding Kener role on next login."
+                )}</span
+              >
             </p>
             <p>
-              <strong>Manually assigned roles</strong> (roles that don't appear in any mapping above) are preserved and not
-              affected by OIDC sync.
+              <span
+                >{@html tmh(
+                  "**Manually assigned roles** (roles that don't appear in any mapping above) are preserved and not affected by OIDC sync."
+                )}</span
+              >
             </p>
             <p>
-              <strong>If no groups match</strong>, the default role (configured above) is assigned.
+              <span>{@html tmh("**If no groups match**, the default role (configured above) is assigned.")}</span>
             </p>
             <p>
-              <strong>Callback URL</strong> to configure in your OIDC provider:<br />
+              <span>{@html tmh("**Callback URL** to configure in your OIDC provider:")}</span><br />
               <code class="bg-muted rounded px-2 py-1 text-xs">
                 {typeof window !== "undefined" ? window.location.origin : "https://your-kener-domain"}{resolve(
                   "/account/oidc/callback"
@@ -615,19 +638,24 @@
 <AlertDialog.Root bind:open={deleteDialogOpen}>
   <AlertDialog.Content>
     <AlertDialog.Header>
-      <AlertDialog.Title>Delete Group Mapping</AlertDialog.Title>
+      <AlertDialog.Title>{tm("Delete Group Mapping")}</AlertDialog.Title>
       <AlertDialog.Description>
-        Remove the mapping for OIDC group "{mappingToDelete?.oidc_group}"? Users in this group will no longer receive
-        the "{mappingToDelete ? getRoleName(mappingToDelete.role_id) : ""}" role on their next login.
+        {tm(
+          'Remove the mapping for OIDC group "%group"? Users in this group will no longer receive the "%role" role on their next login.',
+          {
+            group: mappingToDelete?.oidc_group ?? "",
+            role: mappingToDelete ? getRoleName(mappingToDelete.role_id) : ""
+          }
+        )}
       </AlertDialog.Description>
     </AlertDialog.Header>
     <AlertDialog.Footer>
-      <AlertDialog.Cancel disabled={deletingMapping}>Cancel</AlertDialog.Cancel>
+      <AlertDialog.Cancel disabled={deletingMapping}>{tm("Cancel")}</AlertDialog.Cancel>
       <AlertDialog.Action onclick={deleteMapping} disabled={deletingMapping}>
         {#if deletingMapping}
           <Spinner class="h-4 w-4" />
         {/if}
-        Delete
+        {tm("Delete")}
       </AlertDialog.Action>
     </AlertDialog.Footer>
   </AlertDialog.Content>
