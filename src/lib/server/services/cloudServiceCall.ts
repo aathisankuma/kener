@@ -23,7 +23,7 @@ import {
   FindM365Service,
   M365HealthOverviews,
   M365MatchNames,
-  ResolveM365Credentials,
+  ResolveM365CredentialsShared,
   StatuspageBase,
 } from "../cloudProviderClient.js";
 import {
@@ -279,7 +279,7 @@ class CloudServiceCall {
     if (!IsAzureResourceId(resourceId)) {
       return this.fail(GC.ERROR, "Azure resource ID is missing or not /subscriptions/…/providers/…");
     }
-    const resolved = ResolveM365Credentials(data);
+    const resolved = await ResolveM365CredentialsShared(data);
     if ("error" in resolved) {
       return this.fail(GC.ERROR, resolved.error);
     }
@@ -298,7 +298,7 @@ class CloudServiceCall {
 
   private async checkM365(provider: CloudProvider): Promise<MonitoringResult> {
     const data = this.monitor.type_data;
-    const resolved = ResolveM365Credentials(data);
+    const resolved = await ResolveM365CredentialsShared(data);
     if ("error" in resolved) {
       return this.fail(GC.ERROR, resolved.error);
     }

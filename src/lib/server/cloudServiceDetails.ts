@@ -21,7 +21,7 @@ import {
   M365Get,
   M365HealthOverviews,
   M365MatchNames,
-  ResolveM365Credentials,
+  ResolveM365CredentialsShared,
   StatuspageBase,
 } from "./cloudProviderClient.js";
 import {
@@ -341,7 +341,7 @@ async function uptimeRobotDetails(provider: CloudProvider, data: CloudServiceMon
 // ---------------------------------------------------------------- Azure
 
 async function azureDetails(provider: CloudProvider, data: CloudServiceMonitorTypeData): Promise<CloudDetails> {
-  const resolved = ResolveM365Credentials(data);
+  const resolved = await ResolveM365CredentialsShared(data);
   if ("error" in resolved) throw new Error(resolved.error);
   const resourceId = (data.azureResourceId || "").trim();
   if (!resourceId) throw new Error("Azure resource ID is missing");
@@ -415,7 +415,7 @@ export function NormalizeM365Issue(issue: M365Issue): CloudIncident {
 }
 
 async function m365Details(provider: CloudProvider, data: CloudServiceMonitorTypeData): Promise<CloudDetails> {
-  const resolved = ResolveM365Credentials(data);
+  const resolved = await ResolveM365CredentialsShared(data);
   if ("error" in resolved) throw new Error(resolved.error);
   const timeout = data.timeout || 10000;
   const service = FindM365Service(

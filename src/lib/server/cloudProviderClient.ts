@@ -30,12 +30,14 @@ export interface M365Credentials {
 }
 
 /**
- * The Microsoft 365 connection of a monitor. Each empty field falls back to M365_TENANT_ID,
- * M365_CLIENT_ID or M365_CLIENT_SECRET, so one app registration serves every monitor.
+ * The Microsoft 365 connection of a monitor. Each empty field falls back to the shared connection
+ * of the "Microsoft 365" settings page, then to M365_TENANT_ID, M365_CLIENT_ID or
+ * M365_CLIENT_SECRET, so one app registration serves every monitor.
  * Fields may name environment variables as $NAME.
  */
 export function ResolveM365Credentials(
   data: CloudServiceMonitorTypeData,
+  shared: Partial<M365Credentials> = {},
 ): { credentials: M365Credentials } | { error: string } {
   const envSecrets = GetRequiredSecrets(`${data.tenantId ?? ""} ${data.clientId ?? ""} ${data.clientSecret ?? ""}`);
   const secret = (value: string | undefined) => {
@@ -45,23 +47,51 @@ export function ResolveM365Credentials(
     }
     return result;
   };
+  const fallback = (key: keyof M365Credentials, env: string) =>
+    (shared[key] || "").trim() || (process.env[env] || "").trim();
   const credentials = {
-    tenantId: secret(data.tenantId) || (process.env.M365_TENANT_ID || "").trim(),
-    clientId: secret(data.clientId) || (process.env.M365_CLIENT_ID || "").trim(),
-    clientSecret: secret(data.clientSecret) || (process.env.M365_CLIENT_SECRET || "").trim(),
+    tenantId: secret(data.tenantId) || fallback("tenantId", "M365_TENANT_ID"),
+    clientId: secret(data.clientId) || fallback("clientId", "M365_CLIENT_ID"),
+    clientSecret: secret(data.clientSecret) || fallback("clientSecret", "M365_CLIENT_SECRET"),
   };
-  const envNames = { tenantId: "M365_TENANT_ID", clientId: "M365_CLIENT_ID", clientSecret: "M365_CLIENT_SECRET" };
+  const labels = { tenantId: "Tenant ID", clientId: "Client ID", clientSecret: "Client secret" };
   const missing = (Object.keys(credentials) as Array<keyof M365Credentials>)
     .filter((key) => !credentials[key])
-    .map((key) => envNames[key]);
+    .map((key) => labels[key]);
   if (missing.length > 0) {
-    return { error: `Microsoft 365 connection is missing: set ${missing.join(", ")} or fill in the fields` };
+    return {
+      error: `Microsoft 365 connection is missing: ${missing.join(", ")}. Enter it under Manage → Microsoft 365, or in the monitor's fields.`,
+    };
   }
   const unresolved = Object.values(credentials).find((value) => /^\$\w+$/.test(value));
   if (unresolved) {
     return { error: `Environment variable ${unresolved.slice(1)} is not set` };
   }
   return { credentials };
+}
+
+/** Reads the shared connection of the "Microsoft 365" settings page. Tests replace it. */
+type SharedConnectionLoader = () => Promise<Partial<M365Credentials>>;
+let sharedLoader: SharedConnectionLoader = async () => {
+  const { GetM365SharedConnection } = await import("./controllers/m365SettingsController.js");
+  return GetM365SharedConnection();
+};
+
+export function SetM365SharedConnectionLoader(loader: SharedConnectionLoader): void {
+  sharedLoader = loader;
+}
+
+/** ResolveM365Credentials with the settings page's connection. A database error only skips it. */
+export async function ResolveM365CredentialsShared(
+  data: CloudServiceMonitorTypeData,
+): Promise<{ credentials: M365Credentials } | { error: string }> {
+  let shared: Partial<M365Credentials> = {};
+  try {
+    shared = await sharedLoader();
+  } catch (e) {
+    console.error("Microsoft 365 settings could not be read:", e);
+  }
+  return ResolveM365Credentials(data, shared);
 }
 
 const tokenCache = new Map<string, { token: string; expiresAt: number }>();

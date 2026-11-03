@@ -18,6 +18,7 @@
   import CloudAlertIcon from "@lucide/svelte/icons/cloud-alert";
   import TicketIcon from "@lucide/svelte/icons/ticket";
   import MegaphoneIcon from "@lucide/svelte/icons/megaphone";
+  import KeyRoundIcon from "@lucide/svelte/icons/key-round";
   import MessagesSquareIcon from "@lucide/svelte/icons/messages-square";
   import House from "@lucide/svelte/icons/house";
   import BadgeIcon from "@lucide/svelte/icons/id-card";
@@ -57,6 +58,7 @@
     { title: tm("Alerts"), url: "/manage/app/alerts", icon: SirenIcon },
     { title: tm("Subscriptions"), url: "/manage/app/subscriptions", icon: BellIcon },
     { title: tm("Reports"), url: "/manage/app/reports", icon: MegaphoneIcon },
+    { title: tm("Microsoft 365"), url: "/manage/app/microsoft-365", icon: KeyRoundIcon },
     { title: tm("Microsoft Teams"), url: "/manage/app/teams", icon: MessagesSquareIcon },
     { title: tm("Users"), url: "/manage/app/users", icon: UsersIcon },
     { title: tm("Roles"), url: "/manage/app/roles", icon: ShieldIcon },

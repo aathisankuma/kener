@@ -162,6 +162,11 @@ import {
 } from "$lib/server/controllers/reportsController.js";
 import { GetTeamsSettingsView, SaveTeamsSettings, SendTeamsTest } from "$lib/server/controllers/teamsController.js";
 import {
+  GetM365SettingsView,
+  SaveM365Settings,
+  TestM365Settings,
+} from "$lib/server/controllers/m365SettingsController.js";
+import {
   AddMyServiceIncidentUpdate,
   CancelMyServiceMaintenance,
   CreateMyServiceIncident,
@@ -364,6 +369,12 @@ export async function POST({ request, cookies }) {
       resp = await UpdateCommentStatusByID(data.incident_id, data.comment_id, "INACTIVE");
     } else if (action == "updateComment") {
       resp = await UpdateCommentByID(data.incident_id, data.comment_id, data.comment, data.state, data.commented_at);
+    } else if (action == "getM365Settings") {
+      resp = await GetM365SettingsView();
+    } else if (action == "saveM365Settings") {
+      resp = await SaveM365Settings(data);
+    } else if (action == "testM365Settings") {
+      resp = await TestM365Settings();
     } else if (action == "getTeamsSettings") {
       resp = await GetTeamsSettingsView();
     } else if (action == "saveTeamsSettings") {

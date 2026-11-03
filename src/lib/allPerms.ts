@@ -37,6 +37,10 @@
  * settings.read      → getReportSettings
  * settings.write     → saveProblemReportSettings, saveUptimeReportSettings, sendUptimeReportNow
  *
+ * Microsoft 365 (shared connection of Microsoft 365 and Azure monitors)
+ * settings.read      → getM365Settings
+ * settings.write     → saveM365Settings, testM365Settings
+ *
  * Microsoft Teams
  * settings.read      → getTeamsSettings
  * settings.write     → saveTeamsSettings, sendTeamsTest
@@ -131,6 +135,9 @@ export const ACTION_PERMISSION_MAP: Record<string, string | null> = {
   saveProblemReportSettings: "settings.write",
   saveUptimeReportSettings: "settings.write",
   sendUptimeReportNow: "settings.write",
+  getM365Settings: "settings.read",
+  saveM365Settings: "settings.write",
+  testM365Settings: "settings.write",
   getTeamsSettings: "settings.read",
   saveTeamsSettings: "settings.write",
   sendTeamsTest: "settings.write",
@@ -321,6 +328,7 @@ export const ROUTE_PERMISSION_MAP: Record<string, string | null> = {
   "/(manage)/manage/app/embed": "settings.read",
   "/(manage)/manage/app/reports": "settings.read",
   "/(manage)/manage/app/teams": "settings.read",
+  "/(manage)/manage/app/microsoft-365": "settings.read",
 
   // Subscribers
   "/(manage)/manage/app/subscriptions": "subscribers.read",

@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { SetM365SharedConnectionLoader } from "./cloudProviderClient";
 import axios from "axios";
 import { ClearCloudDetailsCache, GetCloudServiceDetails } from "./cloudServiceDetails";
 import { ClearCloudProviderCache } from "./cloudProviderClient";
@@ -10,6 +11,7 @@ const mockedAxios = vi.mocked(axios);
 const reply = (status: number, data: unknown) => ({ status, data }) as any;
 
 beforeEach(() => {
+  SetM365SharedConnectionLoader(async () => ({}));
   mockedAxios.mockReset();
   ClearCloudDetailsCache();
   ClearCloudProviderCache();

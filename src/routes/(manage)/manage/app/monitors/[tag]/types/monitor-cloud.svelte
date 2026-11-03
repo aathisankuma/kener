@@ -323,11 +323,11 @@
     <div class="bg-muted/40 rounded-md border p-3 text-xs">
       <p class="font-medium">{tm("Microsoft connection")}</p>
       <p class="text-muted-foreground mt-1">
-        <span
-          >{@html tmh(
-            "Leave these fields empty to use the shared connection from Kener's environment: `M365_TENANT_ID`, `M365_CLIENT_ID` and `M365_CLIENT_SECRET`. One app registration with the application permission `ServiceHealth.Read.All` (admin consent) serves every Microsoft 365 monitor. Fill a field only to use a different app for this monitor."
-          )}</span
-        >
+        {tm("Leave these fields empty to use the shared connection from")}
+        <a class="underline" href={clientResolver(resolve, "/manage/app/microsoft-365")}
+          >{tm("Manage → Microsoft 365")}</a
+        >.
+        {tm("Fill a field only to use a different app for this monitor.")}
       </p>
       <p class="text-muted-foreground mt-1">
         <span
@@ -350,11 +350,11 @@
     <div class="grid gap-4 sm:grid-cols-2">
       <div class="flex flex-col gap-2">
         <Label for="cloud-tenant">{tm("Tenant ID")}</Label>
-        <Input id="cloud-tenant" bind:value={data.tenantId} placeholder="from M365_TENANT_ID" />
+        <Input id="cloud-tenant" bind:value={data.tenantId} placeholder={tm("from Microsoft 365 settings")} />
       </div>
       <div class="flex flex-col gap-2">
         <Label for="cloud-client">{tm("Client ID")}</Label>
-        <Input id="cloud-client" bind:value={data.clientId} placeholder="from M365_CLIENT_ID" />
+        <Input id="cloud-client" bind:value={data.clientId} placeholder={tm("from Microsoft 365 settings")} />
       </div>
     </div>
     <div class="flex flex-col gap-2">
@@ -364,13 +364,13 @@
         type="password"
         autocomplete="off"
         bind:value={data.clientSecret}
-        placeholder="from M365_CLIENT_SECRET"
+        placeholder={tm("from Microsoft 365 settings")}
       />
       {#if secretIsLiteral}
         <p class="text-xs text-amber-600 dark:text-amber-400">
           <span
             >{@html tmh(
-              "The secret is stored in Kener's database as typed. Leave it empty to use `M365_CLIENT_SECRET`, or enter the name of another environment variable, e.g. `$OTHER_SECRET`."
+              "This monitor uses its own secret. Leave it empty to use the one from Manage → Microsoft 365, or enter the name of an environment variable, e.g. `$OTHER_SECRET`."
             )}</span
           >
         </p>

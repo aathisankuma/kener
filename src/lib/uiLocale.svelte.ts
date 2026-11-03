@@ -214,6 +214,22 @@ export function tmMessage(text: string | null | undefined): string {
       return tm("This invitation link has expired");
     case "This invitation has already been accepted":
       return tm("This invitation has already been accepted");
+    case "The Tenant ID looks wrong. Use the Directory (tenant) ID, e.g. 3f2a9c71-8b4d-4e2a-9f10-6c5d7e8a1b2c, or your domain.":
+      return tm(
+        "The Tenant ID looks wrong. Use the Directory (tenant) ID, e.g. 3f2a9c71-8b4d-4e2a-9f10-6c5d7e8a1b2c, or your domain.",
+      );
+    case "The Client ID looks wrong. Use the Application (client) ID, e.g. a7c41e09-2f3b-4d8a-b615-0e9f2c7d4a3b.":
+      return tm(
+        "The Client ID looks wrong. Use the Application (client) ID, e.g. a7c41e09-2f3b-4d8a-b615-0e9f2c7d4a3b.",
+      );
+    case "This looks like the Secret ID. Paste the secret's Value from Certificates & secrets (it usually contains a ~).":
+      return tm(
+        "This looks like the Secret ID. Paste the secret's Value from Certificates & secrets (it usually contains a ~).",
+      );
+    case "Microsoft 365 connection is missing: Tenant ID, Client ID, Client secret. Enter it under Manage → Microsoft 365, or in the monitor's fields.":
+      return tm(
+        "Microsoft 365 connection is missing: Tenant ID, Client ID, Client secret. Enter it under Manage → Microsoft 365, or in the monitor's fields.",
+      );
     default:
       return text ?? "";
   }

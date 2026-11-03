@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { SetM365SharedConnectionLoader } from "../cloudProviderClient";
 import axios from "axios";
 import { ClearAzureHealthCache } from "../azureResourceHealth";
 import CloudServiceCall, {
@@ -14,6 +15,7 @@ vi.mock("axios", () => ({ default: vi.fn() }));
 const mockedAxios = vi.mocked(axios);
 
 beforeEach(() => {
+  SetM365SharedConnectionLoader(async () => ({}));
   mockedAxios.mockReset();
   ClearCloudServiceCache();
   ClearAzureHealthCache();
@@ -352,7 +354,7 @@ describe("Microsoft 365 providers", () => {
   it("names the missing shared settings", async () => {
     const result = await new CloudServiceCall(monitor({ provider: "m365-exchange" })).execute();
     expect(result.error_message).toBe(
-      "Microsoft 365 connection is missing: set M365_TENANT_ID, M365_CLIENT_ID, M365_CLIENT_SECRET or fill in the fields",
+      "Microsoft 365 connection is missing: Tenant ID, Client ID, Client secret. Enter it under Manage → Microsoft 365, or in the monitor's fields.",
     );
     expect(mockedAxios).not.toHaveBeenCalled();
   });
