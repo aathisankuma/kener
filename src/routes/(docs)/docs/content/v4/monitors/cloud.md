@@ -69,7 +69,7 @@ A monitor saved with **Swiss21 (via Abacus status page)** by an earlier version 
 Microsoft 365 monitors read your tenant's [service health](https://learn.microsoft.com/en-us/graph/api/serviceannouncement-list-healthoverviews) from Microsoft Graph, so they show problems that affect your organization.
 
 1. In Microsoft Entra ID, register an app. Under **API permissions**, add the **application** permission `ServiceHealth.Read.All` for Microsoft Graph and grant admin consent.
-2. Create a client secret for the app.
+2. Under **Certificates & secrets**, create a client secret and copy its **Value** right away. The **Secret ID** next to it does not work as a secret.
 3. Set the shared connection in Kener's environment and restart Kener:
 
     ```bash
@@ -145,11 +145,11 @@ For a Statuspage, the list shows only the monitor's components when they are set
 
 A timeout, an HTTP error or an unexpected answer records **If the provider cannot be read** (default **DEGRADED**) and keeps the reason in the monitor's log. Common messages:
 
-| Message                                     | Fix                                                                          |
-| ------------------------------------------- | ---------------------------------------------------------------------------- |
-| `Component "…" not found. Available: …`     | Pick the components from **Load list**.                                      |
-| `Environment variable … is not set`         | Add the variable to Kener's environment and restart.                         |
-| `Microsoft sign-in failed: AADSTS…`         | Check tenant ID, client ID and secret. Secrets expire.                       |
-| `Microsoft Graph refused access (HTTP 403)` | Grant `ServiceHealth.Read.All` as application permission with admin consent. |
+| Message                                     | Fix                                                                                                                                |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `Component "…" not found. Available: …`     | Pick the components from **Load list**.                                                                                            |
+| `Environment variable … is not set`         | Add the variable to Kener's environment and restart.                                                                               |
+| `Microsoft sign-in failed: …`               | The message names the wrong field: tenant ID, client ID, or the secret (use its **Value**, not its **Secret ID**; secrets expire). |
+| `Microsoft Graph refused access (HTTP 403)` | Grant `ServiceHealth.Read.All` as application permission with admin consent.                                                       |
 
 Kener reaches the providers through the proxy in `HTTP_PROXY` / `HTTPS_PROXY` when set.

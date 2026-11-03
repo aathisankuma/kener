@@ -78,6 +78,29 @@ export function M365CacheKey(c: M365Credentials): string {
 const GRAPH_SCOPE = "https://graph.microsoft.com/.default";
 const AZURE_SCOPE = "https://management.azure.com/.default";
 
+// Microsoft's codes for the usual setup mistakes, explained in the terms of the Azure portal.
+const SIGN_IN_HINTS: Array<[RegExp, string]> = [
+  [
+    /AADSTS7000215/,
+    "the client secret is wrong. Paste the secret's Value (shown only once when it is created), not its Secret ID.",
+  ],
+  [/AADSTS7000222/, "the client secret has expired. Create a new one under Certificates & secrets."],
+  [
+    /AADSTS700016/,
+    "this Client ID is not an app in this tenant. Use the Application (client) ID from the app's Overview page.",
+  ],
+  [
+    /AADSTS90002|AADSTS900023|AADSTS90013/,
+    "the Tenant ID is wrong. Use the Directory (tenant) ID from the app's Overview page.",
+  ],
+  [/AADSTS900144|AADSTS7000216/, "a field is empty. Fill in Tenant ID, Client ID and Client secret."],
+];
+
+/** A plain explanation for Microsoft's sign-in error, or "" when it is not a known setup mistake. */
+export function M365SignInHint(reason: string): string {
+  return SIGN_IN_HINTS.find(([code]) => code.test(reason))?.[1] ?? "";
+}
+
 /** A token of the app for one API: Microsoft Graph (Microsoft 365) or Azure Resource Manager. */
 async function M365AccessToken(c: M365Credentials, timeout: number, scope = GRAPH_SCOPE): Promise<string> {
   const key = `${M365CacheKey(c)}|${scope}`;
@@ -103,8 +126,11 @@ async function M365AccessToken(c: M365Credentials, timeout: number, scope = GRAP
   const token = response.data?.access_token;
   if (response.status < 200 || response.status >= 300 || typeof token !== "string") {
     // Microsoft's own text names the cause, e.g. a wrong or expired secret (AADSTS7000215).
-    const reason = response.data?.error_description || response.data?.error || `HTTP ${response.status}`;
-    throw new Error(`Microsoft sign-in failed: ${String(reason).split("\r\n")[0]}`);
+    const reason = String(response.data?.error_description || response.data?.error || `HTTP ${response.status}`).split(
+      "\r\n",
+    )[0];
+    const hint = M365SignInHint(reason);
+    throw new Error(hint ? `Microsoft sign-in failed: ${hint} (${reason})` : `Microsoft sign-in failed: ${reason}`);
   }
   const expiresIn = Number(response.data?.expires_in) || 3600;
   tokenCache.set(key, { token, expiresAt: Date.now() + expiresIn * 1000 });
@@ -122,7 +148,7 @@ export async function M365Get(url: string, c: M365Credentials, timeout = 10000):
   if (response.status === 401 || response.status === 403) {
     tokenCache.delete(`${M365CacheKey(c)}|${GRAPH_SCOPE}`);
     throw new Error(
-      `Microsoft Graph refused access (HTTP ${response.status}). Grant the app ServiceHealth.Read.All with admin consent.`,
+      `Microsoft Graph refused access (HTTP ${response.status}). In the app registration, add the Application permission ServiceHealth.Read.All (Microsoft Graph, not Delegated) and click "Grant admin consent".`,
     );
   }
   if (response.status < 200 || response.status >= 300) {

@@ -418,7 +418,8 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "testMonitor",
-          data: { monitor_id: monitor.id }
+          // What the form shows now, so the test works before saving.
+          data: { monitor_id: monitor.id, monitor_type: monitor.monitor_type, type_data: $state.snapshot(typeData) }
         })
       });
 
@@ -614,7 +615,11 @@
     {/if}
     {#if combined}
       <p class="text-muted-foreground mr-auto self-center text-xs">
-        <span>{@html tmh("**Save Monitor** below saves these settings. Test Monitor checks the saved settings.")}</span>
+        <span
+          >{@html tmh(
+            "**Save Monitor** below saves these settings. Test Monitor checks them as typed, also before saving."
+          )}</span
+        >
       </p>
     {/if}
 

@@ -140,6 +140,7 @@ import { TestOidcConnection } from "$lib/server/controllers/oidcController.js";
 import { uploadImage } from "$lib/server/controllers/imageController.js";
 import { FetchCloudServiceIcon } from "$lib/server/cloudServiceIcon.js";
 import { ListCloudComponents } from "$lib/server/cloudComponents.js";
+import { TestOverrides } from "$lib/server/monitorTestOverrides.js";
 import {
   GetJsmOverview,
   IgnoreJsmTicket,
@@ -480,13 +481,19 @@ export async function POST({ request, cookies }) {
       let monitorID = data.monitor_id;
       let monitors = await GetMonitorsParsed({ id: monitorID });
       let monitor = monitors[0];
-      if (monitor.monitor_type === "NONE") {
+      if (!monitor) {
+        throw new Error("Monitor not found");
+      }
+      // The form sends what is typed right now, so a test works before saving.
+      const unsaved = TestOverrides(data);
+      const monitorType = unsaved.monitor_type ?? monitor.monitor_type;
+      if (monitorType === "NONE") {
         throw new Error("Tests can't be run on monitor type NONE");
       }
       const monitorReducedType: MonitorWithType = {
         tag: monitor.tag,
-        monitor_type: monitor.monitor_type,
-        type_data: monitor.type_data,
+        monitor_type: monitorType,
+        type_data: unsaved.type_data ?? monitor.type_data,
         cron: monitor.cron ? monitor.cron : undefined,
       };
       const serviceClient = new Service(monitorReducedType);

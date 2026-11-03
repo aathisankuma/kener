@@ -352,7 +352,8 @@ class CloudServiceCall {
 
   /** The provider could not be read: status follows errorStatus (default DEGRADED), the reason is kept. */
   private fail(type: string, message: string): MonitoringResult {
-    const error_message = message.length > 200 ? message.substring(0, 200) + "..." : message;
+    // Long enough for Microsoft's explanation plus its error code.
+    const error_message = message.length > 400 ? message.substring(0, 400) + "..." : message;
     return {
       status: this.configuredStatus(this.monitor.type_data?.errorStatus),
       latency: 0,

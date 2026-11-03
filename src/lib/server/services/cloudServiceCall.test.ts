@@ -372,7 +372,46 @@ describe("Microsoft 365 providers", () => {
       }),
     );
     const result = await new CloudServiceCall(m365()).execute();
-    expect(result.error_message).toBe("Microsoft sign-in failed: AADSTS7000215: Invalid client secret provided.");
+    expect(result.error_message).toBe(
+      "Microsoft sign-in failed: the client secret is wrong. Paste the secret's Value (shown only once when it is created), not its Secret ID. (AADSTS7000215: Invalid client secret provided.)",
+    );
+  });
+
+  it("explains a wrong tenant and a wrong client id in Azure portal terms", async () => {
+    mockedAxios.mockResolvedValueOnce(
+      reply(400, { error: "invalid_request", error_description: "AADSTS90002: Tenant 'x' not found.\r\nTrace" }),
+    );
+    const tenant = await new CloudServiceCall(m365({ clientSecret: "typed-secret" })).execute();
+    expect(tenant.error_message).toContain("Directory (tenant) ID");
+    ClearCloudServiceCache();
+    mockedAxios.mockResolvedValueOnce(
+      reply(400, { error: "unauthorized_client", error_description: "AADSTS700016: Application not found." }),
+    );
+    const client = await new CloudServiceCall(m365({ clientSecret: "typed-secret" })).execute();
+    expect(client.error_message).toContain("Application (client) ID");
+  });
+
+  it("signs in with values typed into the fields, without environment variables", async () => {
+    delete process.env.M365_TENANT_ID;
+    delete process.env.M365_CLIENT_ID;
+    delete process.env.M365_CLIENT_SECRET;
+    mockedAxios
+      .mockResolvedValueOnce(token)
+      .mockResolvedValueOnce(
+        reply(200, { value: [{ id: "OrgLiveID", service: "Microsoft Entra", status: "serviceOperational" }] }),
+      );
+    const result = await new CloudServiceCall(
+      m365({
+        provider: "m365-entra",
+        tenantId: " 11111111-2222-3333-4444-555555555555 ",
+        clientId: "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+        clientSecret: "Ab8Q~x.Yz_1-2",
+      }),
+    ).execute();
+    expect(result).toMatchObject({ status: "UP", raw_status: "serviceOperational" });
+    const [tokenUrl, tokenOptions] = mockedAxios.mock.calls[0] as [string, { data: string }];
+    expect(tokenUrl).toBe("https://login.microsoftonline.com/11111111-2222-3333-4444-555555555555/oauth2/v2.0/token");
+    expect(new URLSearchParams(tokenOptions.data).get("client_secret")).toBe("Ab8Q~x.Yz_1-2");
   });
 
   it("explains missing permission", async () => {

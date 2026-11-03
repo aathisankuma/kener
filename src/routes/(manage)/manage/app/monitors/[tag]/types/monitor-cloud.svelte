@@ -329,6 +329,13 @@
           )}</span
         >
       </p>
+      <p class="text-muted-foreground mt-1">
+        <span
+          >{@html tmh(
+            "In the Azure portal under **App registrations**: Tenant ID = **Directory (tenant) ID**, Client ID = **Application (client) ID**, Client secret = the secret's **Value** from Certificates & secrets (not the Secret ID)."
+          )}</span
+        >
+      </p>
       {#if provider?.kind === "azure"}
         <p class="text-muted-foreground mt-1">
           <span
@@ -352,7 +359,13 @@
     </div>
     <div class="flex flex-col gap-2">
       <Label for="cloud-secret">{tm("Client secret")}</Label>
-      <Input id="cloud-secret" bind:value={data.clientSecret} placeholder="from M365_CLIENT_SECRET" />
+      <Input
+        id="cloud-secret"
+        type="password"
+        autocomplete="off"
+        bind:value={data.clientSecret}
+        placeholder="from M365_CLIENT_SECRET"
+      />
       {#if secretIsLiteral}
         <p class="text-xs text-amber-600 dark:text-amber-400">
           <span
