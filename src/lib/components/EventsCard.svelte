@@ -13,12 +13,17 @@
 </script>
 
 <div class="flex flex-col gap-3 lg:flex-row">
-  <div class="flex min-h-20 w-full flex-row justify-start gap-y-3 rounded-3xl border p-4 lg:w-full lg:min-w-72">
+  <div
+    class="kener-status-banner flex min-h-20 w-full flex-row justify-start gap-y-3 rounded-3xl border p-4 lg:w-full lg:min-w-72"
+    data-status={statusClass}
+  >
     <div class="flex w-full flex-row items-center gap-4">
       <div class="relative flex justify-between">
         <span class="relative flex size-4">
-          <span class="{statusClass} absolute inline-flex h-full w-full animate-ping rounded-full opacity-75"></span>
-          <span class="{statusClass} relative inline-flex size-4 rounded-full"></span>
+          <span
+            class="{statusClass} kener-status-dot absolute inline-flex h-full w-full animate-ping rounded-full opacity-75"
+          ></span>
+          <span class="{statusClass} kener-status-dot relative inline-flex size-4 rounded-full"></span>
         </span>
       </div>
       <div class="flex min-w-0 flex-col items-start gap-2">

@@ -1,6 +1,7 @@
 <script lang="ts">
   import "../layout.css";
   import "../kener.css";
+  import "../designs.css";
   import { ModeWatcher } from "mode-watcher";
   import KenerNav from "$lib/components/KenerNav.svelte";
   import KenerFooter from "$lib/components/KenerFooter.svelte";
@@ -39,6 +40,7 @@
 			--maintenance: ${data.siteStatusColors.MAINTENANCE};
 			--accent: ${data.siteStatusColors.ACCENT || "#f4f4f5"};
 			--accent-foreground: ${data.siteStatusColors.ACCENT_FOREGROUND || data.siteStatusColors.ACCENT || "#e96e2d"};
+			--brand: ${data.design?.brandColor || "var(--accent-foreground)"};
 			${data.font?.family ? `--font-family:'${data.font.family}', sans-serif;` : ""}
 		}
 		:is(.dark) body {
@@ -53,7 +55,15 @@
 	</style>`}
   <script src={clientResolver(resolve, "/capture.js")}></script>
 </svelte:head>
-<main class="kener-public status-page-app">
+<main
+  class="kener-public status-page-app"
+  data-design={data.design?.preset}
+  data-header={data.design?.header}
+  data-banner={data.design?.banner}
+  data-corners={data.design?.corners}
+  data-monitors={data.design?.monitors}
+  data-density={data.design?.density}
+>
   <!-- Nav -->
   <KenerNav />
   <!-- Body -->

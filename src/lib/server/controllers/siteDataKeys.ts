@@ -8,6 +8,7 @@ import {
   IsValidNav,
   IsValidURL,
 } from "./validators.js";
+import { IsValidDesign } from "../../design.js";
 
 interface SiteDataKey {
   key: string;
@@ -314,6 +315,11 @@ export const siteDataKeys: SiteDataKey[] = [
   {
     key: "globalMaintenanceNotificationSettings",
     isValid: IsValidJSONString,
+    data_type: "object",
+  },
+  {
+    key: "designSettings",
+    isValid: (value) => IsValidDesign(value),
     data_type: "object",
   },
   {

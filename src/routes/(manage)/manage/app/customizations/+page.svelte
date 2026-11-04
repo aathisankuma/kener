@@ -448,6 +448,8 @@
 
   import { onMount } from "svelte";
   import { Spinner } from "$lib/components/ui/spinner";
+  import DesignCard from "$lib/components/manage/DesignCard.svelte";
+  import { page } from "$app/state";
 
   // Initialize on mount
   onMount(() => {
@@ -462,6 +464,7 @@
       <Spinner class="h-6 w-6" />
     </div>
   {:else}
+    <DesignCard canWrite={(page.data.userPermissions ?? []).includes("settings.write")} />
     <!-- Footer HTML Section -->
     <Card.Root>
       <Card.Header class="border-b">

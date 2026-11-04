@@ -1,4 +1,5 @@
 import MobileDetect from "mobile-detect";
+import { NormalizeDesign, type DesignSettings } from "../../design.js";
 import { GetRoleLabels, type RoleLabel } from "../userRoles.js";
 import type { Cookies } from "@sveltejs/kit";
 import type { UserRecordPublic } from "$lib/server/types/db";
@@ -29,6 +30,8 @@ export interface LayoutServerData {
   myServiceTags: string[];
   /** Roles of the signed-in user, for "Signed in as …"; empty when nobody is signed in. */
   loggedInRoles: RoleLabel[];
+  /** The status page's look, chosen under Customizations → Design. */
+  design: DesignSettings;
   canSeeHiddenMonitors: boolean;
   selectedLang: string;
   siteStatusColors: {
@@ -179,6 +182,7 @@ export async function GetLayoutServerData(cookies: Cookies, request: Request): P
     homePath,
     myServiceTags,
     loggedInRoles,
+    design: NormalizeDesign(siteData.designSettings),
     canSeeHiddenMonitors,
     selectedLang,
     siteStatusColors,

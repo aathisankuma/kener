@@ -148,7 +148,7 @@
 <!-- page title -->
 <div class="flex flex-col gap-3 sm:gap-4">
   <ThemePlus monitor_tags={data.monitorTags} hideNotificationsPopover={!!showInlineEvents} />
-  <div class="flex flex-col gap-2 px-3 py-2 sm:px-4">
+  <div class="kener-hero flex flex-col gap-2 px-3 py-2 sm:px-4">
     {#if data.pageDetails?.page_logo}
       <img
         src={clientResolver(resolve, data.pageDetails.page_logo)}
@@ -205,11 +205,11 @@
             {/each}
           </div>
         {/if}
-        <div class="overflow-hidden rounded-3xl border">
-          <div class={`grid grid-cols-1 ${getGridContainerClass(viewType)}`}>
+        <div class="kener-monitors overflow-hidden rounded-3xl border">
+          <div class={`kener-monitors-grid grid grid-cols-1 ${getGridContainerClass(viewType)}`}>
             {#each data.monitorTags as tag, i (tag)}
               <div
-                class="{viewType === 'compact-grid' || viewType === 'default-grid'
+                class="kener-monitor {viewType === 'compact-grid' || viewType === 'default-grid'
                   ? `${getGridItemSpanClass(i, data.monitorTags.length, viewType)} bg-background`
                   : i < data.monitorTags.length - 1
                     ? 'border-b'

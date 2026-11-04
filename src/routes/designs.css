@@ -1,0 +1,114 @@
+/*
+ * Designs of the public status page (Customizations → Design). Each option is a data-* attribute
+ * on <main class="kener-public">; see src/lib/design.ts. Custom CSS from Customizations comes
+ * after this file, so it can still change anything.
+ */
+
+.kener-public {
+  --kener-radius: 1.5rem;
+}
+.kener-public[data-corners="soft"] {
+  --kener-radius: 0.625rem;
+}
+.kener-public[data-corners="square"] {
+  --kener-radius: 0.25rem;
+}
+.kener-public[data-corners="soft"] .rounded-3xl,
+.kener-public[data-corners="square"] .rounded-3xl {
+  border-radius: var(--kener-radius);
+}
+
+/* ---------- Header: a full-width bar in the brand colour ---------- */
+.kener-public[data-header="band"] .kener-header {
+  padding-block: 0;
+  background: var(--brand);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.12);
+}
+.kener-public[data-header="band"] .kener-header-bar {
+  border-color: transparent;
+  border-radius: 0;
+  background: transparent;
+  backdrop-filter: none;
+  padding-block: 0.5rem;
+}
+.kener-public[data-header="band"] .kener-header-bar a,
+.kener-public[data-header="band"] .kener-header-bar button {
+  color: #fff;
+}
+.kener-public[data-header="band"] .kener-header-bar a:hover,
+.kener-public[data-header="band"] .kener-header-bar button:hover,
+.kener-public[data-header="band"] .kener-header-bar button[data-state="open"] {
+  background: rgb(255 255 255 / 0.14);
+  border-color: transparent;
+}
+.kener-public[data-header="band"] .pt-18 {
+  padding-top: 5rem;
+}
+
+/* ---------- Overall status: the box filled with the status colour ---------- */
+.kener-public[data-banner="filled"] .kener-status-banner {
+  border-color: transparent;
+  color: #fff;
+  background: var(--muted-foreground);
+}
+.kener-public[data-banner="filled"] .kener-status-banner[data-status="bg-up"] {
+  background: var(--up);
+}
+.kener-public[data-banner="filled"] .kener-status-banner[data-status="bg-degraded"] {
+  background: var(--degraded);
+}
+.kener-public[data-banner="filled"] .kener-status-banner[data-status="bg-down"] {
+  background: var(--down);
+}
+.kener-public[data-banner="filled"] .kener-status-banner[data-status="bg-maintenance"] {
+  background: var(--maintenance);
+}
+.kener-public[data-banner="filled"] .kener-status-banner .kener-status-dot {
+  background: #fff;
+}
+
+/* ---------- Services: each one its own card ---------- */
+.kener-public[data-monitors="cards"] .kener-monitors {
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.kener-public[data-monitors="cards"] .kener-monitors-grid {
+  gap: 0.75rem;
+  background: transparent;
+}
+.kener-public[data-monitors="cards"] .kener-monitor {
+  border: 1px solid var(--border);
+  border-radius: var(--kener-radius);
+  background: var(--card);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
+  padding-inline: 0.5rem;
+}
+
+/* ---------- Density: less space ---------- */
+.kener-public[data-density="compact"] .kener-monitor {
+  padding-block: 0.125rem;
+}
+.kener-public[data-density="compact"] .kener-hero {
+  padding-block: 0;
+}
+.kener-public[data-density="compact"] .kener-hero h1 > * {
+  font-size: 1.375rem;
+}
+.kener-public[data-density="compact"] .kener-status-banner {
+  min-height: 3.5rem;
+  padding-block: 0.625rem;
+}
+.kener-public[data-density="compact"] .kener-status-banner p {
+  font-size: 1.125rem;
+}
+
+/* ---------- Bold: stronger headings and status ---------- */
+.kener-public[data-design="bold"] .kener-hero h1 > * {
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.kener-public[data-design="bold"] .kener-status-banner p {
+  font-weight: 700;
+}

@@ -73,7 +73,7 @@
   });
 </script>
 
-<div class="theme-plus-bar scrollbar-hidden sticky top-18 z-20 flex w-full items-center gap-2 rounded py-2">
+<div class="kener-toolbar theme-plus-bar scrollbar-hidden sticky top-18 z-20 flex w-full items-center gap-2 rounded py-2">
   <!-- Show the switcher if not forced exclusivity and switcher is enabled -->
   {#if !!!page.data.globalPageVisibilitySettings.forceExclusivity && page.data.globalPageVisibilitySettings.showSwitcher}
     <PageSelector />

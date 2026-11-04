@@ -41,6 +41,7 @@ export interface SiteDataTransformed {
   analytics?: SiteAnalyticsItem[];
   theme?: string;
   themeToggle?: string;
+  designSettings?: unknown;
   tzToggle?: string;
   barStyle: string;
   barRoundness?: string;

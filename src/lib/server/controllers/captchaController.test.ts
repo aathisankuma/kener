@@ -13,9 +13,7 @@ describe("captchaController", () => {
 
   describe("GetActiveCaptchaProvider", () => {
     it("returns null when no provider is enabled", async () => {
-      GetAllCaptchaData.mockResolvedValue([
-        { key: "captcha.hcaptcha", value: { isEnabled: false, requirements: {} } },
-      ]);
+      GetAllCaptchaData.mockResolvedValue([{ key: "captcha.hcaptcha", value: { isEnabled: false, requirements: {} } }]);
       expect(await GetActiveCaptchaProvider()).toBeNull();
     });
 
