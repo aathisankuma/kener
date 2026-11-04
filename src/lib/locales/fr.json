@@ -236,6 +236,7 @@
     "Administrator": "Administrateur",
     "Editor": "Éditeur",
     "Member": "Membre",
-    "Service Manager": "Responsable de service"
+    "Service Manager": "Responsable de service",
+    "Edit Monitor": "Modifier le moniteur"
   }
 }

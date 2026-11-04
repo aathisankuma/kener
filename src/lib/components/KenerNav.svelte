@@ -8,9 +8,15 @@
   import clientResolver from "$lib/client/resolver.js";
   import trackEvent from "$lib/beacon";
   import MenuIcon from "@lucide/svelte/icons/menu";
+  import AccountMenu from "$lib/components/AccountMenu.svelte";
+  import { IsSignInLink } from "$lib/navLinks";
 
   let { data } = page;
-  const navItems: { name: string; url: string; iconURL: string }[] = data.navItems || [];
+  const allNavItems: { name: string; url: string; iconURL: string }[] = data.navItems || [];
+  // Signed in: links to the sign-in page or the admin area give way to the account menu.
+  const navItems = $derived(
+    page.data?.loggedInUser ? allNavItems.filter((item) => !IsSignInLink(item.url, page.url.host)) : allNavItems
+  );
   const { siteName, logo, globalPageVisibilitySettings } = data;
 
   const brandPath = $derived.by(() => {
@@ -48,74 +54,82 @@
         {siteName}
       </a>
 
-      <!-- Desktop Nav Links -->
-      <NavigationMenu.Root class="hidden sm:block">
-        <NavigationMenu.List>
-          {#each navItems as item (item.url)}
-            <NavigationMenu.Item>
-              <NavigationMenu.Link>
-                {#snippet child()}
-                  <a
-                    data-sveltekit-preload-data="off"
-                    href={clientResolver(resolve, item.url)}
-                    class="{navigationMenuTriggerStyle()} hover:border-border border border-transparent bg-transparent text-xs hover:bg-transparent"
-                    target={item.url.startsWith("http") ? "_blank" : undefined}
-                    rel={item.url.startsWith("http") ? "noopener noreferrer" : undefined}
-                    style="border-radius: var(--radius-3xl)"
-                    onclick={() => trackNavClick(item)}
-                  >
-                    {#if item.iconURL}
-                      <img
-                        src={clientResolver(resolve, item.iconURL)}
-                        alt={item.name}
-                        class="mr-2 h-4 w-4 object-cover"
-                      />
-                    {/if}
-                    {item.name}
-                  </a>
-                {/snippet}
-              </NavigationMenu.Link>
-            </NavigationMenu.Item>
-          {/each}
-        </NavigationMenu.List>
-      </NavigationMenu.Root>
-
-      <!-- Mobile Nav -->
-      {#if navItems.length > 0}
-        <Dropdown.Root>
-          <Dropdown.Trigger>
-            {#snippet child({ props })}
-              <button
-                {...props}
-                type="button"
-                class="{navigationMenuTriggerStyle()} hover:border-border border border-transparent bg-transparent text-xs hover:bg-transparent sm:hidden"
-                style="border-radius: var(--radius-3xl)"
-                aria-label="Open navigation menu"
-              >
-                <MenuIcon class="h-4 w-4" />
-              </button>
-            {/snippet}
-          </Dropdown.Trigger>
-          <Dropdown.Content align="end" class="w-56 rounded-3xl p-2">
+      <div class="flex items-center gap-1">
+        <!-- Desktop Nav Links -->
+        <NavigationMenu.Root class="hidden sm:block">
+          <NavigationMenu.List>
             {#each navItems as item (item.url)}
-              <Button
-                variant="ghost"
-                size="sm"
-                href={clientResolver(resolve, item.url)}
-                class="w-full justify-start rounded-full text-xs"
-                target={item.url.startsWith("http") ? "_blank" : undefined}
-                rel={item.url.startsWith("http") ? "noopener noreferrer" : undefined}
-                onclick={() => trackNavClick(item)}
-              >
-                {#if item.iconURL}
-                  <img src={clientResolver(resolve, item.iconURL)} alt={item.name} class="mr-2 h-4 w-4 object-cover" />
-                {/if}
-                {item.name}
-              </Button>
+              <NavigationMenu.Item>
+                <NavigationMenu.Link>
+                  {#snippet child()}
+                    <a
+                      data-sveltekit-preload-data="off"
+                      href={clientResolver(resolve, item.url)}
+                      class="{navigationMenuTriggerStyle()} hover:border-border border border-transparent bg-transparent text-xs hover:bg-transparent"
+                      target={item.url.startsWith("http") ? "_blank" : undefined}
+                      rel={item.url.startsWith("http") ? "noopener noreferrer" : undefined}
+                      style="border-radius: var(--radius-3xl)"
+                      onclick={() => trackNavClick(item)}
+                    >
+                      {#if item.iconURL}
+                        <img
+                          src={clientResolver(resolve, item.iconURL)}
+                          alt={item.name}
+                          class="mr-2 h-4 w-4 object-cover"
+                        />
+                      {/if}
+                      {item.name}
+                    </a>
+                  {/snippet}
+                </NavigationMenu.Link>
+              </NavigationMenu.Item>
             {/each}
-          </Dropdown.Content>
-        </Dropdown.Root>
-      {/if}
+          </NavigationMenu.List>
+        </NavigationMenu.Root>
+
+        <AccountMenu />
+
+        <!-- Mobile Nav -->
+        {#if navItems.length > 0}
+          <Dropdown.Root>
+            <Dropdown.Trigger>
+              {#snippet child({ props })}
+                <button
+                  {...props}
+                  type="button"
+                  class="{navigationMenuTriggerStyle()} hover:border-border border border-transparent bg-transparent text-xs hover:bg-transparent sm:hidden"
+                  style="border-radius: var(--radius-3xl)"
+                  aria-label="Open navigation menu"
+                >
+                  <MenuIcon class="h-4 w-4" />
+                </button>
+              {/snippet}
+            </Dropdown.Trigger>
+            <Dropdown.Content align="end" class="w-56 rounded-3xl p-2">
+              {#each navItems as item (item.url)}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  href={clientResolver(resolve, item.url)}
+                  class="w-full justify-start rounded-full text-xs"
+                  target={item.url.startsWith("http") ? "_blank" : undefined}
+                  rel={item.url.startsWith("http") ? "noopener noreferrer" : undefined}
+                  onclick={() => trackNavClick(item)}
+                >
+                  {#if item.iconURL}
+                    <img
+                      src={clientResolver(resolve, item.iconURL)}
+                      alt={item.name}
+                      class="mr-2 h-4 w-4 object-cover"
+                    />
+                  {/if}
+                  {item.name}
+                </Button>
+              {/each}
+            </Dropdown.Content>
+          </Dropdown.Root>
+        {/if}
+      </div>
     </div>
   </div>
 </div>

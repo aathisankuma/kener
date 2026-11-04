@@ -81,7 +81,7 @@ To set one up:
 1. Invite the user (or let them sign in with [OIDC](/docs/v4/oidc)) and give them the role **Service Manager**. With OIDC you can map a group to `service_manager`.
 2. In **Manage → Users**, open the user's settings (gear icon), pick their services under **Services this user manages** and click **Update Services**. Several people can share a service.
 
-After signing in, a service manager lands on **My services**. On the status page, the toolbar link reads **My services**, or **Report status** on the page of one of their services.
+After signing in, a service manager lands on **My services**. On the status page, the menu under their name in the top bar offers **My services**, and **Report status** on the page of one of their services.
 
 ## User management {#user-management}
 
@@ -156,3 +156,7 @@ See [Email Setup](/docs/v4/setup/email-setup).
 
 - [Site Configuration](/docs/v4/setup/site-configuration)
 - [User Subscriptions](/docs/v4/subscriptions)
+
+## Signed in on the status page {#signed-in}
+
+When you are signed in, your name appears in the status page's top bar. Its menu shows your email and role and offers what your role can do: **Manage Site** (and **Edit Monitor**, **Update Incident** or **Update Maintenance** on those pages), or **My services** for a service manager, and **Log out**. Menu links to the sign-in page or to `/manage` are hidden while you are signed in, since the menu replaces them.
