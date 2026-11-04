@@ -73,7 +73,9 @@
   });
 </script>
 
-<div class="kener-toolbar theme-plus-bar scrollbar-hidden sticky top-18 z-20 flex w-full items-center gap-2 rounded py-2">
+<div
+  class="kener-toolbar theme-plus-bar scrollbar-hidden sticky top-18 z-20 flex w-full items-center gap-2 rounded py-2"
+>
   <!-- Show the switcher if not forced exclusivity and switcher is enabled -->
   {#if !!!page.data.globalPageVisibilitySettings.forceExclusivity && page.data.globalPageVisibilitySettings.showSwitcher}
     <PageSelector />
@@ -113,6 +115,9 @@
       <CopyButton
         variant="outline"
         text={shareLink}
+        confirm="toast"
+        toastText={$t("Link copied")}
+        title={$t("Copy link")}
         class="bg-background/80 dark:bg-background/70 border-foreground/10 cursor-pointer rounded-full border shadow-none backdrop-blur-md"
         size="icon-sm"
         onclick={() => trackEvent("share_link_copied", { source: "theme_plus" })}

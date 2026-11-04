@@ -3,7 +3,7 @@
   import * as Item from "$lib/components/ui/item/index.js";
   import EventsCard from "$lib/components/EventsCard.svelte";
   import MonitorBar from "$lib/components/MonitorBar.svelte";
-  import ServicePicker from "$lib/components/ServicePicker.svelte";
+  import { serviceChoice, LoadServiceChoice } from "$lib/client/serviceChoice.svelte";
   import { VisibleTags } from "$lib/serviceSelection";
   import ThemePlus from "$lib/components/ThemePlus.svelte";
   import IncidentItem from "$lib/components/IncidentItem.svelte";
@@ -23,9 +23,18 @@
   import type { PageMonitorLayoutStyle } from "$lib/types/api";
   import GC from "$lib/global-constants.js";
   let { data } = $props();
-  // Services this visitor chose to see (all, until they choose); see ServicePicker.
-  let hiddenServices = $state<string[]>([]);
-  const shownTags = $derived(VisibleTags(data.monitorTags, hiddenServices, data.alwaysShownTags ?? []));
+  // Services this visitor chose to see in the top bar's "Choose services" (all, until they choose).
+  const choicePath = $derived("");
+  $effect(() => {
+    if (browser) LoadServiceChoice(choicePath);
+  });
+  const shownTags = $derived(
+    VisibleTags(
+      data.monitorTags,
+      serviceChoice.pagePath === choicePath ? serviceChoice.hidden : [],
+      data.alwaysShownTags ?? []
+    )
+  );
   let pageSettings = $derived(data.pageDetails.page_settings);
   let barCount = $derived.by(() =>
     data.isMobile
@@ -208,17 +217,6 @@
                 <MaintenanceItem {maintenance} />
               </div>
             {/each}
-          </div>
-        {/if}
-        {#if data.monitorTags.length > 1}
-          <div class="-mb-1 flex justify-end">
-            <ServicePicker
-              tags={data.monitorTags}
-              names={data.monitorNames ?? {}}
-              alwaysShown={data.alwaysShownTags ?? []}
-              pagePath={""}
-              bind:hidden={hiddenServices}
-            />
           </div>
         {/if}
         <div class="kener-monitors overflow-hidden rounded-3xl border">

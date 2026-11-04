@@ -90,7 +90,7 @@
           type="button"
           data-testid="account-menu"
           title={user.email}
-          class="{navigationMenuTriggerStyle()} hover:border-border max-w-48 gap-1.5 border border-transparent bg-transparent text-xs hover:bg-transparent"
+          class="{navigationMenuTriggerStyle()} hover:border-border max-w-48 gap-1.5 border border-transparent bg-transparent text-xs hover:bg-transparent focus:bg-current/10 focus:text-current data-[state=open]:bg-current/10 data-[state=open]:text-current"
           style="border-radius: var(--radius-3xl)"
         >
           <span class="bg-up size-2 shrink-0 rounded-full" aria-hidden="true"></span>

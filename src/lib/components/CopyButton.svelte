@@ -4,6 +4,7 @@
   import Check from "@lucide/svelte/icons/check";
   import type { Snippet } from "svelte";
   import { t } from "$lib/stores/i18n";
+  import { toast } from "svelte-sonner";
 
   interface Props {
     variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
@@ -13,15 +14,33 @@
     children?: Snippet;
     class?: string;
     title?: string;
+    /**
+     * How "Copied" is confirmed: a small label above the button, or a notice at the bottom of the
+     * screen for buttons in a scrolling bar, where the label would be cut off.
+     */
+    confirm?: "label" | "toast";
+    /** The notice text when confirm is "toast". */
+    toastText?: string;
   }
 
-  let { variant = "outline", size = "icon-sm", text, onclick, children, class: className, title }: Props = $props();
+  let {
+    variant = "outline",
+    size = "icon-sm",
+    text,
+    onclick,
+    children,
+    class: className,
+    title,
+    confirm = "label",
+    toastText
+  }: Props = $props();
 
   const clipboard = new UseClipboard({ delay: 1000 });
 
   async function handleClick() {
     if (text) {
       await clipboard.copy(text);
+      if (confirm === "toast") toast.success(toastText || $t("Copied"));
     }
     if (onclick) {
       onclick();
@@ -46,11 +65,13 @@
       {@render children()}
     {/if}
   </span>
-  <span
-    class="bg-popover text-popover-foreground absolute bottom-full left-1/2 z-50 mb-2 origin-bottom -translate-x-1/2 rounded-md border px-2 py-1 text-xs shadow-md transition-all duration-200 ease-out {clipboard.copied
-      ? 'scale-100 opacity-100'
-      : 'pointer-events-none scale-75 opacity-0'}"
-  >
-    {$t("Copied")}
-  </span>
+  {#if confirm === "label"}
+    <span
+      class="bg-popover text-popover-foreground absolute bottom-full left-1/2 z-50 mb-2 origin-bottom -translate-x-1/2 rounded-md border px-2 py-1 text-xs shadow-md transition-all duration-200 ease-out {clipboard.copied
+        ? 'scale-100 opacity-100'
+        : 'pointer-events-none scale-75 opacity-0'}"
+    >
+      {$t("Copied")}
+    </span>
+  {/if}
 </Button>

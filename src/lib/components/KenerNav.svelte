@@ -9,6 +9,7 @@
   import trackEvent from "$lib/beacon";
   import MenuIcon from "@lucide/svelte/icons/menu";
   import AccountMenu from "$lib/components/AccountMenu.svelte";
+  import ServicePicker from "$lib/components/ServicePicker.svelte";
   import { IsSignInLink } from "$lib/navLinks";
 
   let { data } = page;
@@ -87,6 +88,7 @@
           </NavigationMenu.List>
         </NavigationMenu.Root>
 
+        <ServicePicker />
         <AccountMenu />
 
         <!-- Mobile Nav -->

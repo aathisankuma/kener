@@ -30,7 +30,7 @@ A status page lists only the monitors that you add to it. A new monitor is on no
 
 ### Visitors choose their services {#visitor-choice}
 
-With more than one service on a page, visitors see **Choose services** above the list. They untick the services they do not need; the choice is kept in their browser, per page, and **Show all** undoes it. The overall status at the top still counts every service. Services added later are shown until the visitor hides them.
+With more than one service on a page, visitors see **Choose services** in the top bar (an icon on phones). They untick the services they do not need; the choice is kept in their browser, per page, and **Show all** undoes it. The overall status at the top still counts every service. Services added later are shown until the visitor hides them.
 
 To keep a service visible for everyone, turn on **Always shown** in the monitor's **Page Visibility** section. It is stored as `monitor_settings_json.always_shown` (`true` or `false`, default `false`). Visitors then see it ticked and locked.
 
