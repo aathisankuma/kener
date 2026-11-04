@@ -141,6 +141,7 @@ import { uploadImage } from "$lib/server/controllers/imageController.js";
 import { FetchCloudServiceIcon } from "$lib/server/cloudServiceIcon.js";
 import { ListCloudComponents } from "$lib/server/cloudComponents.js";
 import { TestOverrides } from "$lib/server/monitorTestOverrides.js";
+import { FetchMissingCloudIcons } from "$lib/server/controllers/cloudIconsController.js";
 import {
   GetJsmOverview,
   IgnoreJsmTicket,
@@ -791,6 +792,8 @@ export async function POST({ request, cookies }) {
     } else if (action == "fetchCloudServiceIcon") {
       // The provider's own icon, stored as an image; the client puts its URL in the monitor's image.
       resp = { url: await FetchCloudServiceIcon(data.typeData || {}) };
+    } else if (action == "fetchMissingCloudIcons") {
+      resp = await FetchMissingCloudIcons();
     } else if (action == "listCloudComponents") {
       // Components of a Statuspage or Instatus page, for the monitor form's "Load list".
       resp = { components: await ListCloudComponents(data.typeData || {}) };

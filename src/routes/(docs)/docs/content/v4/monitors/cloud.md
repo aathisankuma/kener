@@ -114,11 +114,13 @@ The detail page shows the resource with Azure's explanation and the times it was
 
 ## Icon {#icon}
 
-When you save a Cloud Service monitor that has no image, Kener downloads the service's own icon and uses it as the monitor's image: for a Statuspage service the icon of its status page, for Microsoft 365 the icon of the service's web app (e.g. `teams.microsoft.com`). The icon is stored like an uploaded image, at most 128 × 128 px; SVG and ICO icons are converted to PNG.
+When you save a Cloud Service monitor that has no image, Kener downloads the service's official icon and uses it as the monitor's image. For most services (Microsoft 365, Atlassian, GitHub, Zoom, OpenAI, Claude, …) it comes from the [dashboard-icons](https://github.com/homarr-labs/dashboard-icons) collection via `cdn.jsdelivr.net`, pinned to one version. Other services use the icon of their status page or website. The icon is stored like an uploaded image, at most 128 × 128 px; SVG and ICO icons are converted to PNG.
+
+To give all Cloud Service monitors without an image their icon at once, click **Load missing icons** on the **Monitors** page.
 
 - An image you uploaded is never replaced on save. **Use provider's icon** replaces it on request.
 - If no icon is found, the monitor keeps no image and shows its initials. Upload one under **General Settings**.
-- Kener's server needs access to the provider's website, through `HTTP_PROXY` / `HTTPS_PROXY` when set.
+- Kener's server needs access to `cdn.jsdelivr.net` and the provider's website, through `HTTP_PROXY` / `HTTPS_PROXY` when set.
 
 ## Detail page {#detail-page}
 

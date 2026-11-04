@@ -8,6 +8,7 @@ vi.mock("./controllers/imageController.js", () => ({ uploadImage }));
 const mockedAxios = vi.mocked(axios);
 
 import { FetchCloudServiceIcon, FindIconLinks, IconPageFor, PngFromIco, ToStorableImage } from "./cloudServiceIcon";
+import { ServiceIconUrl } from "../cloudServices";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const reply = (status: number, data: unknown) => ({ status, data }) as any;
@@ -117,6 +118,37 @@ describe("FetchCloudServiceIcon", () => {
 
     expect(await FetchCloudServiceIcon({ provider: "m365-teams" })).toBe("/assets/images/abc.png");
     expect(uploadImage).toHaveBeenCalledOnce();
+  });
+
+  it("takes the official icon from the icon collection first", async () => {
+    const icon = await png(64);
+    mockedAxios.mockImplementation(async (url) =>
+      String(url) === ServiceIconUrl("m365-entra") ? reply(200, icon) : reply(404, Buffer.alloc(0)),
+    );
+    expect(ServiceIconUrl("m365-entra")).toMatch(/dashboard-icons@[0-9a-f]{40}\/png\/entra-id\.png$/);
+    expect(await FetchCloudServiceIcon({ provider: "m365-entra" })).toBe("/assets/images/abc.png");
+    expect(mockedAxios).toHaveBeenCalledTimes(1);
+  });
+
+  it("knows a collection icon for every Microsoft service that has one, and none for the rest", () => {
+    for (const id of ["m365-sharepoint", "m365-onedrive", "m365-intune", "m365-teams", "github", "jira"]) {
+      expect(ServiceIconUrl(id)).not.toBe("");
+    }
+    expect(ServiceIconUrl("swiss21")).toBe("");
+    expect(ServiceIconUrl(undefined)).toBe("");
+  });
+
+  it("never uses the icon of a Microsoft sign-in page", async () => {
+    const icon = await png(32);
+    mockedAxios.mockImplementation(async (url) => {
+      const u = String(url);
+      if (u === "https://planner.cloud.microsoft")
+        return reply(200, Buffer.from('<link rel="icon" href="https://login.microsoftonline.com/favicon.png">'));
+      if (u.startsWith("https://login.microsoftonline.com")) return reply(200, icon);
+      return reply(404, Buffer.alloc(0));
+    });
+    await expect(FetchCloudServiceIcon({ provider: "m365-planner" })).rejects.toThrow("Could not find a usable icon");
+    expect(uploadImage).not.toHaveBeenCalled();
   });
 
   it("explains when no icon can be found", async () => {

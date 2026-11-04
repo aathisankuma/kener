@@ -308,6 +308,46 @@ export const CLOUD_PROVIDERS: CloudProvider[] = [
   { id: "claude", label: "Claude (Anthropic)", group: "Other", kind: "statuspage", url: "https://status.claude.com" },
 ];
 
+// Official service icons from the dashboard-icons collection (github.com/homarr-labs/dashboard-icons,
+// Apache-2.0), pinned to one version so an icon never changes or disappears under a monitor.
+// Services that are not in the collection read the icon from their own site (iconSite).
+export const SERVICE_ICON_CDN =
+  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@83f32e08257b66fbd971ac8d7645f5b38d52e85d/png/";
+const SERVICE_ICONS: Record<string, string> = {
+  jira: "atlassian-jira",
+  "jira-service-management": "atlassian",
+  "jira-work-management": "atlassian",
+  "jira-product-discovery": "atlassian",
+  "jira-align": "atlassian",
+  confluence: "atlassian-confluence",
+  "atlassian-guard": "atlassian",
+  "atlassian-admin": "atlassian",
+  "m365-suite": "microsoft-365",
+  "m365-exchange": "microsoft-exchange",
+  "m365-teams": "microsoft-teams",
+  "m365-sharepoint": "microsoft-sharepoint",
+  "m365-onedrive": "microsoft-onedrive",
+  "m365-apps": "microsoft-office",
+  "m365-entra": "entra-id",
+  "m365-copilot": "microsoft-copilot",
+  "m365-intune": "microsoft-intune",
+  "m365-powerbi": "powerbi",
+  "m365-custom": "microsoft-365",
+  "azure-openai": "microsoft-azure",
+  "azure-resource": "microsoft-azure",
+  github: "github",
+  cloudflare: "cloudflare",
+  zoom: "zoom",
+  openai: "openai",
+  claude: "claude-ai",
+};
+
+/** The service's icon in the icon collection, or "" when the collection has none. */
+export function ServiceIconUrl(providerId: string | undefined): string {
+  const name = providerId ? SERVICE_ICONS[providerId] : undefined;
+  return name ? `${SERVICE_ICON_CDN}${name}.png` : "";
+}
+
 export function GetCloudProvider(id: string | undefined): CloudProvider | undefined {
   if (id === CLOUD_CUSTOM_STATUSPAGE) {
     return { id, label: "Other Statuspage (URL)", group: "Other", kind: "statuspage" };

@@ -3,7 +3,7 @@
 import axios from "axios";
 import sharp from "sharp";
 import GC from "../global-constants.js";
-import { GetCloudProvider, IsStatusPageKind } from "../cloudServices.js";
+import { GetCloudProvider, IsStatusPageKind, ServiceIconUrl } from "../cloudServices.js";
 import type { CloudServiceMonitorTypeData } from "./types/monitor.js";
 import { CloudHttpOptions, StatuspageBase } from "./cloudProviderClient.js";
 import { uploadImage } from "./controllers/imageController.js";
@@ -115,35 +115,56 @@ export function IconPageFor(data: CloudServiceMonitorTypeData): string {
   return IsStatusPageKind(provider.kind) ? StatuspageBase(provider, data) : "";
 }
 
+/** Stores a downloaded icon as a Kener image (128 px at most); null when it is not a usable image. */
+async function store(url: string, providerId: string, timeout: number): Promise<string | null> {
+  const raw = await download(url, MAX_ICON_BYTES, timeout);
+  if (!raw) return null;
+  const image = await ToStorableImage(raw);
+  if (!image) return null;
+  try {
+    const stored = await uploadImage({
+      base64: image.data.toString("base64"),
+      mimeType: image.mimeType,
+      fileName: `cloud-icon-${providerId}`,
+      maxWidth: 128,
+      maxHeight: 128,
+    });
+    return stored.url;
+  } catch {
+    return null; // not an image Kener accepts
+  }
+}
+
+// A sign-in page instead of the service: its icon is the generic company logo, not the service's.
+const SIGN_IN_HOSTS = /(^|\.)(login\.microsoftonline\.com|login\.live\.com|login\.microsoft\.com)$/i;
+
 /**
  * Downloads the service's own icon and stores it as a Kener image (resized to 128 px at most).
- * Returns the image URL to put in the monitor's `image`, or throws with a reason to show.
+ * Tries the icon collection first, then the service's web page. Returns the image URL to put in the
+ * monitor's `image`, or throws with a reason to show.
  */
 export async function FetchCloudServiceIcon(data: CloudServiceMonitorTypeData): Promise<string> {
+  const timeout = Math.min(data.timeout || 10000, 15000);
+  const direct = ServiceIconUrl(data?.provider);
+  if (direct) {
+    const stored = await store(direct, data.provider, timeout);
+    if (stored) return stored;
+  }
   const page = IconPageFor(data);
   if (!page) {
     throw new Error("This service has no known icon source. Upload an image instead.");
   }
-  const timeout = Math.min(data.timeout || 10000, 15000);
   const htmlBuffer = await download(page, MAX_PAGE_BYTES, timeout);
-  const candidates = FindIconLinks(htmlBuffer ? htmlBuffer.toString("utf8") : "", page);
-  for (const url of candidates.slice(0, 6)) {
-    const raw = await download(url, MAX_ICON_BYTES, timeout);
-    if (!raw) continue;
-    const image = await ToStorableImage(raw);
-    if (!image) continue;
+  const candidates = FindIconLinks(htmlBuffer ? htmlBuffer.toString("utf8") : "", page).filter((url) => {
     try {
-      const stored = await uploadImage({
-        base64: image.data.toString("base64"),
-        mimeType: image.mimeType,
-        fileName: `cloud-icon-${data.provider}`,
-        maxWidth: 128,
-        maxHeight: 128,
-      });
-      return stored.url;
+      return !SIGN_IN_HOSTS.test(new URL(url).host);
     } catch {
-      /* not an image Kener accepts: try the next one */
+      return false;
     }
+  });
+  for (const url of candidates.slice(0, 6)) {
+    const stored = await store(url, data.provider, timeout);
+    if (stored) return stored;
   }
   throw new Error(`Could not find a usable icon on ${new URL(page).host}. Upload an image instead.`);
 }

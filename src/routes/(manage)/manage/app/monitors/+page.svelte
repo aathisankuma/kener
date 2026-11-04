@@ -9,6 +9,7 @@
   import ChevronLeftIcon from "@lucide/svelte/icons/chevron-left";
   import ChevronRightIcon from "@lucide/svelte/icons/chevron-right";
   import Plus from "@lucide/svelte/icons/plus";
+  import ImageIcon from "@lucide/svelte/icons/image";
   import SettingsIcon from "@lucide/svelte/icons/settings";
   import SearchIcon from "@lucide/svelte/icons/search";
   import FilterIcon from "@lucide/svelte/icons/filter";
@@ -29,6 +30,40 @@
   let error = $state<string | null>(null);
   let toggling = $state<Record<string, boolean>>({});
   const canWrite = $derived(page.data.userPermissions?.includes("monitors.write") ?? false);
+
+  // Gives every Cloud Service monitor without an image its service's official icon.
+  let loadingIcons = $state(false);
+  async function loadMissingIcons() {
+    loadingIcons = true;
+    try {
+      const response = await fetch(clientResolver(resolve, "/manage/api"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "fetchMissingCloudIcons", data: {} })
+      });
+      const result = await response.json();
+      if (!response.ok || result.error) throw new Error(result.error || tm("Request failed"));
+      const updated: string[] = result.updated ?? [];
+      const failed: Array<{ name: string }> = result.failed ?? [];
+      if (updated.length === 0 && failed.length === 0) {
+        toast.info(tm("Every Cloud Service monitor already has an icon."));
+      } else {
+        if (updated.length > 0) toast.success(tm("Icon added: %names", { names: updated.join(", ") }));
+        if (failed.length > 0) {
+          toast.warning(
+            tm("No icon found for %names. Upload one in the monitor's General Settings.", {
+              names: failed.map((f) => f.name).join(", ")
+            })
+          );
+        }
+        await fetchMonitors();
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : tm("Request failed"));
+    } finally {
+      loadingIcons = false;
+    }
+  }
   let showFilters = $state(false);
   let statusFilter = $state("ALL");
   let searchQuery = $state("");
@@ -158,10 +193,24 @@
           <Spinner class="size-5" />
         {/if}
       </div>
-      <Button class="cursor-pointer" href={clientResolver(resolve, "/manage/app/monitors/new")}>
-        <Plus class="size-4" />
-        {tm("New Monitor")}
-      </Button>
+      <div class="flex items-center gap-2">
+        {#if canWrite}
+          <Button
+            variant="outline"
+            class="cursor-pointer"
+            disabled={loadingIcons}
+            onclick={loadMissingIcons}
+            title={tm("Give every Cloud Service monitor without an image its service's official icon")}
+          >
+            {#if loadingIcons}<Spinner class="size-4" />{:else}<ImageIcon class="size-4" />{/if}
+            {tm("Load missing icons")}
+          </Button>
+        {/if}
+        <Button class="cursor-pointer" href={clientResolver(resolve, "/manage/app/monitors/new")}>
+          <Plus class="size-4" />
+          {tm("New Monitor")}
+        </Button>
+      </div>
     </div>
 
     {#if showFilters}
