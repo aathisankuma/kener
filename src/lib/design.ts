@@ -167,7 +167,7 @@ export const PERSONAL_COLUMNS_COOKIE = "kener-columns";
 
 /**
  * The design a page shows: the person's own preset and services per row when they are signed in and
- * chose them, with the site's brand colour; otherwise the site's design.
+ * chose them, with the site's menu bar and brand colour; otherwise the site's design.
  */
 export function EffectiveDesign(
   site: DesignSettings,
@@ -181,8 +181,16 @@ export function EffectiveDesign(
     : null;
   const columns = ColumnsOf(personalColumns);
   if (!preset && (!columns || columns === "auto")) return site;
+  // The menu bar is the site's in every personal design: with a brand-colour bar, the logo and
+  // menu stay as the site set them, whichever design someone picks.
   const base = preset
-    ? { preset, ...DESIGN_PRESET_OPTIONS[preset], brandColor: site.brandColor, columns: site.columns }
+    ? {
+        preset,
+        ...DESIGN_PRESET_OPTIONS[preset],
+        header: site.header,
+        brandColor: site.brandColor,
+        columns: site.columns,
+      }
     : site;
   return columns && columns !== "auto" ? { ...base, columns } : base;
 }

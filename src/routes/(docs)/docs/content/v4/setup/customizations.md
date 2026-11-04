@@ -50,7 +50,7 @@ The design is applied before your **Custom CSS**, so custom CSS can still change
 
 ### Personal design {#personal-design}
 
-Everyone who is signed in sees **Design** in the menu bar of the status page. There they pick a design and the number of services per row for themselves; only they see it, and the site's brand colour stays. **As set for everyone** goes back to the design chosen here. The choices are kept in cookies (`kener-design`, `kener-columns`) in that browser, so it applies on that device only. Visitors who are not signed in always see the design set here.
+Everyone who is signed in sees **Design** in the menu bar of the status page. There they pick a design and the number of services per row for themselves; only they see it. The site's menu bar and brand colour stay: with a brand-colour bar set here, every personal design keeps it, so the logo and menu look the same for everyone. **As set for everyone** goes back to the design chosen here. The choices are kept in cookies (`kener-design`, `kener-columns`) in that browser, so it applies on that device only. Visitors who are not signed in always see the design set here.
 
 ## Footer HTML {#footer-html}
 

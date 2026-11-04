@@ -52,6 +52,8 @@ describe("status page design", () => {
       columns: "auto",
     });
     expect(EffectiveDesign(site, "portal", false)).toBe(site);
+    // A floating-bar design keeps the site's brand-colour bar, so the logo and menu stay visible.
+    expect(EffectiveDesign(site, "standard", true)).toMatchObject({ preset: "standard", header: "band" });
     expect(EffectiveDesign(site, "", true)).toBe(site);
     expect(EffectiveDesign(site, "<script>", true)).toBe(site);
   });

@@ -131,7 +131,7 @@
               ? 'border-primary ring-primary/25 ring-2'
               : ''}"
           >
-            <DesignPreview options={DESIGN_PRESET_OPTIONS[preset]} {brand} class="h-20" />
+            <DesignPreview options={{ ...DESIGN_PRESET_OPTIONS[preset], header: site.header }} {brand} class="h-20" />
             <span class="flex items-center gap-1 px-0.5 text-xs font-medium">
               {name(preset)}
               {#if active}<Check class="text-primary ml-auto size-3.5" />{/if}
