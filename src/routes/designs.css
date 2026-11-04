@@ -663,65 +663,66 @@ html.dark
 
 /* =====================================================================
    Services per row (Design → Services per row; also each signed-in person's own choice).
-   Applies to pages shown as a grid and to the portal start page. Phones keep one per row,
-   tablets at most two.
+   Applies to every page with every design: grid pages and the portal start page get that many
+   cards per row, list pages that many columns. Phones keep one per row, tablets at most two.
    ===================================================================== */
 .kener-public:is([data-columns="1"], [data-columns="2"], [data-columns="3"], [data-columns="4"])
-  :is(.kener-monitors[data-view$="grid"], [data-layout="portal"] .kener-monitors[data-portal="hub"])
+  :is(.kener-monitors, [data-layout="portal"] .kener-monitors[data-portal="hub"])
   > .kener-monitors-grid {
   grid-template-columns: minmax(0, 1fr);
 }
 .kener-public:is([data-columns="1"], [data-columns="2"], [data-columns="3"], [data-columns="4"])
-  :is(.kener-monitors[data-view$="grid"], [data-layout="portal"] .kener-monitors[data-portal="hub"])
+  :is(.kener-monitors, [data-layout="portal"] .kener-monitors[data-portal="hub"])
   .kener-monitor {
   grid-column: auto;
 }
-/* Kener's joined box: lines between the services, so a part-filled last row has no grey gap */
-.kener-public[data-monitors="joined"]:is(
-    [data-columns="1"],
+/* Kener's look with several columns: thin lines around each service instead of the joined box's
+   grey gaps and row borders, so a part-filled last row leaves no grey hole */
+.kener-public[data-layout="kener"][data-monitors="joined"]:is(
     [data-columns="2"],
     [data-columns="3"],
     [data-columns="4"]
   )
-  .kener-monitors[data-view$="grid"]
+  .kener-monitors
   > .kener-monitors-grid {
   gap: 0;
   background: transparent;
 }
-.kener-public[data-monitors="joined"]:is(
-    [data-columns="1"],
+.kener-public[data-layout="kener"][data-monitors="joined"]:is(
     [data-columns="2"],
     [data-columns="3"],
     [data-columns="4"]
   )
-  .kener-monitors[data-view$="grid"]
+  .kener-monitors
   .kener-monitor {
+  border-bottom: 0;
   box-shadow: 0 0 0 0.5px var(--border);
+  padding-inline: 0.75rem;
+}
+.kener-public[data-layout="kener"][data-monitors="cards"]:is(
+    [data-columns="2"],
+    [data-columns="3"],
+    [data-columns="4"]
+  )
+  .kener-monitors
+  .kener-monitor {
+  padding-inline: 0.75rem;
 }
 @media (min-width: 640px) {
   .kener-public:is([data-columns="2"], [data-columns="3"], [data-columns="4"])
-    :is(
-      .kener-monitors[data-view$="grid"],
-      [data-layout="portal"] .kener-monitors[data-portal="hub"]
-    )
+    :is(.kener-monitors, [data-layout="portal"] .kener-monitors[data-portal="hub"])
     > .kener-monitors-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 @media (min-width: 1024px) {
   .kener-public[data-columns="3"]
-    :is(
-      .kener-monitors[data-view$="grid"],
-      [data-layout="portal"] .kener-monitors[data-portal="hub"]
-    )
+    :is(.kener-monitors, [data-layout="portal"] .kener-monitors[data-portal="hub"])
     > .kener-monitors-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
   .kener-public[data-columns="4"]
-    :is(
-      .kener-monitors[data-view$="grid"],
-      [data-layout="portal"] .kener-monitors[data-portal="hub"]
-    )
+    :is(.kener-monitors, [data-layout="portal"] .kener-monitors[data-portal="hub"])
     > .kener-monitors-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }

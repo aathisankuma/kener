@@ -226,7 +226,7 @@
             {#if choice.key === "columns"}
               <p class="text-muted-foreground text-xs">
                 {tm(
-                  "On pages shown as a grid and on the portal start page. Phones show one service per row, tablets at most two."
+                  "Cards on grid pages, columns on list pages. Phones show one service per row, tablets at most two."
                 )}
               </p>
             {/if}
