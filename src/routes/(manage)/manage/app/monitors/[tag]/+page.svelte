@@ -32,6 +32,7 @@
   import StatusHistoryDaysCard from "./components/StatusHistoryDaysCard.svelte";
   import MonitorSharingOptionsCard from "./components/MonitorSharingOptionsCard.svelte";
   import ProblemButtonCard from "./components/ProblemButtonCard.svelte";
+  import AlwaysShownCard from "./components/AlwaysShownCard.svelte";
   import GC from "$lib/global-constants.js";
   import { CloudMonitorName, SuggestMonitorTag } from "$lib/cloudServices.js";
 
@@ -449,6 +450,7 @@
               <!-- Page Visibility Card -->
 
               <PageVisibilityCard monitorTag={monitor.tag} {allPages} onPagesUpdated={fetchPages} />
+              <AlwaysShownCard bind:monitor {typeData} />
             </Accordion.Content>
           </Accordion.Item>
         {/if}

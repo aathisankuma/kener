@@ -1,4 +1,5 @@
 import db from "../db/db.js";
+import { AlwaysShownTagsOf } from "../../serviceSelection.js";
 import { GetMinuteStartNowTimestampUTC, BeginningOfMinute, BeginningOfDay } from "../tool.js";
 import { GetPageByPathWithMonitors, GetLatestMonitoringDataAllActive } from "./controller.js";
 import { GetMonitorsParsed } from "./monitorsController.js";
@@ -233,6 +234,10 @@ export interface PageDashboardData {
   ongoingMaintenances: MaintenanceEventsMonitorList[];
   upcomingMaintenances: MaintenanceEventsMonitorList[];
   monitorTags: string[];
+  /** Names of the page's services, for the visitor's "choose services" list. */
+  monitorNames: Record<string, string>;
+  /** Services the administrator marked "always shown": visitors cannot hide them. */
+  alwaysShownTags: string[];
   monitorGroupMembersByTag: Record<string, string[]>;
   pageDetails: PageRecordTyped;
   socialPagePreviewImage?: string;
@@ -445,6 +450,8 @@ export const GetPageDashboardData = async (
       ongoingMaintenances: [],
       upcomingMaintenances: [],
       monitorTags,
+      monitorNames: {},
+      alwaysShownTags: [],
       monitorGroupMembersByTag: {},
       pageDetails: pageDetailsTyped,
       socialPagePreviewImage,
@@ -507,6 +514,8 @@ export const GetPageDashboardData = async (
     ongoingMaintenances,
     upcomingMaintenances,
     monitorTags,
+    monitorNames: Object.fromEntries(parsedMonitors.map((m) => [m.tag, m.name])),
+    alwaysShownTags: AlwaysShownTagsOf(parsedMonitors),
     monitorGroupMembersByTag,
     pageDetails: pageDetailsTyped,
     socialPagePreviewImage,

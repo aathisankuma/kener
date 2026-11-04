@@ -3,6 +3,8 @@
   import * as Item from "$lib/components/ui/item/index.js";
   import EventsCard from "$lib/components/EventsCard.svelte";
   import MonitorBar from "$lib/components/MonitorBar.svelte";
+  import ServicePicker from "$lib/components/ServicePicker.svelte";
+  import { VisibleTags } from "$lib/serviceSelection";
   import ThemePlus from "$lib/components/ThemePlus.svelte";
   import IncidentItem from "$lib/components/IncidentItem.svelte";
   import MaintenanceItem from "$lib/components/MaintenanceItem.svelte";
@@ -21,6 +23,9 @@
   import type { PageMonitorLayoutStyle } from "$lib/types/api";
   import GC from "$lib/global-constants.js";
   let { data } = $props();
+  // Services this visitor chose to see (all, until they choose); see ServicePicker.
+  let hiddenServices = $state<string[]>([]);
+  const shownTags = $derived(VisibleTags(data.monitorTags, hiddenServices, data.alwaysShownTags ?? []));
   let pageSettings = $derived(data.pageDetails.page_settings);
   let barCount = $derived.by(() =>
     data.isMobile
@@ -205,13 +210,24 @@
             {/each}
           </div>
         {/if}
+        {#if data.monitorTags.length > 1}
+          <div class="-mb-1 flex justify-end">
+            <ServicePicker
+              tags={data.monitorTags}
+              names={data.monitorNames ?? {}}
+              alwaysShown={data.alwaysShownTags ?? []}
+              pagePath={""}
+              bind:hidden={hiddenServices}
+            />
+          </div>
+        {/if}
         <div class="kener-monitors overflow-hidden rounded-3xl border">
           <div class={`kener-monitors-grid grid grid-cols-1 ${getGridContainerClass(viewType)}`}>
-            {#each data.monitorTags as tag, i (tag)}
+            {#each shownTags as tag, i (tag)}
               <div
                 class="kener-monitor {viewType === 'compact-grid' || viewType === 'default-grid'
-                  ? `${getGridItemSpanClass(i, data.monitorTags.length, viewType)} bg-background`
-                  : i < data.monitorTags.length - 1
+                  ? `${getGridItemSpanClass(i, shownTags.length, viewType)} bg-background`
+                  : i < shownTags.length - 1
                     ? 'border-b'
                     : ''} px-2 py-2 sm:px-0"
               >

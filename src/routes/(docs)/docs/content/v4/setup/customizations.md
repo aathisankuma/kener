@@ -7,6 +7,7 @@ Use **Manage → Customizations** to control visual behavior of the public statu
 
 ## What you can customize {#what-you-can-customize}
 
+- Design of the status page (preset and options)
 - Site footer HTML
 - Status colors (light + dark)
 - Font source and font family
@@ -17,15 +18,32 @@ Use **Manage → Customizations** to control visual behavior of the public statu
 
 ## Runtime impact map {#runtime-impact-map}
 
-| Customization  | Stored key                  | Runtime impact                                                |
-| -------------- | --------------------------- | ------------------------------------------------------------- |
-| Footer         | `footerHTML`                | Rendered by public footer component                           |
-| Status colors  | `colors`, `colorsDark`      | Injected as CSS variables in public layout `<head>`           |
-| Font           | `font` (`cssSrc`, `family`) | Loads font stylesheet and applies global `--font-family`      |
-| Theme defaults | `theme`, `themeToggle`      | Sets initial mode and controls whether users can toggle theme |
-| Announcement   | `announcement`              | Renders site banner when title + message are present          |
-| Custom CSS     | `customCSS`                 | Injected as `<style>` block in public layout `<head>`         |
-| Page ordering  | `pageOrderingSettings`      | Controls page display order in the public page switcher       |
+| Customization  | Stored key                  | Runtime impact                                                  |
+| -------------- | --------------------------- | --------------------------------------------------------------- |
+| Design         | `designSettings`            | `data-*` attributes on the public page, styled in `designs.css` |
+| Footer         | `footerHTML`                | Rendered by public footer component                             |
+| Status colors  | `colors`, `colorsDark`      | Injected as CSS variables in public layout `<head>`             |
+| Font           | `font` (`cssSrc`, `family`) | Loads font stylesheet and applies global `--font-family`        |
+| Theme defaults | `theme`, `themeToggle`      | Sets initial mode and controls whether users can toggle theme   |
+| Announcement   | `announcement`              | Renders site banner when title + message are present            |
+| Custom CSS     | `customCSS`                 | Injected as `<style>` block in public layout `<head>`           |
+| Page ordering  | `pageOrderingSettings`      | Controls page display order in the public page switcher         |
+
+## Design {#design}
+
+Pick one of five designs with a click. Each card shows a small preview:
+
+| Design   | Menu bar         | Overall status | Services   | Corners        | Spacing |
+| -------- | ---------------- | -------------- | ---------- | -------------- | ------- |
+| Standard | Floating         | Outlined       | In one box | Round          | Normal  |
+| Classic  | Brand-colour bar | Filled         | In one box | Slightly round | Normal  |
+| Cards    | Floating         | Filled         | As cards   | Round          | Normal  |
+| Compact  | Brand-colour bar | Outlined       | In one box | Straight       | Compact |
+| Bold     | Brand-colour bar | Filled         | As cards   | Round          | Normal  |
+
+Then change any option on its own; the design is then shown as your own combination. **Brand colour** colours the menu bar; without it, the accent colour under **Status Colors** is used. Click **Save Design** and reload the status page.
+
+The design is applied before your **Custom CSS**, so custom CSS can still change anything. If an older custom CSS styles the same parts (for example the menu bar), remove those rules or keep the **Standard** design.
 
 ## Footer HTML {#footer-html}
 

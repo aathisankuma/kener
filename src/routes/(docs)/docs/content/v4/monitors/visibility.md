@@ -28,6 +28,12 @@ You set it with the **Visible** switch in **Manage → Monitors**, or with **Hid
 
 A status page lists only the monitors that you add to it. A new monitor is on no page. You add a monitor to a page in **Manage → Pages → _(page)_ → Page Monitors**.
 
+### Visitors choose their services {#visitor-choice}
+
+With more than one service on a page, visitors see **Choose services** above the list. They untick the services they do not need; the choice is kept in their browser, per page, and **Show all** undoes it. The overall status at the top still counts every service. Services added later are shown until the visitor hides them.
+
+To keep a service visible for everyone, turn on **Always shown** in the monitor's **Page Visibility** section. It is stored as `monitor_settings_json.always_shown` (`true` or `false`, default `false`). Visitors then see it ticked and locked.
+
 ### forceExclusivity {#force-exclusivity}
 
 This site setting is stored as `globalPageVisibilitySettings.forceExclusivity`. The values are `true` and `false`. The default is `false`. When it is `true`, the root events page and `/rss.xml` include only monitors on the default page. The logo also links to the current page instead of `/`.

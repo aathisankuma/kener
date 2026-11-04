@@ -237,6 +237,11 @@
     "Editor": "Editor",
     "Member": "Member",
     "Service Manager": "Service Manager",
-    "Edit Monitor": "Edit Monitor"
+    "Edit Monitor": "Edit Monitor",
+    "Choose services": "Choose services",
+    "Tick the services you want to see. Your choice is saved in this browser.": "Tick the services you want to see. Your choice is saved in this browser.",
+    "Always shown": "Always shown",
+    "Show all": "Show all",
+    "Done": "Done"
   }
 }
