@@ -41,6 +41,7 @@
 			--accent: ${data.siteStatusColors.ACCENT || "#f4f4f5"};
 			--accent-foreground: ${data.siteStatusColors.ACCENT_FOREGROUND || data.siteStatusColors.ACCENT || "#e96e2d"};
 			--brand: ${data.design?.brandColor || "var(--accent-foreground)"};
+			${data.design?.brandColor ? `--brand-color: ${data.design.brandColor};` : ""}
 			${data.font?.family ? `--font-family:'${data.font.family}', sans-serif;` : ""}
 		}
 		:is(.dark) body {
@@ -58,6 +59,7 @@
 <main
   class="kener-public status-page-app"
   data-design={data.design?.preset}
+  data-layout={data.design?.layout}
   data-header={data.design?.header}
   data-banner={data.design?.banner}
   data-corners={data.design?.corners}

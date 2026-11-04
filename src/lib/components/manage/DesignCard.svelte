@@ -9,6 +9,7 @@
   import { Spinner } from "$lib/components/ui/spinner/index.js";
   import ExternalLinkIcon from "@lucide/svelte/icons/external-link";
   import CheckIcon from "@lucide/svelte/icons/check";
+  import DesignPreview from "$lib/components/DesignPreview.svelte";
   import { toast } from "svelte-sonner";
   import { onMount } from "svelte";
   import { resolve } from "$app/paths";
@@ -36,7 +37,11 @@
       name: () => tm("Compact"),
       hint: () => tm("Narrow rows and straight corners: many services at a glance.")
     },
-    bold: { name: () => tm("Bold"), hint: () => tm("Brand colour, filled status and cards, large headings.") }
+    bold: { name: () => tm("Bold"), hint: () => tm("Brand colour, filled status and cards, large headings.") },
+    portal: {
+      name: () => tm("Portal"),
+      hint: () => tm("Hero in the brand colour, services as app cards with status badges.")
+    }
   };
 
   type Choice<K extends keyof DesignSettings> = {
@@ -45,8 +50,16 @@
     options: Array<{ value: DesignSettings[K]; label: () => string }>;
   };
   const CHOICES: Array<
-    Choice<"header"> | Choice<"banner"> | Choice<"corners"> | Choice<"monitors"> | Choice<"density">
+    Choice<"layout"> | Choice<"header"> | Choice<"banner"> | Choice<"corners"> | Choice<"monitors"> | Choice<"density">
   > = [
+    {
+      key: "layout",
+      label: () => tm("Layout"),
+      options: [
+        { value: "kener", label: () => tm("Kener") },
+        { value: "portal", label: () => tm("Portal") }
+      ]
+    },
     {
       key: "header",
       label: () => tm("Menu bar"),
@@ -135,59 +148,8 @@
     }
   });
 
-  const radius = (corners: DesignSettings["corners"]) =>
-    corners === "round" ? "9px" : corners === "soft" ? "4px" : "1px";
   const brand = $derived(design.brandColor || "var(--accent-foreground)");
 </script>
-
-{#snippet preview(o: Omit<DesignSettings, "preset" | "brandColor">)}
-  <!-- A tiny drawing of the status page in this look. -->
-  <div class="bg-muted/40 flex h-28 w-full flex-col gap-1.5 overflow-hidden rounded-md border p-1.5" aria-hidden="true">
-    {#if o.header === "band"}
-      <div class="-mx-1.5 -mt-1.5 flex h-4 items-center gap-1 px-1.5" style="background:{brand}">
-        <span class="h-1.5 w-6 rounded-sm bg-white/90"></span><span class="ml-auto h-1 w-3 rounded-sm bg-white/70"
-        ></span>
-      </div>
-    {:else}
-      <div class="bg-background flex h-4 items-center gap-1 border px-1.5" style="border-radius:{radius(o.corners)}">
-        <span class="bg-foreground/60 h-1.5 w-6 rounded-sm"></span><span
-          class="bg-foreground/30 ml-auto h-1 w-3 rounded-sm"
-        ></span>
-      </div>
-    {/if}
-    <span class="bg-foreground/50 h-1.5 w-12 rounded-sm" class:h-2={o.density === "normal"}></span>
-    <div
-      class="flex items-center gap-1 px-1.5 {o.banner === 'filled' ? 'bg-up' : 'bg-background border'}"
-      style="border-radius:{radius(o.corners)}; height:{o.density === 'compact' ? '0.75rem' : '1rem'}"
-    >
-      <span class="size-1.5 rounded-full {o.banner === 'filled' ? 'bg-white' : 'bg-up'}"></span>
-      <span class="h-1 w-8 rounded-sm {o.banner === 'filled' ? 'bg-white/80' : 'bg-foreground/40'}"></span>
-    </div>
-    {#if o.monitors === "cards"}
-      <div class="grid grid-cols-2 gap-1">
-        {#each [0, 1, 2, 3] as i (i)}
-          <div
-            class="bg-background flex h-4 items-center gap-1 border px-1 shadow-xs"
-            style="border-radius:{radius(o.corners)}"
-          >
-            <span class="bg-up size-1 rounded-full"></span><span class="bg-foreground/30 h-1 w-5 rounded-sm"></span>
-          </div>
-        {/each}
-      </div>
-    {:else}
-      <div class="bg-background flex flex-col border" style="border-radius:{radius(o.corners)}">
-        {#each [0, 1, 2] as i (i)}
-          <div
-            class="flex items-center gap-1 px-1 {i < 2 ? 'border-b' : ''}"
-            style="height:{o.density === 'compact' ? '0.45rem' : '0.6rem'}"
-          >
-            <span class="bg-up size-1 rounded-full"></span><span class="bg-foreground/30 h-0.5 w-6 rounded-sm"></span>
-          </div>
-        {/each}
-      </div>
-    {/if}
-  </div>
-{/snippet}
 
 <Card.Root>
   <Card.Header class="border-b">
@@ -200,7 +162,7 @@
     {#if loading}
       <div class="flex justify-center py-6"><Spinner class="size-5" /></div>
     {:else}
-      <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5" role="radiogroup" aria-label={tm("Design")}>
+      <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6" role="radiogroup" aria-label={tm("Design")}>
         {#each DESIGN_PRESETS as preset (preset)}
           {@const active = design.preset === preset}
           <button
@@ -214,7 +176,7 @@
               ? 'border-primary ring-primary/30 ring-2'
               : ''}"
           >
-            {@render preview(DESIGN_PRESET_OPTIONS[preset])}
+            <DesignPreview options={DESIGN_PRESET_OPTIONS[preset]} {brand} />
             <span class="flex items-center gap-1 text-sm font-medium">
               {PRESET_TEXT[preset].name()}
               {#if active}<CheckIcon class="text-primary size-4" />{/if}

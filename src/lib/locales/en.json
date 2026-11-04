@@ -244,6 +244,18 @@
     "Show all": "Show all",
     "Done": "Done",
     "Link copied": "Link copied",
-    "Copy link": "Copy link"
+    "Copy link": "Copy link",
+    "No Data": "No Data",
+    "Your design": "Your design",
+    "Only you see it, in this browser.": "Only you see it, in this browser.",
+    "As set for everyone": "As set for everyone",
+    "Set the design for everyone": "Set the design for everyone",
+    "Design": "Design",
+    "Classic": "Classic",
+    "Cards": "Cards",
+    "Compact": "Compact",
+    "Bold": "Bold",
+    "Portal": "Portal",
+    "Custom": "Custom"
   }
 }

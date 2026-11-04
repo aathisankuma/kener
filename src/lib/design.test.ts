@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_DESIGN, DESIGN_PRESET_OPTIONS, IsValidDesign, NormalizeDesign, PresetOf } from "./design";
+import {
+  DEFAULT_DESIGN,
+  DESIGN_PRESET_OPTIONS,
+  EffectiveDesign,
+  IsValidDesign,
+  NormalizeDesign,
+  PresetOf,
+} from "./design";
 
 describe("status page design", () => {
   it("is Kener's own look when nothing is stored", () => {
@@ -12,6 +19,12 @@ describe("status page design", () => {
     expect(NormalizeDesign({ ...DESIGN_PRESET_OPTIONS.classic }).preset).toBe("classic");
     expect(NormalizeDesign(JSON.stringify(DESIGN_PRESET_OPTIONS.cards)).preset).toBe("cards");
     expect(PresetOf({ ...DESIGN_PRESET_OPTIONS.classic, corners: "square" })).toBe("custom");
+  });
+
+  it("has the portal layout as its own design", () => {
+    expect(NormalizeDesign({ ...DESIGN_PRESET_OPTIONS.portal }).preset).toBe("portal");
+    expect(NormalizeDesign({}).layout).toBe("kener");
+    expect(IsValidDesign(JSON.stringify({ layout: "magazine" }))).toBe(false);
   });
 
   it("drops unknown values and colours that are not #rrggbb", () => {
@@ -28,5 +41,17 @@ describe("status page design", () => {
     expect(IsValidDesign(JSON.stringify({ brandColor: "blue" }))).toBe(false);
     expect(IsValidDesign("[]")).toBe(false);
     expect(IsValidDesign("{")).toBe(false);
+  });
+
+  it("uses a signed-in person's own design, keeping the site's brand colour", () => {
+    const site = NormalizeDesign({ ...DESIGN_PRESET_OPTIONS.classic, brandColor: "#0052cc" });
+    expect(EffectiveDesign(site, "portal", true)).toEqual({
+      preset: "portal",
+      ...DESIGN_PRESET_OPTIONS.portal,
+      brandColor: "#0052cc",
+    });
+    expect(EffectiveDesign(site, "portal", false)).toBe(site);
+    expect(EffectiveDesign(site, "", true)).toBe(site);
+    expect(EffectiveDesign(site, "<script>", true)).toBe(site);
   });
 });

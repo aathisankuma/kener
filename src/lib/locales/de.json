@@ -19,7 +19,7 @@
     "Days": "Tage",
     "Degraded": "Beeinträchtigt",
     "DEGRADED": "BEEINTRÄCHTIGT",
-    "Degraded Performance": "Beeinträchtigte Leistung",
+    "Degraded Performance": "Eingeschränkte Leistung",
     "Didn't receive the code? Resend": "Sie haben den Code nicht erhalten? Erneut senden",
     "Down": "Ausgefallen",
     "DOWN": "AUSGEFALLEN",
@@ -140,7 +140,7 @@
     "No services found": "Keine Dienste gefunden",
     "Pick at least one service. Until then you get updates for all services.": "Wählen Sie mindestens einen Dienst. Bis dahin erhalten Sie Updates zu allen Diensten.",
     "You get updates only for the selected services.": "Sie erhalten nur Updates zu den ausgewählten Diensten.",
-    "Major Outage": "Schwerer Ausfall",
+    "Major Outage": "Grösserer Ausfall",
     "Past Incidents": "Vergangene Vorfälle",
     "No incidents reported today.": "Heute keine Vorfälle gemeldet.",
     "No incidents reported.": "Keine Vorfälle gemeldet.",
@@ -244,6 +244,18 @@
     "Show all": "Alle anzeigen",
     "Done": "Fertig",
     "Link copied": "Link kopiert",
-    "Copy link": "Link kopieren"
+    "Copy link": "Link kopieren",
+    "No Data": "Keine Daten",
+    "Your design": "Dein Design",
+    "Only you see it, in this browser.": "Nur du siehst es, in diesem Browser.",
+    "As set for everyone": "Wie für alle eingestellt",
+    "Set the design for everyone": "Design für alle festlegen",
+    "Design": "Design",
+    "Classic": "Klassisch",
+    "Cards": "Karten",
+    "Compact": "Kompakt",
+    "Bold": "Markant",
+    "Portal": "Portal",
+    "Custom": "Eigene Kombination"
   }
 }

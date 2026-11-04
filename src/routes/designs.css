@@ -112,3 +112,564 @@
 .kener-public[data-design="bold"] .kener-status-banner p {
   font-weight: 700;
 }
+
+/* =====================================================================
+   Portal layout (data-layout="portal"): a service portal in the style of
+   common status pages. Grid pages (layout "Default Grid") get a hero in the
+   brand colour with a picture and the services as app cards with icon and
+   status badge; list pages get a plain component list with the status on
+   the right. Colours: --brand-color (Brand colour) or blue.
+   ===================================================================== */
+.kener-status-label {
+  display: none;
+}
+.kener-public[data-layout="portal"] {
+  --hub-text: #172b4d;
+  --hub-muted: #6b778c;
+  --hub-link: #0052cc;
+  --hub-bg: #ffffff;
+  --hub-card: #ffffff;
+  --hub-line: #dfe1e6;
+  --hub-blue: var(--brand-color, #0052cc);
+  --hub-shadow:
+    0 1px 1px rgba(9, 30, 66, 0.2), 0 0 1px rgba(9, 30, 66, 0.25), 0 2px 6px rgba(9, 30, 66, 0.12);
+  --hub-shadow-hover: 0 4px 8px rgba(9, 30, 66, 0.2), 0 0 1px rgba(9, 30, 66, 0.25);
+  --kener-radius: 4px;
+  color: var(--hub-text);
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+html.dark .kener-public[data-layout="portal"] {
+  --hub-text: #e6edf3;
+  --hub-muted: #9aa5b5;
+  --hub-link: #579dff;
+  --hub-bg: var(--background);
+  --hub-card: #1d2125;
+  --hub-line: #2c333a;
+  --hub-shadow: 0 0 0 1px #2c333a;
+  --hub-shadow-hover: 0 0 0 1px #454f59, 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+html:not(.dark) body:has(.kener-public[data-layout="portal"]) {
+  background: var(--hub-bg);
+}
+.kener-public[data-layout="portal"] > .max-w-5xl,
+.kener-public[data-layout="portal"] .kener-header > div {
+  max-width: 930px;
+}
+.kener-public[data-layout="portal"] .rounded-3xl,
+.kener-public[data-layout="portal"] .rounded-2xl,
+.kener-public[data-layout="portal"] .rounded-xl {
+  border-radius: 4px;
+}
+
+/* ---------- menu bar: flat bar in the brand colour ---------- */
+.kener-public[data-layout="portal"] .kener-header {
+  background: var(--hub-blue);
+  padding-block: 0.375rem;
+  box-shadow: none;
+  z-index: 30;
+}
+.kener-public[data-layout="portal"] .kener-header-bar {
+  padding-inline: 0;
+}
+.kener-public[data-layout="portal"] .kener-header-bar a,
+.kener-public[data-layout="portal"] .kener-header-bar button {
+  color: #fff;
+}
+.kener-public[data-layout="portal"] .kener-toolbar button,
+.kener-public[data-layout="portal"] .kener-toolbar a {
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+/* ---------- page heading ---------- */
+.kener-public[data-layout="portal"] .kener-hero h1 [data-slot="item-title"] {
+  font-size: 28px;
+  font-weight: 500;
+  color: var(--hub-text);
+}
+.kener-public[data-layout="portal"] .kener-hero h2 .prose {
+  color: var(--hub-muted);
+  font-size: 15px;
+}
+.kener-public[data-layout="portal"] .kener-hero h2 .prose a {
+  color: var(--hub-link);
+  text-decoration: none;
+}
+
+/* ---------- overall status: a flat coloured bar ---------- */
+.kener-public[data-layout="portal"] .kener-status-banner {
+  min-height: 0;
+  padding: 14px 20px;
+  border: 0;
+  border-radius: 4px;
+  color: #fff;
+  background: var(--muted-foreground);
+}
+.kener-public[data-layout="portal"] .kener-status-banner[data-status="bg-up"] {
+  background: var(--up);
+}
+.kener-public[data-layout="portal"] .kener-status-banner[data-status="bg-degraded"] {
+  background: var(--degraded);
+}
+.kener-public[data-layout="portal"] .kener-status-banner[data-status="bg-down"] {
+  background: var(--down);
+}
+.kener-public[data-layout="portal"] .kener-status-banner[data-status="bg-maintenance"] {
+  background: var(--maintenance);
+}
+.kener-public[data-layout="portal"] .kener-status-banner > div > div:first-child {
+  display: none;
+}
+.kener-public[data-layout="portal"] .kener-status-banner p {
+  font-size: 18px;
+  font-weight: 500;
+  color: #fff;
+}
+
+/* ---------- grid pages: app cards ---------- */
+.kener-public[data-layout="portal"] .kener-monitors[data-view$="grid"] {
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  margin: 8px 0 48px;
+}
+.kener-public[data-layout="portal"] .kener-monitors[data-view$="grid"] > .kener-monitors-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  background: transparent;
+}
+@media (min-width: 640px) {
+  .kener-public[data-layout="portal"] .kener-monitors[data-view$="grid"] > .kener-monitors-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 40px;
+  }
+}
+.kener-public[data-layout="portal"] .kener-monitors[data-view$="grid"] .kener-monitor {
+  grid-column: auto;
+  position: relative;
+  background: var(--hub-card);
+  border: 0;
+  border-radius: 4px;
+  box-shadow: var(--hub-shadow);
+  padding: 32px 30px 30px;
+  transition: box-shadow 0.15s ease;
+}
+.kener-public[data-layout="portal"] .kener-monitors[data-view$="grid"] .kener-monitor:hover {
+  box-shadow: var(--hub-shadow-hover);
+}
+.kener-public[data-layout="portal"] .kener-monitors[data-view$="grid"] [data-slot="item"] {
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 22px;
+  row-gap: 8px;
+  align-items: start;
+  padding: 0;
+  border: 0;
+}
+.kener-public[data-layout="portal"] .kener-monitors[data-view$="grid"] [data-slot="item-media"] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  align-self: center;
+  transform: none;
+  margin: 0;
+}
+.kener-public[data-layout="portal"] .kener-monitors[data-view$="grid"] [data-slot="avatar"] {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+}
+.kener-public[data-layout="portal"] .kener-monitors[data-view$="grid"] [data-slot="avatar-image"] {
+  object-fit: contain;
+  border-radius: 8px;
+}
+.kener-public[data-layout="portal"]
+  .kener-monitors[data-view$="grid"]
+  [data-slot="avatar-fallback"] {
+  border-radius: 8px;
+  background: var(--hub-blue);
+  color: #fff;
+  font-weight: 600;
+  font-size: 16px;
+}
+/* dark logos (e.g. GitHub) stay visible on dark cards; initials keep their own colour */
+html.dark
+  .kener-public[data-layout="portal"]
+  .kener-monitors[data-view$="grid"]
+  [data-slot="avatar-image"] {
+  background: #f4f5f7;
+  padding: 6px;
+}
+.kener-public[data-layout="portal"]
+  .kener-monitors[data-view$="grid"]
+  [data-slot="item-content"]:has(> [data-slot="item-title"] > a) {
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+}
+.kener-public[data-layout="portal"]
+  .kener-monitors[data-view$="grid"]
+  [data-slot="item-content"]:has(> [data-slot="item-title"] > a)
+  [data-slot="item-title"] {
+  font-size: 22px;
+  line-height: 1.3;
+  font-weight: 500;
+  color: var(--hub-text);
+  white-space: normal;
+  overflow: visible;
+  margin-top: 6px;
+}
+.kener-public[data-layout="portal"] .kener-monitors[data-view$="grid"] [data-slot="item-title"] a {
+  text-decoration: none;
+}
+/* the whole card opens the service */
+.kener-public[data-layout="portal"]
+  .kener-monitors[data-view$="grid"]
+  [data-slot="item-title"]
+  a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+.kener-public[data-layout="portal"]
+  .kener-monitors[data-view$="grid"]
+  [data-slot="item-description"] {
+  display: none;
+}
+.kener-public[data-layout="portal"]
+  .kener-monitors[data-view$="grid"]
+  [data-slot="item-content"]
+  + [data-slot="item-content"] {
+  grid-column: 2;
+  grid-row: 2;
+  width: auto;
+  order: 0;
+  text-align: left;
+}
+.kener-public[data-layout="portal"]
+  .kener-monitors[data-view$="grid"]
+  [data-slot="item-content"]
+  + [data-slot="item-content"]
+  > [data-slot="item-title"] {
+  display: none;
+}
+/* status badge, e.g. OPERATIONAL */
+.kener-public[data-layout="portal"] .kener-monitors[data-view$="grid"] .kener-status-label {
+  display: inline-block;
+  align-self: flex-start;
+  width: fit-content;
+  padding: 4px 6px;
+  border-radius: 3px;
+  background: var(--muted-foreground);
+  color: #fff;
+  font-size: 11px;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.kener-public[data-layout="portal"]
+  .kener-monitors[data-view$="grid"]
+  .kener-status-label[data-status="UP"] {
+  background: var(--up);
+}
+.kener-public[data-layout="portal"]
+  .kener-monitors[data-view$="grid"]
+  .kener-status-label[data-status="DEGRADED"] {
+  background: var(--degraded);
+  color: #172b4d;
+}
+.kener-public[data-layout="portal"]
+  .kener-monitors[data-view$="grid"]
+  .kener-status-label[data-status="DOWN"] {
+  background: var(--down);
+}
+.kener-public[data-layout="portal"]
+  .kener-monitors[data-view$="grid"]
+  .kener-status-label[data-status="MAINTENANCE"] {
+  background: var(--maintenance);
+}
+/* no bars and no group button inside cards; the "not working" button stays clickable */
+.kener-public[data-layout="portal"] .kener-monitors[data-view$="grid"] [data-slot="item"] ~ div {
+  display: none;
+}
+.kener-public[data-layout="portal"] .kener-monitors[data-view$="grid"] .problem-row {
+  position: relative;
+  z-index: 2;
+}
+
+/* ---------- list pages: plain component list ---------- */
+.kener-public[data-layout="portal"] .kener-monitors:not([data-view$="grid"]) {
+  border: 1px solid var(--hub-line);
+  border-radius: 4px;
+  overflow: visible;
+  margin-top: 16px;
+}
+.kener-public[data-layout="portal"]
+  .kener-monitors:not([data-view$="grid"])
+  > .kener-monitors-grid {
+  gap: 0;
+}
+.kener-public[data-layout="portal"] .kener-monitors:not([data-view$="grid"]) .kener-monitor {
+  padding: 14px 16px;
+  border: 0;
+  border-bottom: 1px solid var(--hub-line);
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+}
+.kener-public[data-layout="portal"]
+  .kener-monitors:not([data-view$="grid"])
+  .kener-monitor:last-child {
+  border-bottom: 0;
+}
+.kener-public[data-layout="portal"] .kener-monitors:not([data-view$="grid"]) [data-slot="item"] {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0;
+  border: 0;
+}
+.kener-public[data-layout="portal"]
+  .kener-monitors:not([data-view$="grid"])
+  [data-slot="item-media"],
+.kener-public[data-layout="portal"]
+  .kener-monitors:not([data-view$="grid"])
+  [data-slot="item"]
+  ~ div {
+  display: none;
+}
+.kener-public[data-layout="portal"]
+  .kener-monitors:not([data-view$="grid"])
+  [data-slot="item-content"]:has(> [data-slot="item-title"] > a) {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.kener-public[data-layout="portal"]
+  .kener-monitors:not([data-view$="grid"])
+  [data-slot="item-content"]:has(> [data-slot="item-title"] > a)
+  [data-slot="item-title"] {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--hub-text);
+  white-space: normal;
+  overflow: visible;
+  width: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.kener-public[data-layout="portal"]
+  .kener-monitors:not([data-view$="grid"])
+  [data-slot="item-title"]
+  a {
+  color: inherit;
+  text-decoration: none;
+}
+/* "?" with the description as a hover tooltip */
+.kener-public[data-layout="portal"]
+  .kener-monitors:not([data-view$="grid"])
+  [data-slot="item-content"]:has(> [data-slot="item-description"])
+  > [data-slot="item-title"]::after {
+  content: "?";
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--hub-muted);
+  border-radius: 50%;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--hub-muted);
+  cursor: help;
+}
+.kener-public[data-layout="portal"]
+  .kener-monitors:not([data-view$="grid"])
+  [data-slot="item-description"] {
+  display: none;
+  position: absolute;
+  left: 0;
+  top: calc(100% + 8px);
+  z-index: 30;
+  max-width: 320px;
+  padding: 8px 10px;
+  border-radius: 4px;
+  background: #172b4d;
+  color: #fff;
+  font-size: 12px;
+  line-height: 1.4;
+  box-shadow: 0 4px 8px rgba(9, 30, 66, 0.25);
+  -webkit-line-clamp: unset;
+}
+.kener-public[data-layout="portal"]
+  .kener-monitors:not([data-view$="grid"])
+  [data-slot="item-content"]:hover
+  > [data-slot="item-description"] {
+  display: block;
+}
+.kener-public[data-layout="portal"]
+  .kener-monitors:not([data-view$="grid"])
+  [data-slot="item-content"]
+  + [data-slot="item-content"] {
+  flex: 0 0 auto;
+  width: auto;
+  order: 0;
+  text-align: right;
+}
+.kener-public[data-layout="portal"]
+  .kener-monitors:not([data-view$="grid"])
+  [data-slot="item-content"]
+  + [data-slot="item-content"]
+  > [data-slot="item-title"] {
+  display: none;
+}
+.kener-public[data-layout="portal"] .kener-monitors:not([data-view$="grid"]) .kener-status-label {
+  display: inline;
+  font-size: 13px;
+  color: var(--muted-foreground);
+}
+.kener-public[data-layout="portal"]
+  .kener-monitors:not([data-view$="grid"])
+  .kener-status-label[data-status="UP"] {
+  color: var(--up);
+}
+.kener-public[data-layout="portal"]
+  .kener-monitors:not([data-view$="grid"])
+  .kener-status-label[data-status="DEGRADED"] {
+  color: var(--degraded);
+}
+.kener-public[data-layout="portal"]
+  .kener-monitors:not([data-view$="grid"])
+  .kener-status-label[data-status="DOWN"] {
+  color: var(--down);
+}
+.kener-public[data-layout="portal"]
+  .kener-monitors:not([data-view$="grid"])
+  .kener-status-label[data-status="MAINTENANCE"] {
+  color: var(--maintenance);
+}
+
+/* ---------- incidents and events below the services ---------- */
+.kener-public[data-layout="portal"] .sm\:grid-cols-16 {
+  grid-template-columns: 1fr;
+}
+.kener-public[data-layout="portal"] .sm\:grid-cols-16 > div {
+  grid-column: 1 / -1;
+}
+
+/* ---------- grid pages: hero in the brand colour with a picture ---------- */
+.kener-public[data-layout="portal"]:has(.kener-monitors[data-view="default-grid"]) .kener-toolbar {
+  border-image: linear-gradient(var(--hub-blue) 0 0) fill 0 / 0 / 24px 100vmax 0;
+}
+.kener-public[data-layout="portal"]:has(.kener-monitors[data-view="default-grid"]) .kener-hero {
+  position: relative;
+  padding: 40px 0 96px;
+  margin-bottom: 56px;
+  border-image: linear-gradient(var(--hub-blue) 0 0) fill 0 / 0 / 24px 100vmax 0;
+}
+.kener-public[data-layout="portal"]:has(.kener-monitors[data-view="default-grid"])
+  .kener-hero::after {
+  content: "";
+  position: absolute;
+  right: -10px;
+  bottom: -50px;
+  width: 440px;
+  height: 306px;
+  background: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 460 320%22%3E%3Cpath d=%22M38 118c0-14 12-25 26-25 5-15 19-25 35-25 18 0 33 13 36 30 12 1 21 10 21 20H38z%22 fill=%22%232a76e6%22 opacity=%22.55%22/%3E%3Cpath d=%22M300 62c0-11 9-19 20-19 4-12 15-20 28-20 15 0 27 11 29 25 10 1 17 8 17 16H300z%22 fill=%22%232a76e6%22 opacity=%22.5%22/%3E%3Cpath d=%22M96 52c0-6 5-11 11-11 2-6 8-11 15-11 8 0 14 6 15 13 5 0 9 4 9 9H96z%22 fill=%22%235c9cf0%22 opacity=%22.6%22/%3E%3Cg opacity=%22.55%22%3E%3Crect x=%2270%22 y=%22150%22 width=%2234%22 height=%22130%22 rx=%224%22 fill=%22%234fb3d9%22/%3E%3Crect x=%22108%22 y=%22118%22 width=%2240%22 height=%22162%22 rx=%224%22 fill=%22%233fa1cf%22/%3E%3Crect x=%22152%22 y=%2296%22 width=%2228%22 height=%22184%22 rx=%2214%22 fill=%22%235fc4dd%22/%3E%3Crect x=%22318%22 y=%22128%22 width=%2236%22 height=%22152%22 rx=%224%22 fill=%22%233fa1cf%22/%3E%3Crect x=%22358%22 y=%22160%22 width=%2230%22 height=%22120%22 rx=%2215%22 fill=%22%235fc4dd%22/%3E%3C/g%3E%3Cpath d=%22M372 78 L300 290 L228 290 Z%22 fill=%22%239fd8ff%22 opacity=%22.18%22/%3E%3Cg%3E%3Crect x=%22150%22 y=%22130%22 width=%22176%22 height=%22128%22 rx=%228%22 fill=%22%23e9f2ff%22/%3E%3Crect x=%22150%22 y=%22130%22 width=%22176%22 height=%2220%22 rx=%228%22 fill=%22%23ffffff%22/%3E%3Crect x=%22150%22 y=%22142%22 width=%22176%22 height=%228%22 fill=%22%23ffffff%22/%3E%3Ccircle cx=%22163%22 cy=%22140%22 r=%223.5%22 fill=%22%23ff8b00%22/%3E%3Ccircle cx=%22174%22 cy=%22140%22 r=%223.5%22 fill=%22%23ffc400%22/%3E%3Ccircle cx=%22185%22 cy=%22140%22 r=%223.5%22 fill=%22%2336b37e%22/%3E%3Cg%3E%3Crect x=%22166%22 y=%22164%22 width=%22144%22 height=%2218%22 rx=%224%22 fill=%22%23ffffff%22/%3E%3Ccircle cx=%22177%22 cy=%22173%22 r=%224%22 fill=%22%2336b37e%22/%3E%3Crect x=%22187%22 y=%22170%22 width=%2264%22 height=%226%22 rx=%223%22 fill=%22%23b3d4ff%22/%3E%3Crect x=%22276%22 y=%22170%22 width=%2226%22 height=%226%22 rx=%223%22 fill=%22%2379e2b0%22/%3E%3Crect x=%22166%22 y=%22188%22 width=%22144%22 height=%2218%22 rx=%224%22 fill=%22%23ffffff%22/%3E%3Ccircle cx=%22177%22 cy=%22197%22 r=%224%22 fill=%22%2336b37e%22/%3E%3Crect x=%22187%22 y=%22194%22 width=%2280%22 height=%226%22 rx=%223%22 fill=%22%23b3d4ff%22/%3E%3Crect x=%22276%22 y=%22194%22 width=%2226%22 height=%226%22 rx=%223%22 fill=%22%2379e2b0%22/%3E%3Crect x=%22166%22 y=%22212%22 width=%22144%22 height=%2218%22 rx=%224%22 fill=%22%23ffffff%22/%3E%3Ccircle cx=%22177%22 cy=%22221%22 r=%224%22 fill=%22%2336b37e%22/%3E%3Crect x=%22187%22 y=%22218%22 width=%2254%22 height=%226%22 rx=%223%22 fill=%22%23b3d4ff%22/%3E%3Crect x=%22276%22 y=%22218%22 width=%2226%22 height=%226%22 rx=%223%22 fill=%22%2379e2b0%22/%3E%3C/g%3E%3C/g%3E%3Cg%3E%3Cellipse cx=%22258%22 cy=%22282%22 rx=%2236%22 ry=%229%22 fill=%22%23003e9c%22 opacity=%22.35%22/%3E%3Crect x=%22224%22 y=%22226%22 width=%2268%22 height=%2218%22 rx=%226%22 fill=%22%231868db%22/%3E%3Crect x=%22224%22 y=%22246%22 width=%2268%22 height=%2218%22 rx=%226%22 fill=%22%231558bc%22/%3E%3Crect x=%22224%22 y=%22266%22 width=%2268%22 height=%2216%22 rx=%226%22 fill=%22%230f4aa3%22/%3E%3Ccircle cx=%22236%22 cy=%22235%22 r=%222.5%22 fill=%22%2379e2b0%22/%3E%3Ccircle cx=%22236%22 cy=%22255%22 r=%222.5%22 fill=%22%2379e2b0%22/%3E%3Ccircle cx=%22236%22 cy=%22274%22 r=%222.5%22 fill=%22%2379e2b0%22/%3E%3Crect x=%22246%22 y=%22233%22 width=%2236%22 height=%224%22 rx=%222%22 fill=%22%234c9aff%22/%3E%3Crect x=%22246%22 y=%22253%22 width=%2236%22 height=%224%22 rx=%222%22 fill=%22%234c9aff%22/%3E%3Crect x=%22246%22 y=%22272%22 width=%2236%22 height=%224%22 rx=%222%22 fill=%22%234c9aff%22/%3E%3C/g%3E%3Cg%3E%3Ccircle cx=%22372%22 cy=%2270%22 r=%2240%22 fill=%22%2357d9a3%22 opacity=%22.35%22/%3E%3Ccircle cx=%22372%22 cy=%2270%22 r=%2231%22 fill=%22%2336b37e%22/%3E%3Cpath d=%22M356 70 l11 11 l21 -23%22 fill=%22none%22 stroke=%22%23ffffff%22 stroke-width=%228%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/%3E%3C/g%3E%3Cg%3E%3Ccircle cx=%22120%22 cy=%22214%22 r=%2220%22 fill=%22%23ff8b00%22/%3E%3Ccircle cx=%22120%22 cy=%22214%22 r=%2215%22 fill=%22%23ffab00%22/%3E%3Crect x=%22117%22 y=%22203%22 width=%226%22 height=%2214%22 rx=%223%22 fill=%22%23ffffff%22/%3E%3Ccircle cx=%22120%22 cy=%22223%22 r=%223.2%22 fill=%22%23ffffff%22/%3E%3C/g%3E%3Cpath d=%22M420 140 l3 7 7 3 -7 3 -3 7 -3 -7 -7 -3 7 -3z%22 fill=%22%23ffffff%22 opacity=%22.8%22/%3E%3Cpath d=%22M60 180 l2 5 5 2 -5 2 -2 5 -2 -5 -5 -2 5 -2z%22 fill=%22%23ffffff%22 opacity=%22.7%22/%3E%3Cpath d=%22M206 92 l2 5 5 2 -5 2 -2 5 -2 -5 -5 -2 5 -2z%22 fill=%22%23ffffff%22 opacity=%22.7%22/%3E%3Cpath d=%22M0 320 C60 282 150 272 230 278 C320 284 400 276 460 300 L460 320 Z%22 fill=%22%23e3fcef%22/%3E%3Cpath d=%22M40 320 C120 298 200 294 260 300 C330 306 390 300 440 320 Z%22 fill=%22%23abf5d1%22 opacity=%22.7%22/%3E%3Cg%3E%3Cpath d=%22M86 300 C70 270 78 246 96 232 C104 252 104 278 90 300 Z%22 fill=%22%2336b37e%22/%3E%3Cpath d=%22M96 300 C104 274 122 262 140 262 C134 282 118 296 100 302 Z%22 fill=%22%2357d9a3%22/%3E%3Cpath d=%22M90 300 L94 252%22 stroke=%22%23006644%22 stroke-width=%222%22 fill=%22none%22/%3E%3Cpath d=%22M374 302 C360 276 366 248 386 230 C398 254 398 282 382 304 Z%22 fill=%22%2336b37e%22/%3E%3Cpath d=%22M386 302 C394 278 412 268 430 270 C424 290 406 300 388 304 Z%22 fill=%22%2379e2b0%22/%3E%3Cpath d=%22M380 302 L385 246%22 stroke=%22%23006644%22 stroke-width=%222%22 fill=%22none%22/%3E%3C/g%3E%3C/svg%3E")
+    no-repeat center / contain;
+  pointer-events: none;
+}
+.kener-public[data-layout="portal"]:has(.kener-monitors[data-view="default-grid"])
+  .kener-hero
+  > img {
+  display: none;
+}
+.kener-public[data-layout="portal"]:has(.kener-monitors[data-view="default-grid"])
+  .kener-hero
+  [data-slot="item"] {
+  max-width: 52%;
+}
+.kener-public[data-layout="portal"]:has(.kener-monitors[data-view="default-grid"])
+  .kener-hero
+  h1
+  [data-slot="item-title"] {
+  color: #fff;
+  font-size: 40px;
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.kener-public[data-layout="portal"]:has(.kener-monitors[data-view="default-grid"])
+  .kener-hero
+  h2
+  .prose,
+.kener-public[data-layout="portal"]:has(.kener-monitors[data-view="default-grid"])
+  .kener-hero
+  h2
+  .prose
+  * {
+  color: #fff;
+  font-size: 20px;
+  line-height: 1.5;
+}
+.kener-public[data-layout="portal"]:has(.kener-monitors[data-view="default-grid"])
+  .kener-hero
+  [data-slot="item-content"] {
+  gap: 16px;
+}
+.kener-public[data-layout="portal"]:has(.kener-monitors[data-view="default-grid"])
+  .kener-toolbar
+  button,
+.kener-public[data-layout="portal"]:has(.kener-monitors[data-view="default-grid"])
+  .kener-toolbar
+  a {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.35);
+  color: #fff;
+}
+.kener-public[data-layout="portal"]:has(.kener-monitors[data-view="default-grid"])
+  .kener-toolbar
+  button:hover,
+.kener-public[data-layout="portal"]:has(.kener-monitors[data-view="default-grid"])
+  .kener-toolbar
+  a:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+@media (max-width: 860px) {
+  .kener-public[data-layout="portal"]:has(.kener-monitors[data-view="default-grid"]) .kener-hero {
+    padding: 28px 0 210px;
+    margin-bottom: 40px;
+  }
+  .kener-public[data-layout="portal"]:has(.kener-monitors[data-view="default-grid"])
+    .kener-hero
+    [data-slot="item"] {
+    max-width: 100%;
+  }
+  .kener-public[data-layout="portal"]:has(.kener-monitors[data-view="default-grid"])
+    .kener-hero::after {
+    right: 50%;
+    transform: translateX(50%);
+    width: 320px;
+    height: 223px;
+    bottom: -30px;
+  }
+  .kener-public[data-layout="portal"]:has(.kener-monitors[data-view="default-grid"])
+    .kener-hero
+    h1
+    [data-slot="item-title"] {
+    font-size: 30px;
+  }
+}

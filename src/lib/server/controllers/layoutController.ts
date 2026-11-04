@@ -1,5 +1,5 @@
 import MobileDetect from "mobile-detect";
-import { NormalizeDesign, type DesignSettings } from "../../design.js";
+import { EffectiveDesign, NormalizeDesign, PERSONAL_DESIGN_COOKIE, type DesignSettings } from "../../design.js";
 import { GetRoleLabels, type RoleLabel } from "../userRoles.js";
 import type { Cookies } from "@sveltejs/kit";
 import type { UserRecordPublic } from "$lib/server/types/db";
@@ -30,8 +30,12 @@ export interface LayoutServerData {
   myServiceTags: string[];
   /** Roles of the signed-in user, for "Signed in as …"; empty when nobody is signed in. */
   loggedInRoles: RoleLabel[];
-  /** The status page's look, chosen under Customizations → Design. */
+  /** The look the page shows: the signed-in person's own choice, or the site's design. */
   design: DesignSettings;
+  /** The site's design, chosen under Customizations → Design. */
+  siteDesign: DesignSettings;
+  /** The signed-in person's own preset, or "" for the site's design. */
+  personalDesign: string;
   canSeeHiddenMonitors: boolean;
   selectedLang: string;
   siteStatusColors: {
@@ -144,6 +148,8 @@ export async function GetLayoutServerData(cookies: Cookies, request: Request): P
   const myServiceTags =
     loggedInUser && homePath === "/my-services" ? await db.getMonitorTagsForUser(loggedInUser.id) : [];
   const loggedInRoles = loggedInUser ? await GetRoleLabels(loggedInUser.role_ids) : [];
+  const siteDesign = NormalizeDesign(siteData.designSettings);
+  const personalDesign = (cookies.get(PERSONAL_DESIGN_COOKIE) || "").trim();
 
   // Same check as IsSetupComplete, but reuses the site data fetched above
   // instead of querying it a second time on every request
@@ -182,7 +188,9 @@ export async function GetLayoutServerData(cookies: Cookies, request: Request): P
     homePath,
     myServiceTags,
     loggedInRoles,
-    design: NormalizeDesign(siteData.designSettings),
+    design: EffectiveDesign(siteDesign, personalDesign, !!loggedInUser),
+    siteDesign,
+    personalDesign: loggedInUser ? personalDesign : "",
     canSeeHiddenMonitors,
     selectedLang,
     siteStatusColors,

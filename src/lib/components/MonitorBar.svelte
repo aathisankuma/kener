@@ -64,6 +64,14 @@
     MAINTENANCE: "stroke-maintenance",
     NO_DATA: "stroke-muted-foreground"
   } as const;
+
+  const STATUS_LABEL: Record<string, string> = {
+    UP: "Operational",
+    DEGRADED: "Degraded Performance",
+    DOWN: "Major Outage",
+    MAINTENANCE: "Under Maintenance",
+    NO_DATA: "No Data"
+  };
 </script>
 
 <div>
@@ -136,6 +144,10 @@
       </Item.Content>
 
       <Item.Content class="order-3 w-full text-left sm:order-0 sm:w-auto sm:flex-none sm:text-center">
+        <!-- The status in words, e.g. "Operational": hidden unless a design shows it (designs.css). -->
+        <span class="kener-status-label" data-status={data.currentStatus}
+          >{$t(STATUS_LABEL[data.currentStatus] ?? "No Data")}</span
+        >
         <Item.Title class="items-start text-2xl">
           <StatusIcon class="{STATUS_STROKE[data.currentStatus]} {grid ? 'mt-1 size-5' : 'mt-1.5 size-6'}" />
           <div class="flex flex-col items-start gap-1 sm:items-end">

@@ -216,7 +216,7 @@
         {/each}
       </div>
     {/if}
-    <div class="kener-monitors overflow-hidden rounded-3xl border">
+    <div class="kener-monitors overflow-hidden rounded-3xl border" data-view={viewType}>
       <div class={`kener-monitors-grid grid grid-cols-1 ${getGridContainerClass(viewType)}`}>
         {#each shownTags as tag, i (tag)}
           <div

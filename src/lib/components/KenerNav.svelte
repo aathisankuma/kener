@@ -10,6 +10,7 @@
   import MenuIcon from "@lucide/svelte/icons/menu";
   import AccountMenu from "$lib/components/AccountMenu.svelte";
   import ServicePicker from "$lib/components/ServicePicker.svelte";
+  import DesignMenu from "$lib/components/DesignMenu.svelte";
   import { IsSignInLink } from "$lib/navLinks";
 
   let { data } = page;
@@ -88,6 +89,7 @@
           </NavigationMenu.List>
         </NavigationMenu.Root>
 
+        <DesignMenu />
         <ServicePicker />
         <AccountMenu />
 
