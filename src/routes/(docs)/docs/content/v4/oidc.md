@@ -92,7 +92,7 @@ Roles assigned manually (not through any OIDC mapping) are preserved and not aff
 
 Deleting a mapping stops Kener from managing that role: users who already hold it keep it (it is now treated as manually assigned) until an administrator removes it on the Users page.
 
-If none of a user's groups match any mapping, the configured **Default Role** is assigned.
+If none of a user's groups match any mapping, the configured **Default Role** is assigned. Choose **Viewer** to let everyone in your organisation sign in to the status page without any admin access: they set their own design and services and subscribe to email updates with their account's email. See [Viewers](/docs/v4/user-management#viewers). With **Member**, everyone could read the whole admin area.
 
 ## Settings reference {#settings-reference}
 
@@ -100,7 +100,7 @@ If none of a user's groups match any mapping, the configured **Default Role** is
 | -------------------------------- | -------- | ----------------------------------------------------------------------- |
 | Allow local login                | ON       | When OFF, the password form is hidden and only the OIDC button is shown |
 | Auto-create users on first login | OFF      | When ON, new Kener users are created automatically on first OIDC login  |
-| Default Role                     | `member` | Fallback role when no group mapping matches                             |
+| Default Role                     | `viewer` | Fallback role when no group mapping matches                             |
 
 ## Lockout recovery {#lockout-recovery}
 

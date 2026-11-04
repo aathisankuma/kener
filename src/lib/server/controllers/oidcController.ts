@@ -236,7 +236,7 @@ export async function FindOrCreateOidcUser(
 
     const mappedRoleIds = await db.getOidcRoleIdsForGroups(oidcData.groups);
     const roleIds =
-      mappedRoleIds.length > 0 ? mappedRoleIds : settings.default_role_id ? [settings.default_role_id] : ["member"];
+      mappedRoleIds.length > 0 ? mappedRoleIds : settings.default_role_id ? [settings.default_role_id] : ["viewer"];
 
     await db.insertUser({
       email: oidcData.email,

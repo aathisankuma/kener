@@ -344,9 +344,25 @@ export const ROUTE_PERMISSION_MAP: Record<string, string | null> = {
   "/(manage)/manage/app/oidc": "settings.read",
 };
 
-/** Where a signed-in user starts: the dashboard, or for a service manager the page of their services. */
-export function HomePathFor(permissionIds: Iterable<string>): "/manage/app/site-configurations" | "/my-services" {
+/**
+ * Where a signed-in user starts: the dashboard; for a service manager the page of their services;
+ * for a viewer (a role with no permissions, e.g. anyone signing in with single sign-on who has no
+ * other role) the status page, where they choose their design, services and subscriptions.
+ */
+export function HomePathFor(permissionIds: Iterable<string>): "/manage/app/site-configurations" | "/my-services" | "/" {
   const set = new Set(permissionIds);
   if (!set.has("settings.read") && set.has("services.manage_assigned")) return "/my-services";
+  if (set.size === 0) return "/";
   return "/manage/app/site-configurations";
+}
+
+/**
+ * Where to go after signing in: back to the status page the person started from, when that is a
+ * path on this site; otherwise their start page. Admin pages are never taken from the link, so a
+ * link cannot send someone elsewhere.
+ */
+export function AfterSignInPath(next: string | null | undefined, home: string): string {
+  if (!next || !next.startsWith("/") || next.startsWith("//") || next.includes("\\")) return home;
+  if (/^\/(manage|account|api)(\/|$|\?)/.test(next)) return home;
+  return next;
 }

@@ -258,6 +258,11 @@
     "Portal": "Portal",
     "Custom": "Custom",
     "Services per row": "Services per row",
-    "As set": "As set"
+    "As set": "As set",
+    "Viewer": "Viewer",
+    "Sign in to subscribe": "Sign in to subscribe",
+    "Sign in to get notified about incidents and scheduled maintenance.": "Sign in to get notified about incidents and scheduled maintenance.",
+    "Sign in to get notified about incidents and scheduled maintenance of %name.": "Sign in to get notified about incidents and scheduled maintenance of %name.",
+    "Sign in with your company account. You then get the emails at your work address, no code needed.": "Sign in with your company account. You then get the emails at your work address, no code needed."
   }
 }

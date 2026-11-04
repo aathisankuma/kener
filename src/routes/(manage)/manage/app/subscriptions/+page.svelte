@@ -24,6 +24,7 @@
   import Wrench from "@lucide/svelte/icons/wrench";
   import Mail from "@lucide/svelte/icons/mail";
   import Rss from "@lucide/svelte/icons/rss";
+  import LogIn from "@lucide/svelte/icons/log-in";
 
   import type { SubscriptionsConfig } from "$lib/server/types/db.js";
   import AlertCircleIcon from "@lucide/svelte/icons/octagon-alert";
@@ -387,6 +388,27 @@
           </div>
 
           {#if config.enable}
+            <div class="flex items-start justify-between gap-4 border-l-2 pl-4">
+              <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                  <LogIn class="h-4 w-4" />
+                  <Label for="require-sign-in" class="mb-0">{tm("Only signed-in people can subscribe")}</Label>
+                </div>
+                <p class="text-muted-foreground text-xs">
+                  {tm(
+                    "Visitors sign in (for example with single sign-on) and subscribe with the email of their account, without a code. Turn off to let anyone subscribe with an email address and a code."
+                  )}
+                </p>
+              </div>
+              <Switch
+                id="require-sign-in"
+                checked={!!config.requireSignIn}
+                onCheckedChange={(e) => {
+                  config.requireSignIn = e;
+                  handleConfigChange();
+                }}
+              />
+            </div>
             <div class="space-y-4 border-l-2 pl-4">
               <p class="flex items-center gap-2 text-sm font-semibold">
                 <Mail class="h-4 w-4" />

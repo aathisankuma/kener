@@ -7,7 +7,8 @@
   import { Checkbox } from "$lib/components/ui/checkbox/index.js";
   import { Label } from "$lib/components/ui/label/index.js";
   import { onMount } from "svelte";
-  import { resolve } from "$app/paths";
+  import { base, resolve } from "$app/paths";
+  import { page } from "$app/state";
   import clientResolver from "$lib/client/resolver.js";
 
   import Mail from "@lucide/svelte/icons/mail";
@@ -18,6 +19,8 @@
   import AlertTriangle from "@lucide/svelte/icons/alert-triangle";
   import Wrench from "@lucide/svelte/icons/wrench";
   import Layers from "@lucide/svelte/icons/layers";
+  import LogIn from "@lucide/svelte/icons/log-in";
+  import UserCheck from "@lucide/svelte/icons/user-check";
   import { t } from "$lib/stores/i18n";
   import trackEvent from "$lib/beacon";
   import ICONS from "$lib/icons";
@@ -42,7 +45,7 @@
   const STORAGE_KEY = "subscriber_token";
 
   // UI States
-  type View = "loading" | "login" | "otp" | "preferences" | "error";
+  type View = "loading" | "login" | "signin" | "otp" | "preferences" | "error";
   let currentView = $state<View>("loading");
   let isSubmitting = $state(false);
   let errorMessage = $state("");
@@ -82,6 +85,16 @@
       : availableMonitors
   );
 
+  // Signed-in people subscribe with the email of their account, without a code. With "only
+  // signed-in people" on, visitors are asked to sign in instead of entering an email.
+  const signedIn = $derived(!!page.data?.loggedInUser);
+  const requireSignIn = $derived(!!page.data?.subsRequireSignIn);
+  // Back to this page after signing in (the path without the site's base path).
+  const signInHref = $derived.by(() => {
+    const here = page.url.pathname.startsWith(base) ? page.url.pathname.slice(base.length) || "/" : "/";
+    return clientResolver(resolve, "/account/signin") + "?next=" + encodeURIComponent(here + page.url.search);
+  });
+
   // Check token on mount
   onMount(() => {
     checkExistingToken();
@@ -94,10 +107,37 @@
     }
   });
 
+  function signedOutView(): View {
+    return requireSignIn ? "signin" : "login";
+  }
+
+  /** A subscriber token for the signed-in person's account; null when that is not possible. */
+  async function accountToken(): Promise<string | null> {
+    try {
+      const response = await fetch(clientResolver(resolve, "/dashboard-apis/subscription"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "account" })
+      });
+      if (!response.ok) return null;
+      const data = await response.json();
+      if (!data.token) return null;
+      localStorage.setItem(STORAGE_KEY, data.token);
+      return data.token;
+    } catch {
+      return null;
+    }
+  }
+
   async function checkExistingToken() {
-    const token = localStorage.getItem(STORAGE_KEY);
+    let token = localStorage.getItem(STORAGE_KEY);
+    if (signedIn && open) {
+      // Always the account's own subscription, even if this browser had another email before.
+      currentView = "loading";
+      token = await accountToken();
+    }
     if (!token) {
-      currentView = "login";
+      currentView = signedOutView();
       return;
     }
 
@@ -112,7 +152,7 @@
       if (!response.ok) {
         // Token invalid or expired
         localStorage.removeItem(STORAGE_KEY);
-        currentView = "login";
+        currentView = signedOutView();
         return;
       }
 
@@ -132,7 +172,7 @@
       }
     } catch (err) {
       localStorage.removeItem(STORAGE_KEY);
-      currentView = "login";
+      currentView = signedOutView();
     }
   }
 
@@ -223,7 +263,7 @@
   async function handlePreferenceChange(type: "incidents" | "maintenances", value: boolean) {
     const token = localStorage.getItem(STORAGE_KEY);
     if (!token) {
-      currentView = "login";
+      currentView = signedOutView();
       return;
     }
 
@@ -272,7 +312,7 @@
   async function saveMonitorTags(tags: string[]): Promise<boolean> {
     const token = localStorage.getItem(STORAGE_KEY);
     if (!token) {
-      currentView = "login";
+      currentView = signedOutView();
       return false;
     }
     savingMonitors = true;
@@ -382,7 +422,7 @@
     chosenMonitorTags = [];
     onlySelectedMonitors = false;
     errorMessage = "";
-    currentView = "login";
+    currentView = signedOutView();
     trackEvent("subscribe_logout", { source: "subscribe_menu" });
   }
 
@@ -455,7 +495,11 @@
         {$t("Subscribe to Updates")}
       </Dialog.Title>
       <Dialog.Description>
-        {#if currentView === "login" && isScoped}
+        {#if currentView === "signin" && isScoped}
+          {$t("Sign in to get notified about incidents and scheduled maintenance of %name.", { name: scopeName })}
+        {:else if currentView === "signin"}
+          {$t("Sign in to get notified about incidents and scheduled maintenance.")}
+        {:else if currentView === "login" && isScoped}
           {$t("Get notified about incidents and scheduled maintenance of %name.", { name: scopeName })}
         {:else if currentView === "login"}
           {$t("Get notified about incidents and scheduled maintenance.")}
@@ -473,6 +517,20 @@
       {#if currentView === "loading"}
         <div class="flex items-center justify-center py-8">
           <Loader2 class="text-muted-foreground h-8 w-8 animate-spin" />
+        </div>
+      {:else if currentView === "signin"}
+        <!-- Sign-in View: only signed-in people subscribe -->
+        <div class="flex flex-col items-center gap-4 text-center">
+          <div class="bg-muted flex size-12 items-center justify-center rounded-full">
+            <LogIn class="text-muted-foreground size-5" />
+          </div>
+          <p class="text-muted-foreground text-sm">
+            {$t("Sign in with your company account. You then get the emails at your work address, no code needed.")}
+          </p>
+          <Button href={signInHref} class="w-full" data-testid="subscribe-sign-in">
+            <LogIn class="mr-2 h-4 w-4" />
+            {$t("Sign in to subscribe")}
+          </Button>
         </div>
       {:else if currentView === "login"}
         <!-- Login View -->
@@ -562,13 +620,19 @@
           {/if}
           <div class="rounded-lg border p-4">
             <div class="flex items-center justify-between gap-2">
-              <div class="flex gap-2">
-                <Mail class="text-muted-foreground h-4 w-4" />
-                <span class="text-sm font-medium">{subscriberEmail}</span>
+              <div class="flex min-w-0 gap-2">
+                {#if signedIn}
+                  <UserCheck class="text-muted-foreground h-4 w-4 shrink-0" />
+                {:else}
+                  <Mail class="text-muted-foreground h-4 w-4 shrink-0" />
+                {/if}
+                <span class="truncate text-sm font-medium">{subscriberEmail}</span>
               </div>
-              <Button variant="ghost" size="icon-sm" onclick={handleLogout} class="rounded-btn">
-                <LogOut class="h-4 w-4" />
-              </Button>
+              {#if !signedIn}
+                <Button variant="ghost" size="icon-sm" onclick={handleLogout} class="rounded-btn">
+                  <LogOut class="h-4 w-4" />
+                </Button>
+              {/if}
             </div>
           </div>
 

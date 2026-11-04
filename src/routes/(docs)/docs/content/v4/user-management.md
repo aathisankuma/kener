@@ -11,7 +11,7 @@ Kener uses a role-based access control (RBAC) system. Each user can be assigned 
 
 ### Built-in roles {#built-in-roles}
 
-Four readonly roles are seeded automatically:
+Five readonly roles are seeded automatically:
 
 | Role              | Permissions                     | Notes                                                                                              |
 | ----------------- | ------------------------------- | -------------------------------------------------------------------------------------------------- |
@@ -19,6 +19,7 @@ Four readonly roles are seeded automatically:
 | `editor`          | All except `api_keys.delete`    | Day-to-day operations                                                                              |
 | `member`          | All `.read` permissions only    | View-only access                                                                                   |
 | `service_manager` | `services.manage_assigned` only | Status, incidents and maintenance of their own services. See [Service managers](#service-managers) |
+| `viewer`          | None                            | Status page only. See [Viewers](#viewers)                                                          |
 
 Built-in roles cannot be edited or deleted.
 
@@ -82,6 +83,17 @@ To set one up:
 2. In **Manage → Users**, open the user's settings (gear icon), pick their services under **Services this user manages** and click **Update Services**. Several people can share a service.
 
 After signing in, a service manager lands on **My services**. On the status page, the menu under their name in the top bar offers **My services**, and **Report status** on the page of one of their services.
+
+## Viewers {#viewers}
+
+A viewer has no admin area. After signing in they return to the status page, where they:
+
+- choose their own look and services per row under **Design** and their services under **Choose services** (kept in their browser),
+- subscribe to email updates with the email of their account, without a code. See [Subscriptions](/docs/v4/subscriptions#signed-in).
+
+Opening `/manage` takes them back to the status page. Their account menu shows only their name, role and **Log out**.
+
+With [OIDC](/docs/v4/oidc), **Viewer** is the default role for new users whose groups match no mapping, so anyone in your company can sign in with single sign-on and use the page this way. Map a group to another role to give more.
 
 ## User management {#user-management}
 
@@ -159,4 +171,4 @@ See [Email Setup](/docs/v4/setup/email-setup).
 
 ## Signed in on the status page {#signed-in}
 
-When you are signed in, your name appears in the status page's top bar. Its menu shows your email and role and offers what your role can do: **Manage Site** (and **Edit Monitor**, **Update Incident** or **Update Maintenance** on those pages), or **My services** for a service manager, and **Log out**. Menu links to the sign-in page or to `/manage` are hidden while you are signed in, since the menu replaces them.
+When you are signed in, your name appears in the status page's top bar. Its menu shows your email and role and offers what your role can do: **Manage Site** (and **Edit Monitor**, **Update Incident** or **Update Maintenance** on those pages), or **My services** for a service manager, and **Log out**. A [viewer](#viewers) sees only **Log out**. After signing in from a status page (for example from **Sign in to subscribe**), you come back to that page. Menu links to the sign-in page or to `/manage` are hidden while you are signed in, since the menu replaces them.

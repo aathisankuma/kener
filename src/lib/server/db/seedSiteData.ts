@@ -189,7 +189,7 @@ const seedSiteData = {
     groups_claim: "groups",
     allow_local_login: true,
     auto_create_users: false,
-    default_role_id: "member",
+    default_role_id: "viewer",
   },
 };
 

@@ -7,7 +7,7 @@ import {
   CreateFirstUser,
   GetUserPermissions,
 } from "$lib/server/controllers/userController";
-import { HomePathFor } from "$lib/allPerms";
+import { AfterSignInPath, HomePathFor } from "$lib/allPerms";
 import { VerifyPassword, GenerateToken, CookieConfig } from "$lib/server/controllers/commonController";
 import { GetOidcSettings } from "$lib/server/controllers/oidcController";
 import serverResolve from "$lib/server/resolver.js";
@@ -28,7 +28,8 @@ export const load: PageServerLoad = async ({ parent, url }) => {
   const parentData = await parent();
 
   if (!!parentData.loggedInUser && parentData.isSetupComplete) {
-    throw redirect(302, serverResolve(HomePathFor(await GetUserPermissions(parentData.loggedInUser.id))));
+    const home = HomePathFor(await GetUserPermissions(parentData.loggedInUser.id));
+    throw redirect(302, serverResolve(AfterSignInPath(url.searchParams.get("next"), home)));
   }
 
   const oidcSettings = await GetOidcSettings();
@@ -50,6 +51,8 @@ export const load: PageServerLoad = async ({ parent, url }) => {
           allowLocalLogin: true,
         },
     oidcError,
+    // The status page to return to after signing in, e.g. from "Sign in to subscribe".
+    next: AfterSignInPath(url.searchParams.get("next"), ""),
   };
 };
 
@@ -60,6 +63,7 @@ export const actions: Actions = {
     const formData = await request.formData();
     const email = String(formData.get("email") ?? "").trim();
     const password = String(formData.get("password") ?? "");
+    const next = String(formData.get("next") ?? "");
 
     if (!email || !password) {
       return fail(400, { error: "Email and password are required", values: { email } });
@@ -126,7 +130,7 @@ export const actions: Actions = {
       sameSite: cookieConfig.sameSite,
     });
 
-    throw redirect(302, serverResolve(HomePathFor(await GetUserPermissions(userDB.id))));
+    throw redirect(302, serverResolve(AfterSignInPath(next, HomePathFor(await GetUserPermissions(userDB.id)))));
   },
   signup: async ({ request, cookies }) => {
     const formData = await request.formData();

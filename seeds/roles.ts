@@ -13,6 +13,8 @@ import { permissions } from "../src/lib/allPerms.ts";
  * member          → all .read permissions only
  * service_manager → only services.manage_assigned: status, incidents and maintenance of the
  *                   services assigned to the user (users_monitors), on a page of its own
+ * viewer          → no permissions: the status page only, with their own design, chosen services
+ *                   and email subscription (the default for single sign-on users with no other role)
  */
 
 const readonlyRoles = [
@@ -20,6 +22,7 @@ const readonlyRoles = [
   { id: "editor", role_name: "Editor" },
   { id: "member", role_name: "Member" },
   { id: "service_manager", role_name: "Service Manager" },
+  { id: "viewer", role_name: "Viewer" },
 ];
 
 const allPermissionIds = permissions.map((p) => p.id);
@@ -30,6 +33,7 @@ const rolePermissions: Record<string, string[]> = {
   editor: allPermissionIds.filter((id) => id !== "api_keys.delete"),
   member: readPermissionIds,
   service_manager: ["services.manage_assigned"],
+  viewer: [],
 };
 
 export async function seed(knex: Knex): Promise<void> {

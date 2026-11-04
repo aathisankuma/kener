@@ -51,6 +51,14 @@ From the status page, user clicks **Subscribe**:
 
 If token is invalid/expired, user is asked to verify again.
 
+### Signed-in people {#signed-in}
+
+Someone signed in to Kener (for example with [single sign-on](/docs/v4/oidc)) needs no code: **Subscribe** opens their preferences straight away, for the email of their account. The subscription follows that address, so it is the same in every browser; there is no sign-out in the dialog.
+
+### Only signed-in people {#only-signed-in}
+
+Under **Manage → Subscriptions**, turn on **Only signed-in people can subscribe**. Visitors then see **Sign in to subscribe** instead of the email field; after signing in they come back to the page they were on. The email-and-code way is closed (the API answers `403`). People who subscribed with a code before keep their subscription.
+
 ## Choose services {#choose-services}
 
 By default a subscriber hears of every incident and maintenance. With **Only selected services** on, they hear only of events that affect a monitor they ticked.

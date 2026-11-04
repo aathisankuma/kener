@@ -258,6 +258,11 @@
     "Portal": "Portal",
     "Custom": "Eigene Kombination",
     "Services per row": "Dienste pro Reihe",
-    "As set": "Wie eingestellt"
+    "As set": "Wie eingestellt",
+    "Viewer": "Betrachter",
+    "Sign in to subscribe": "Anmelden und abonnieren",
+    "Sign in to get notified about incidents and scheduled maintenance.": "Melden Sie sich an, um über Vorfälle und geplante Wartungen informiert zu werden.",
+    "Sign in to get notified about incidents and scheduled maintenance of %name.": "Melden Sie sich an, um über Vorfälle und geplante Wartungen von %name informiert zu werden.",
+    "Sign in with your company account. You then get the emails at your work address, no code needed.": "Melden Sie sich mit Ihrem Firmenkonto an. Die E-Mails kommen dann an Ihre Geschäftsadresse, ohne Code."
   }
 }

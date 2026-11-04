@@ -40,7 +40,7 @@
   const myColumns = $derived((page.data?.personalColumns as string) || "");
   const COLUMN_CHOICES = ["1", "2", "3", "4"] as const;
   const brand = $derived(site?.brandColor || "var(--accent-foreground)");
-  const canSetForEveryone = $derived(signedIn && page.data?.homePath !== "/my-services");
+  const canSetForEveryone = $derived(signedIn && !!page.data?.homePath?.startsWith("/manage"));
 
   const name = (preset: string) => {
     const key = NAMES[preset];

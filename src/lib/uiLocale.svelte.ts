@@ -246,6 +246,8 @@ export function tmRole(role: { id: string; name: string }): string {
       return tm("Member");
     case "service_manager":
       return tm("Service Manager");
+    case "viewer":
+      return tm("Viewer");
     default:
       return role.name;
   }

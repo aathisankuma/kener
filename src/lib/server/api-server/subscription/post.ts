@@ -9,7 +9,9 @@ import {
   VerifySubscriberToken,
   UpdateSubscriberPreferences,
   GetSubscribableMonitors,
+  SubscriberTokenForAccount,
 } from "$lib/server/controllers/userSubscriptionsController";
+import { GetLoggedInSession } from "$lib/server/controllers/userController";
 
 interface LoginRequest {
   action: "login";
@@ -21,6 +23,11 @@ interface VerifyRequest {
   action: "verify";
   email: string;
   code: string;
+}
+
+/** A signed-in person subscribes with the email of their Kener account: no code. */
+interface AccountRequest {
+  action: "account";
 }
 
 interface GetPreferencesRequest {
@@ -37,7 +44,7 @@ interface UpdatePreferencesRequest {
   monitorTags?: string[];
 }
 
-type PostRequestBody = LoginRequest | VerifyRequest | GetPreferencesRequest | UpdatePreferencesRequest;
+type PostRequestBody = LoginRequest | VerifyRequest | AccountRequest | GetPreferencesRequest | UpdatePreferencesRequest;
 
 export default async function post(req: APIServerRequest): Promise<Response> {
   const body = req.body as PostRequestBody;
@@ -54,7 +61,14 @@ export default async function post(req: APIServerRequest): Promise<Response> {
     return error(400, { message: "Email subscriptions are not enabled" });
   }
 
+  // With "only signed-in people", the email-and-code way is closed.
+  if (config.requireSignIn && (action === "login" || action === "verify")) {
+    return error(403, { message: "Please sign in to subscribe" });
+  }
+
   switch (action) {
+    case "account":
+      return handleAccount(req);
     case "login":
       return handleLogin((body as LoginRequest).email, (body as LoginRequest).captchaToken, config);
     case "verify":
@@ -98,6 +112,18 @@ async function handleLogin(
   }
 
   return json({ success: true, message: "Verification code sent" });
+}
+
+async function handleAccount(req: APIServerRequest): Promise<Response> {
+  const user = await GetLoggedInSession(req.cookies);
+  if (!user) {
+    return error(401, { message: "Please sign in to subscribe" });
+  }
+  const result = await SubscriberTokenForAccount(user.email);
+  if (!result.success) {
+    return error(400, { message: result.error || "Could not subscribe" });
+  }
+  return json({ success: true, token: result.token });
 }
 
 async function handleVerify(email: string, code: string): Promise<Response> {

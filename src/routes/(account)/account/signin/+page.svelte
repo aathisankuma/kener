@@ -80,7 +80,11 @@
 
         {#if oidcEnabled && isAdminAccountCreated}
           <div class="mb-4">
-            <Button variant="outline" class="w-full" href={resolve("/account/oidc/login")}>
+            <Button
+              variant="outline"
+              class="w-full"
+              href={resolve("/account/oidc/login") + (data.next ? `?next=${encodeURIComponent(data.next)}` : "")}
+            >
               <LogInIcon class="mr-2 h-4 w-4" />
               {tm("Sign in with %name", { name: oidcProviderName })}
             </Button>
@@ -106,6 +110,7 @@
               loading = true;
             }}
           >
+            {#if data.next}<input type="hidden" name="next" value={data.next} />{/if}
             {#if form?.error}
               <Alert.Root variant="destructive" class="mb-4">
                 <AlertCircleIcon />

@@ -40,6 +40,10 @@ export const load: LayoutServerLoad = async ({ cookies, route }) => {
   if (HomePathFor(userPermissions) === "/my-services") {
     throw redirect(302, serverResolve("/my-services"));
   }
+  // A viewer has no admin area: they use the status page.
+  if (HomePathFor(userPermissions) === "/") {
+    throw redirect(302, serverResolve("/"));
+  }
 
   const requiredPermission = ROUTE_PERMISSION_MAP[routeId];
   if (requiredPermission === undefined) {

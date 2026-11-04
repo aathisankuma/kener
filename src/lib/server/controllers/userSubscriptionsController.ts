@@ -565,18 +565,44 @@ export async function VerifySubscriberOTP(
     return { success: false, error: "Verification code expired" };
   }
 
-  // Activate user
-  await db.updateSubscriberUser(user.id, {
+  return { success: true, token: await ActivateSubscriber(user.id, normalizedEmail) };
+}
+
+/**
+ * A subscriber token for a signed-in Kener user, by the email of their account: no code is
+ * needed, because they proved the address when signing in (with single sign-on, the company's
+ * identity provider did). Creates the subscriber on first use.
+ */
+export async function SubscriberTokenForAccount(
+  email: string,
+): Promise<{ success: boolean; error?: string; token?: string }> {
+  if (!ValidateEmail(email)) {
+    return { success: false, error: "Your account has no valid email address" };
+  }
+  const normalizedEmail = email.toLowerCase().trim();
+  let user = await db.getSubscriberUserByEmail(normalizedEmail);
+  if (!user) {
+    user = await db.createSubscriberUser({ email: normalizedEmail, status: "ACTIVE" });
+  }
+  if (!user) {
+    return { success: false, error: "Could not create the subscriber" };
+  }
+  return { success: true, token: await ActivateSubscriber(user.id, normalizedEmail) };
+}
+
+/** Marks the subscriber active, makes sure they have an email method, and returns their token. */
+async function ActivateSubscriber(userId: number, normalizedEmail: string): Promise<string> {
+  await db.updateSubscriberUser(userId, {
     status: "ACTIVE",
     verification_code: null,
     verification_expires_at: null,
   });
 
   // Create or get email method
-  let method = await db.getSubscriberMethodByUserAndType(user.id, "email", normalizedEmail);
+  let method = await db.getSubscriberMethodByUserAndType(userId, "email", normalizedEmail);
   if (!method) {
     method = await db.createSubscriberMethod({
-      subscriber_user_id: user.id,
+      subscriber_user_id: userId,
       method_type: "email",
       method_value: normalizedEmail,
       status: "ACTIVE",
@@ -585,14 +611,13 @@ export async function VerifySubscriberOTP(
 
   // Generate token (1 year expiry)
   const tokenPayload: SubscriberTokenPayload = {
-    subscriber_user_id: user.id,
+    subscriber_user_id: userId,
     subscriber_method_id: method.id,
     email: normalizedEmail,
     type: "subscriber",
   };
 
-  const token = await GenerateTokenWithExpiry(tokenPayload, "1y");
-  return { success: true, token };
+  return GenerateTokenWithExpiry(tokenPayload, "1y");
 }
 
 /**

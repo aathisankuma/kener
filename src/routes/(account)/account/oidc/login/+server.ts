@@ -28,6 +28,10 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
     cookies.set("oidc-state", state, cookieOptions);
     cookies.set("oidc-nonce", nonce, cookieOptions);
     cookies.set("oidc-code-verifier", codeVerifier, cookieOptions);
+    // The status page to come back to (checked again after the callback).
+    const next = url.searchParams.get("next");
+    if (next) cookies.set("oidc-next", next.slice(0, 512), cookieOptions);
+    else cookies.delete("oidc-next", { path: cookiePath });
 
     throw redirect(302, authUrl);
   } catch (e) {

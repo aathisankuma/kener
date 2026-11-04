@@ -68,6 +68,8 @@ export interface LayoutServerData {
   favicon: string | undefined;
   footerHTML: string;
   isSubsEnabled: boolean;
+  /** Only signed-in people subscribe (with their account's email, no code). */
+  subsRequireSignIn: boolean;
   languageSetting: {
     defaultLocale: string;
     locales: Array<{ code: string; name: string; selected: boolean; disabled: boolean }>;
@@ -178,6 +180,7 @@ export async function GetLayoutServerData(cookies: Cookies, request: Request): P
   ) {
     isSubsEnabled = true;
   }
+  const subsRequireSignIn = !!subsSetting?.requireSignIn;
 
   const languageSetting = {
     ...(siteData.i18n || seedSiteData.i18n),
@@ -214,6 +217,7 @@ export async function GetLayoutServerData(cookies: Cookies, request: Request): P
     favicon: siteData.favicon ? serverResolve(siteData.favicon) : siteData.favicon,
     footerHTML: siteData.footerHTML || "",
     isSubsEnabled,
+    subsRequireSignIn,
     languageSetting,
     subMenuOptions: siteData.subMenuOptions || seedSiteData.subMenuOptions,
     isTimezoneEnabled,

@@ -9,7 +9,7 @@ import {
 } from "$lib/server/controllers/oidcController";
 import serverResolve from "$lib/server/resolver.js";
 import { GetUserPermissions } from "$lib/server/controllers/userController";
-import { HomePathFor } from "$lib/allPerms";
+import { AfterSignInPath, HomePathFor } from "$lib/allPerms";
 
 export const GET: RequestHandler = async ({ url, cookies }) => {
   const settings = await GetOidcSettings();
@@ -30,11 +30,13 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
   const expectedState = cookies.get("oidc-state");
   const expectedNonce = cookies.get("oidc-nonce");
   const codeVerifier = cookies.get("oidc-code-verifier");
+  const next = cookies.get("oidc-next");
 
   const cookiePath = process.env.KENER_BASE_PATH || "/";
   cookies.delete("oidc-state", { path: cookiePath });
   cookies.delete("oidc-nonce", { path: cookiePath });
   cookies.delete("oidc-code-verifier", { path: cookiePath });
+  cookies.delete("oidc-next", { path: cookiePath });
 
   if (!expectedState || !expectedNonce || !codeVerifier) {
     throw error(400, "Missing OIDC session data. Please try logging in again.");
@@ -63,7 +65,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
       sameSite: cookieConfig.sameSite,
     });
 
-    throw redirect(302, serverResolve(HomePathFor(await GetUserPermissions(user.id))));
+    throw redirect(302, serverResolve(AfterSignInPath(next, HomePathFor(await GetUserPermissions(user.id)))));
   } catch (e) {
     if (e && typeof e === "object" && "status" in e) {
       const status = (e as { status: number }).status;

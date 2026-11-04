@@ -258,6 +258,11 @@
     "Portal": "Portale",
     "Custom": "Combinazione personalizzata",
     "Services per row": "Servizi per riga",
-    "As set": "Come impostato"
+    "As set": "Come impostato",
+    "Viewer": "Visualizzatore",
+    "Sign in to subscribe": "Accedi per iscriverti",
+    "Sign in to get notified about incidents and scheduled maintenance.": "Accedi per ricevere notifiche su incidenti e manutenzioni programmate.",
+    "Sign in to get notified about incidents and scheduled maintenance of %name.": "Accedi per ricevere notifiche su incidenti e manutenzioni programmate di %name.",
+    "Sign in with your company account. You then get the emails at your work address, no code needed.": "Accedi con il tuo account aziendale. Riceverai le e-mail al tuo indirizzo di lavoro, senza codice."
   }
 }

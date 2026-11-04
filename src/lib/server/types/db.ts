@@ -1024,6 +1024,8 @@ export interface TriggerMeta extends EmailTemplateJson, WebhookTemplateJson, Sla
 
 export interface SubscriptionsConfig {
   enable: boolean;
+  /** Only signed-in people subscribe, with the email of their account and no code. */
+  requireSignIn?: boolean;
   methods: {
     emails: {
       incidents: boolean;

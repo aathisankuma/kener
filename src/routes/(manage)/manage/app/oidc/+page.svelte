@@ -59,7 +59,7 @@
     groups_claim: "groups",
     allow_local_login: true,
     auto_create_users: false,
-    default_role_id: "member"
+    default_role_id: "viewer"
   });
 
   let originalMaskedSecret = $state("");
@@ -432,6 +432,11 @@
               </Select.Root>
               <p class="text-muted-foreground text-xs">
                 {tm("Assigned when a user's OIDC groups don't match any mapping below.")}
+              </p>
+              <p class="text-muted-foreground text-xs">
+                {tm(
+                  "Viewer: status page only, with their own design and services and email updates without a code. Member can read the whole admin area."
+                )}
               </p>
             </div>
 

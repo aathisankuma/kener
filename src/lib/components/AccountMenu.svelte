@@ -21,7 +21,8 @@
     admin: "Administrator",
     editor: "Editor",
     member: "Member",
-    service_manager: "Service Manager"
+    service_manager: "Service Manager",
+    viewer: "Viewer"
   };
   const roles = $derived(
     ((page.data?.loggedInRoles ?? []) as Array<{ id: string; name: string }>)
@@ -39,6 +40,8 @@
   // What this person can do from here, depending on their role and the page they are on.
   const items = $derived.by((): Item[] => {
     if (!user) return [];
+    // A viewer has no admin area: design, services and subscriptions are on the status page itself.
+    if (page.data?.homePath === "/") return [];
     if (page.data?.homePath === "/my-services") {
       const tag = page.params.monitor_tag;
       const list: Item[] = [];
@@ -128,7 +131,7 @@
           {/snippet}
         </DropdownMenu.Item>
       {/each}
-      <DropdownMenu.Separator />
+      {#if items.length > 0}<DropdownMenu.Separator />{/if}
       <form method="POST" action={clientResolver(resolve, "/account/logout")}>
         <button
           type="submit"
