@@ -42,7 +42,7 @@ Pick one of six designs with a click. Each card shows a small preview:
 | Bold     | Brand-colour bar | Filled         | As cards   | Round          | Normal  |
 | Portal   | Brand-colour bar | Filled         | As cards   | Straight       | Normal  |
 
-**Portal** also sets **Layout** to _Portal_: a service portal look. On pages shown as a grid (for example the home page with **Default Grid**), a hero in the brand colour with a picture sits at the top and each service is an app card with its icon and a status badge (_Operational_, _Major Outage_, …). On pages shown as a list, services form a plain list with the status on the right; the description opens from a **?** next to the name. With _Kener_ as layout, the page keeps Kener's own structure. For the look in the screenshots of many hosted status pages, choose **Portal** and set **Brand colour** to `#0052cc`.
+**Portal** also sets **Layout** to _Portal_: a service portal look. On the home page, and on other pages shown as a grid, a hero in the brand colour with a picture sits at the top and each service is an app card with its icon and a status badge (_Operational_, _Major Outage_, …). On pages shown as a list, services form a plain list with the status on the right; the description opens from a **?** next to the name. With _Kener_ as layout, the page keeps Kener's own structure. For the look in the screenshots of many hosted status pages, choose **Portal** and set **Brand colour** to `#0052cc`.
 
 Then change any option on its own; the design is then shown as your own combination. **Brand colour** colours the menu bar; without it, the accent colour under **Status Colors** is used. Click **Save Design** and reload the status page.
 
