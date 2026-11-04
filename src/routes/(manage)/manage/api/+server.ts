@@ -168,6 +168,14 @@ import {
   TestM365Settings,
 } from "$lib/server/controllers/m365SettingsController.js";
 import {
+  GetUnifiAlertMinutes,
+  GetUnifiSettingsView,
+  ListUnifiDevices,
+  SaveUnifiSettings,
+  SyncUnifiAccessPoints,
+  TestUnifiSettings,
+} from "$lib/server/controllers/unifiSettingsController.js";
+import {
   AddMyServiceIncidentUpdate,
   CancelMyServiceMaintenance,
   CreateMyServiceIncident,
@@ -376,6 +384,16 @@ export async function POST({ request, cookies }) {
       resp = await SaveM365Settings(data);
     } else if (action == "testM365Settings") {
       resp = await TestM365Settings();
+    } else if (action == "getUnifiSettings") {
+      resp = { ...(await GetUnifiSettingsView()), alertMinutes: await GetUnifiAlertMinutes() };
+    } else if (action == "saveUnifiSettings") {
+      resp = await SaveUnifiSettings(data);
+    } else if (action == "testUnifiSettings") {
+      resp = await TestUnifiSettings();
+    } else if (action == "listUnifiDevices") {
+      resp = await ListUnifiDevices();
+    } else if (action == "syncUnifiAccessPoints") {
+      resp = await SyncUnifiAccessPoints(data);
     } else if (action == "getTeamsSettings") {
       resp = await GetTeamsSettingsView();
     } else if (action == "saveTeamsSettings") {

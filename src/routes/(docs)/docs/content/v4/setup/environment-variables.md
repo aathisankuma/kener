@@ -361,6 +361,15 @@ M365_CLIENT_ID=00000000-0000-0000-0000-000000000000
 M365_CLIENT_SECRET=your-client-secret
 ```
 
+### UniFi Connection {#unifi-connection}
+
+| Variable        | Description                                                                       | Required |
+| :-------------- | :-------------------------------------------------------------------------------- | :------- |
+| `UNIFI_API_KEY` | API key from unifi.ui.com → API (UniFi Site Manager)                              | No       |
+| `UNIFI_API_URL` | Other address of the Site Manager API, e.g. a proxy. Default `https://api.ui.com` | No       |
+
+**Purpose**: Reads the state of your UniFi access points for [UniFi monitors](/docs/v4/monitors/cloud#unifi). Optional: a key saved under **Manage → UniFi** takes precedence.
+
 ### Jira Service Management Connection {#jira-service-management-connection}
 
 | Variable        | Description                                                                   | Required |

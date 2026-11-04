@@ -17,6 +17,17 @@ import {
 } from "../uptimeRobotClient.js";
 import { WorstStatus } from "../instatusClient.js";
 import { FetchAzureCurrent, MapAzureAvailability } from "../azureResourceHealth.js";
+import { FetchUnifiDevices, MapUnifiStatus } from "../unifiClient.js";
+
+/** Reads the UniFi API key of Settings → UniFi (or UNIFI_API_KEY). Tests replace it. */
+type UnifiKeyLoader = () => Promise<string>;
+let unifiKeyLoader: UnifiKeyLoader = async () => {
+  const { GetUnifiApiKey } = await import("../controllers/unifiSettingsController.js");
+  return GetUnifiApiKey();
+};
+export function SetUnifiApiKeyLoader(loader: UnifiKeyLoader): void {
+  unifiKeyLoader = loader;
+}
 import {
   CloudHttpOptions,
   ClearCloudProviderCache,
@@ -114,6 +125,7 @@ class CloudServiceCall {
       if (provider.kind === "azure") return await this.checkAzure();
       if (provider.kind === "instatus") return await this.checkInstatus(provider);
       if (provider.kind === "uptimerobot") return await this.checkUptimeRobot(provider);
+      if (provider.kind === "unifi") return await this.checkUnifi();
       return await this.checkStatuspage(provider);
     } catch (err: unknown) {
       const error = err as { code?: string; message?: string };
@@ -123,6 +135,26 @@ class CloudServiceCall {
       }
       return this.fail(GC.ERROR, error.message || "Network error");
     }
+  }
+
+  // ---------------------------------------------------------------- UniFi
+
+  private async checkUnifi(): Promise<MonitoringResult> {
+    const data = this.monitor.type_data;
+    const deviceId = String(ChosenComponents(data)[0] || "").trim();
+    if (!deviceId) return this.fail(GC.ERROR, "No UniFi device chosen");
+    const apiKey = await unifiKeyLoader();
+    if (!apiKey) return this.fail(GC.ERROR, "UniFi API key is missing. Enter it under Manage → UniFi.");
+    const started = Date.now();
+    const devices = await FetchUnifiDevices(apiKey, data.timeout || 15000);
+    const latency = Date.now() - started;
+    const wanted = deviceId.toLowerCase();
+    const device = devices.find((d) => d.id.toLowerCase() === wanted || (d.mac && d.mac.toLowerCase() === wanted));
+    if (!device) {
+      // Removed from UniFi, or the console itself is offline and reports no devices.
+      return { status: GC.DOWN, latency, type: GC.ERROR, error_message: "Device not found in UniFi" };
+    }
+    return { status: MapUnifiStatus(device.status), latency, type: GC.REALTIME, raw_status: device.status };
   }
 
   // ---------------------------------------------------------------- Statuspage

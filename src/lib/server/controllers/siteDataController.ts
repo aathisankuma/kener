@@ -75,6 +75,9 @@ export interface SiteDataTransformed {
 
 function secretPath(key: string): string[] | null {
   if (key === "oidcSettings") return ["client_secret"];
+  // Saved by Settings → Microsoft 365 and Settings → UniFi; never sent out in full.
+  if (key === "m365Connection") return ["clientSecret"];
+  if (key === "unifiConnection") return ["apiKey"];
   if (key.startsWith("captcha.")) return ["requirements", "Secret Key"];
   return null;
 }

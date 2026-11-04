@@ -363,6 +363,37 @@ async function azureDetails(provider: CloudProvider, data: CloudServiceMonitorTy
   };
 }
 
+// ---------------------------------------------------------------- UniFi
+
+/** One UniFi device: its state, model and console. UniFi keeps no incident history to list. */
+async function unifiDetails(provider: CloudProvider, data: CloudServiceMonitorTypeData): Promise<CloudDetails> {
+  const { GetUnifiApiKey } = await import("./controllers/unifiSettingsController.js");
+  const { FetchUnifiDevices, MapUnifiStatus } = await import("./unifiClient.js");
+  const apiKey = await GetUnifiApiKey();
+  if (!apiKey) throw new Error("UniFi API key is missing. Enter it under Manage → UniFi.");
+  const id = (ChosenComponents(data)[0] || "").toLowerCase();
+  const device = (await FetchUnifiDevices(apiKey, Math.min(data.timeout || 15000, 15000))).find(
+    (d) => d.id.toLowerCase() === id || (!!d.mac && d.mac.toLowerCase() === id),
+  );
+  return {
+    provider: { label: provider.label, kind: "unifi", pageUrl: "https://unifi.ui.com" },
+    components: device
+      ? [
+          {
+            id: device.id,
+            name: device.name,
+            description: [device.model, device.hostName, device.ip].filter(Boolean).join(" · ") || null,
+            status: MapUnifiStatus(device.status) as CloudDetails["components"][number]["status"],
+            group: null,
+          },
+        ]
+      : [],
+    incidents: [],
+    maintenances: [],
+    fetchedAt: Math.floor(Date.now() / 1000),
+  };
+}
+
 // ---------------------------------------------------------------- Microsoft 365
 
 interface M365Issue {
@@ -493,7 +524,9 @@ export async function GetCloudServiceDetails(
           ? uptimeRobotDetails(provider, data)
           : provider.kind === "azure"
             ? azureDetails(provider, data)
-            : statuspageDetails(provider, data);
+            : provider.kind === "unifi"
+              ? unifiDetails(provider, data)
+              : statuspageDetails(provider, data);
   detailsCache.set(cacheKey, { at: Date.now(), data: result });
   result.catch(() => detailsCache.delete(cacheKey));
   return result;

@@ -161,6 +161,8 @@
         {tm("Reads this service's health for your Microsoft 365 tenant from Microsoft Graph.")}
       {:else if provider?.kind === "azure"}
         {tm("Reads the health of your own Azure resource from Azure Resource Health.")}
+      {:else if provider?.kind === "unifi"}
+        {tm("Reads whether this UniFi device is online from UniFi Site Manager (unifi.ui.com).")}
       {:else}
         {statuspageBase
           ? tm("Reads the provider's official status page (%url). No login needed.", { url: statuspageBase })
@@ -282,6 +284,20 @@
         </div>
       </div>
     {/if}
+  {:else if provider?.kind === "unifi"}
+    <div class="flex flex-col gap-2">
+      <Label for="cloud-unifi-device">{tm("UniFi device ID")} <span class="text-destructive">*</span></Label>
+      <Input
+        id="cloud-unifi-device"
+        value={data.components[0] ?? ""}
+        oninput={(e) => (data.components = e.currentTarget.value.trim() ? [e.currentTarget.value.trim()] : [])}
+        autocomplete="off"
+      />
+      <p class="text-muted-foreground text-xs">
+        {tm("Access points are easiest to add, name and group by location under")}
+        <a class="underline" href={clientResolver(resolve, "/manage/app/unifi")}>{tm("Manage → UniFi")}</a>.
+      </p>
+    </div>
   {:else if IsMicrosoftKind(provider?.kind)}
     {#if provider?.kind === "azure"}
       <div class="flex flex-col gap-2">

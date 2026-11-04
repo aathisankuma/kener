@@ -38,6 +38,7 @@
   import { Toaster } from "$lib/components/ui/sonner/index.js";
   import * as Tooltip from "$lib/components/ui/tooltip/index.js";
   import { ROUTE_PERMISSION_MAP } from "$lib/allPerms.js";
+  import WifiIcon from "@lucide/svelte/icons/wifi";
   import { tm } from "$lib/uiLocale.svelte";
 
   let { children, data } = $props();
@@ -59,6 +60,7 @@
     { title: tm("Subscriptions"), url: "/manage/app/subscriptions", icon: BellIcon },
     { title: tm("Reports"), url: "/manage/app/reports", icon: MegaphoneIcon },
     { title: tm("Microsoft 365"), url: "/manage/app/microsoft-365", icon: KeyRoundIcon },
+    { title: tm("UniFi"), url: "/manage/app/unifi", icon: WifiIcon },
     { title: tm("Microsoft Teams"), url: "/manage/app/teams", icon: MessagesSquareIcon },
     { title: tm("Users"), url: "/manage/app/users", icon: UsersIcon },
     { title: tm("Roles"), url: "/manage/app/roles", icon: ShieldIcon },

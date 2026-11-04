@@ -228,7 +228,9 @@
               ? "UptimeRobot"
               : details.provider.kind === "azure"
                 ? "Azure Resource Health"
-                : "Statuspage"}) · {$formatDate(details.fetchedAt * 1000, dateFormat)}
+                : details.provider.kind === "unifi"
+                  ? "UniFi Site Manager"
+                  : "Statuspage"}) · {$formatDate(details.fetchedAt * 1000, dateFormat)}
         {#if details.incidentsFromPage}
           · {$t("Incidents and maintenance of the whole %name page.", { name: details.incidentsFromPage })}
         {/if}

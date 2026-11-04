@@ -41,6 +41,11 @@
  * settings.read      → getM365Settings
  * settings.write     → saveM365Settings, testM365Settings
  *
+ * UniFi (API key, and the access points Kener follows as monitors)
+ * settings.read      → getUnifiSettings
+ * settings.write     → saveUnifiSettings, testUnifiSettings
+ * monitors.write     → listUnifiDevices, syncUnifiAccessPoints
+ *
  * Microsoft Teams
  * settings.read      → getTeamsSettings
  * settings.write     → saveTeamsSettings, sendTeamsTest
@@ -138,6 +143,11 @@ export const ACTION_PERMISSION_MAP: Record<string, string | null> = {
   getM365Settings: "settings.read",
   saveM365Settings: "settings.write",
   testM365Settings: "settings.write",
+  getUnifiSettings: "settings.read",
+  saveUnifiSettings: "settings.write",
+  testUnifiSettings: "settings.write",
+  listUnifiDevices: "monitors.write",
+  syncUnifiAccessPoints: "monitors.write",
   getTeamsSettings: "settings.read",
   saveTeamsSettings: "settings.write",
   sendTeamsTest: "settings.write",
@@ -330,6 +340,7 @@ export const ROUTE_PERMISSION_MAP: Record<string, string | null> = {
   "/(manage)/manage/app/reports": "settings.read",
   "/(manage)/manage/app/teams": "settings.read",
   "/(manage)/manage/app/microsoft-365": "settings.read",
+  "/(manage)/manage/app/unifi": "settings.read",
 
   // Subscribers
   "/(manage)/manage/app/subscriptions": "subscribers.read",

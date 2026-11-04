@@ -48,7 +48,13 @@
     MonitorDocker,
     MonitorCloud
   } from "../types/index.js";
-  import { GetCloudProvider, IsAzureResourceId, CLOUD_CUSTOM_M365, IsCustomStatusPage } from "$lib/cloudServices.js";
+  import {
+    ChosenComponents,
+    GetCloudProvider,
+    IsAzureResourceId,
+    CLOUD_CUSTOM_M365,
+    IsCustomStatusPage
+  } from "$lib/cloudServices.js";
 
   interface Props {
     monitor: MonitorRecord;
@@ -322,6 +328,7 @@
         // Microsoft 365 credentials may stay empty: the check then uses M365_TENANT_ID,
         // M365_CLIENT_ID and M365_CLIENT_SECRET from the environment.
         if (provider.kind === "azure" && !IsAzureResourceId(data.azureResourceId)) return false;
+        if (provider.kind === "unifi" && ChosenComponents(data).length === 0) return false;
         if (provider.kind === "m365" && data.provider === CLOUD_CUSTOM_M365 && !(data.m365Service || "").trim())
           return false;
         if (

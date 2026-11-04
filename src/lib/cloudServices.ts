@@ -9,8 +9,10 @@
 //   Health (the same app registration, with the Reader role on the resource).
 // - "uptimerobot" providers publish an UptimeRobot status page. UptimeRobot documents no API for
 //   it, so Kener reads what the page itself loads (see server/uptimeRobotClient.ts).
+// - "unifi" providers are one UniFi device (an access point), read from the UniFi Site Manager API
+//   with the API key under Settings → UniFi (see server/unifiClient.ts).
 
-export type CloudProviderKind = "statuspage" | "instatus" | "m365" | "azure" | "uptimerobot";
+export type CloudProviderKind = "statuspage" | "instatus" | "m365" | "azure" | "uptimerobot" | "unifi";
 
 export interface CloudProvider {
   id: string;
@@ -45,6 +47,9 @@ export function IsCustomStatusPage(id: string | undefined): boolean {
 }
 /** Provider id for any other Microsoft 365 service, entered by its Graph name or id. */
 export const CLOUD_CUSTOM_M365 = "m365-custom";
+
+/** Provider id for one UniFi device; its id is the monitor's component. Made under Settings → UniFi. */
+export const CLOUD_UNIFI_DEVICE = "unifi-device";
 
 /** Provider id for any other Azure resource, entered by its resource ID. */
 export const CLOUD_CUSTOM_AZURE = "azure-resource";
@@ -306,6 +311,9 @@ export const CLOUD_PROVIDERS: CloudProvider[] = [
     url: "https://status.openai.com",
   },
   { id: "claude", label: "Claude (Anthropic)", group: "Other", kind: "statuspage", url: "https://status.claude.com" },
+
+  // Your own network: one UniFi access point, from UniFi Site Manager (Settings → UniFi)
+  { id: CLOUD_UNIFI_DEVICE, label: "UniFi access point", group: "Other", kind: "unifi" },
 ];
 
 // Official service icons from the dashboard-icons collection (github.com/homarr-labs/dashboard-icons,
@@ -340,6 +348,7 @@ const SERVICE_ICONS: Record<string, string> = {
   zoom: "zoom",
   openai: "openai",
   claude: "claude-ai",
+  [CLOUD_UNIFI_DEVICE]: "ubiquiti-unifi",
 };
 
 /** The service's icon in the icon collection, or "" when the collection has none. */
@@ -482,8 +491,9 @@ export function CloudServicesInUse(
       continue;
     }
     const id = typeof data?.provider === "string" ? data.provider : "";
-    // Azure entries stand for whichever resource was entered, so they are never the same service.
-    if (!CLOUD_PROVIDERS.some((p) => p.id === id && p.kind !== "azure")) continue;
+    // Azure entries stand for whichever resource was entered, and each UniFi entry for one device,
+    // so they are never the same service.
+    if (!CLOUD_PROVIDERS.some((p) => p.id === id && p.kind !== "azure" && p.kind !== "unifi")) continue;
     const list = used.get(id) ?? [];
     list.push({ name: m.name, component: ChosenComponents(data).join(", ") });
     used.set(id, list);

@@ -112,6 +112,33 @@ The detail page shows the resource with Azure's explanation and the times it was
 | `Azure refused access (HTTP 403)`     | Give the app the Reader role on the resource.      |
 | `Azure resource not found (HTTP 404)` | Check the resource ID, including the subscription. |
 
+## UniFi access points {#unifi}
+
+Follow your own Wi-Fi: Kener reads whether each UniFi access point is online from UniFi Site Manager (unifi.ui.com), the cloud your UniFi consoles report to.
+
+1. In **unifi.ui.com → API**, create an API key. It can only read.
+2. In Kener, open **Manage → UniFi**, paste the key and click **Test connection**.
+3. Under **Access points**, tick the access points to follow. Give each a **name** people understand and a **location** (the location is guessed from the UniFi name, e.g. `Bern-HausA-2OG-AP1` → `Bern HausA 2OG`). Access points with the same location are shown together.
+4. Choose the status page to **show the locations on**, and whether to **open an incident** when an access point is offline for some minutes.
+5. Click **Save access points**.
+
+Kener then makes one monitor per access point and one [group monitor](/docs/v4/monitors/group) per location. Visitors pick their locations under **Choose services** ([visitor choice](/docs/v4/monitors/visibility)), and subscribers pick them under **Only selected services**, which covers every access point of the location ([subscriptions](/docs/v4/subscriptions#choose-services)). With **open an incident** on, one [alert rule](/docs/v4/alerting/overview) opens an incident for an access point that stays offline and closes it when it is back, so its location's subscribers get both emails.
+
+| UniFi state         | Status      |
+| ------------------- | ----------- |
+| online              | UP          |
+| offline             | DOWN        |
+| updating, upgrading | MAINTENANCE |
+| anything else       | DEGRADED    |
+
+Untick an access point and save to stop following it; its monitor stays with its history but is set inactive. UniFi Site Manager reports whether a device is online, not how fast it is: slow Wi-Fi does not show here. All UniFi monitors share one device list a minute, within UniFi's limit of 100 requests a minute. Instead of the settings page, the key can come from [`UNIFI_API_KEY`](/docs/v4/setup/environment-variables#unifi-connection).
+
+| Message                            | Fix                                                                                  |
+| ---------------------------------- | ------------------------------------------------------------------------------------ |
+| `UniFi did not accept the API key` | Create a new key in unifi.ui.com → API and save it under **Manage → UniFi**.         |
+| `Device not found in UniFi`        | The device was removed from UniFi, or its console is offline and reports no devices. |
+| `UniFi rate limit reached`         | Another tool uses the same key heavily. Give Kener its own key.                      |
+
 ## Icon {#icon}
 
 When you save a Cloud Service monitor that has no image, Kener downloads the service's official icon and uses it as the monitor's image. For most services (Microsoft 365, Atlassian, GitHub, Zoom, OpenAI, Claude, …) it comes from the [dashboard-icons](https://github.com/homarr-labs/dashboard-icons) collection via `cdn.jsdelivr.net`, pinned to one version. Other services use the icon of their status page or website. The icon is stored like an uploaded image, at most 128 × 128 px; SVG and ICO icons are converted to PNG.

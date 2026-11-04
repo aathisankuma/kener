@@ -24,6 +24,15 @@ describe("MaskSiteDataSecret", () => {
     expect(MaskSiteDataSecret("captcha.turnstile", captcha("0x4AAAsecret"))).toEqual(captcha("********cret"));
   });
 
+  it("masks the Microsoft 365 client secret and the UniFi API key", () => {
+    expect(MaskSiteDataSecret("m365Connection", { tenantId: "t", clientId: "c", clientSecret: "abc~secret" })).toEqual({
+      tenantId: "t",
+      clientId: "c",
+      clientSecret: "******cret",
+    });
+    expect(MaskSiteDataSecret("unifiConnection", { apiKey: "unifi-key-1234" })).toEqual({ apiKey: "**********1234" });
+  });
+
   it("leaves other keys and empty secrets unchanged", () => {
     expect(MaskSiteDataSecret("siteName", "Kener")).toBe("Kener");
     expect(MaskSiteDataSecret("oidcSettings", { client_secret: "" })).toEqual({ client_secret: "" });
