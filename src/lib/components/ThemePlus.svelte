@@ -3,7 +3,7 @@
   import * as ButtonGroup from "$lib/components/ui/button-group/index.js";
   import { setMode, mode } from "mode-watcher";
   import { page } from "$app/state";
-  import { i18n, t } from "$lib/stores/i18n";
+  import { i18n, t, translations } from "$lib/stores/i18n";
   import { resolve } from "$app/paths";
   import clientResolver from "$lib/client/resolver.js";
 
@@ -23,6 +23,9 @@
   import SiteBanner from "./SiteBanner.svelte";
   import NotificationsPopover from "./NotificationsPopover.svelte";
   import PageSelector from "./PageSelector.svelte";
+  import * as DropdownMenu from "$lib/components/ui/dropdown-menu/index.js";
+  import CircleUser from "@lucide/svelte/icons/circle-user";
+  import LogOut from "@lucide/svelte/icons/log-out";
 
   interface Props {
     monitor_tags?: string[];
@@ -91,6 +94,22 @@
       };
     }
   });
+
+  // "Signed in · Administrator": built-in roles in the page's language, custom roles as named.
+  const BUILT_IN_ROLES: Record<string, string> = {
+    admin: "Administrator",
+    editor: "Editor",
+    member: "Member",
+    service_manager: "Service Manager"
+  };
+  const signedInRoles = $derived(
+    ((page.data?.loggedInRoles ?? []) as Array<{ id: string; name: string }>)
+      .map((r) => {
+        const key = BUILT_IN_ROLES[r.id];
+        return key ? ($translations[key] ?? key) : r.name;
+      })
+      .join(", ")
+  );
 
   function toggleMode() {
     if (mode.current === "light") {
@@ -208,6 +227,54 @@
     </ButtonGroup.Root>
     {#if showNotificationsPopover}
       <NotificationsPopover {eventsPath} monitorTags={monitor_tags} compact={true} />
+    {/if}
+    {#if page.data?.loggedInUser}
+      <DropdownMenu.Root>
+        <DropdownMenu.Trigger>
+          {#snippet child({ props })}
+            <button
+              {...props}
+              type="button"
+              data-testid="signed-in"
+              title={page.data.loggedInUser.email}
+              class="bg-background/80 dark:bg-background/70 border-foreground/10 flex h-8 max-w-56 shrink-0 cursor-pointer items-center gap-1.5 rounded-full border px-3 text-xs backdrop-blur-md"
+            >
+              <span class="bg-up size-2 shrink-0 rounded-full"></span>
+              <span class="hidden sm:inline">{$t("Signed in")}</span>
+              {#if signedInRoles}
+                <span class="text-muted-foreground hidden sm:inline">·</span>
+                <span class="truncate font-medium">{signedInRoles}</span>
+              {/if}
+            </button>
+          {/snippet}
+        </DropdownMenu.Trigger>
+        <DropdownMenu.Content align="end" class="w-64 rounded-2xl">
+          <DropdownMenu.Label class="font-normal">
+            <div class="flex items-center gap-2">
+              <CircleUser class="text-muted-foreground size-8 shrink-0" />
+              <div class="grid min-w-0 text-sm leading-tight">
+                <span class="truncate font-medium">{page.data.loggedInUser.name}</span>
+                <span class="text-muted-foreground truncate text-xs">{page.data.loggedInUser.email}</span>
+              </div>
+            </div>
+            {#if signedInRoles}
+              <p class="text-muted-foreground mt-2 text-xs">
+                {$t("Role")}: <span class="text-foreground font-medium">{signedInRoles}</span>
+              </p>
+            {/if}
+          </DropdownMenu.Label>
+          <DropdownMenu.Separator />
+          <form method="POST" action={clientResolver(resolve, "/account/logout")}>
+            <button
+              type="submit"
+              class="hover:bg-accent flex w-full cursor-pointer items-center gap-2 rounded-xl px-2 py-1.5 text-sm"
+            >
+              <LogOut class="size-4" />
+              {$t("Log out")}
+            </button>
+          </form>
+        </DropdownMenu.Content>
+      </DropdownMenu.Root>
     {/if}
     {#if loginDetails}
       <Button

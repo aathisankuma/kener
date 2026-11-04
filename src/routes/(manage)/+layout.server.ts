@@ -1,4 +1,5 @@
 import { redirect } from "@sveltejs/kit";
+import { GetRoleLabels } from "$lib/server/userRoles.js";
 import MobileDetect from "mobile-detect";
 import type { LayoutServerLoad } from "./$types";
 import { IsEmailSetup } from "$lib/server/controllers/controller.js";
@@ -58,6 +59,7 @@ export const load: LayoutServerLoad = async ({ cookies, route }) => {
   const defaultSiteTheme = siteData.theme || "system";
   return {
     userDb: loggedInUser,
+    userRoles: await GetRoleLabels(loggedInUser.role_ids),
     userPermissions: [...userPermissions],
     siteStatusColors,
     siteStatusColorsDark,

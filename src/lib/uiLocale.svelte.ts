@@ -234,3 +234,19 @@ export function tmMessage(text: string | null | undefined): string {
       return text ?? "";
   }
 }
+
+/** A role's name in the chosen language: built-in roles by id, custom roles as they are named. */
+export function tmRole(role: { id: string; name: string }): string {
+  switch (role.id) {
+    case "admin":
+      return tm("Administrator");
+    case "editor":
+      return tm("Editor");
+    case "member":
+      return tm("Member");
+    case "service_manager":
+      return tm("Service Manager");
+    default:
+      return role.name;
+  }
+}

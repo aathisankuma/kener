@@ -1,4 +1,5 @@
 import MobileDetect from "mobile-detect";
+import { GetRoleLabels, type RoleLabel } from "../userRoles.js";
 import type { Cookies } from "@sveltejs/kit";
 import type { UserRecordPublic } from "$lib/server/types/db";
 import seedSiteData from "$lib/server/db/seedSiteData";
@@ -26,6 +27,8 @@ export interface LayoutServerData {
   homePath: string | null;
   /** Monitor tags a signed-in service manager manages; empty for everyone else. */
   myServiceTags: string[];
+  /** Roles of the signed-in user, for "Signed in as …"; empty when nobody is signed in. */
+  loggedInRoles: RoleLabel[];
   canSeeHiddenMonitors: boolean;
   selectedLang: string;
   siteStatusColors: {
@@ -137,6 +140,7 @@ export async function GetLayoutServerData(cookies: Cookies, request: Request): P
   const homePath = loggedInUser ? HomePathFor(await GetUserPermissions(loggedInUser.id)) : null;
   const myServiceTags =
     loggedInUser && homePath === "/my-services" ? await db.getMonitorTagsForUser(loggedInUser.id) : [];
+  const loggedInRoles = loggedInUser ? await GetRoleLabels(loggedInUser.role_ids) : [];
 
   // Same check as IsSetupComplete, but reuses the site data fetched above
   // instead of querying it a second time on every request
@@ -174,6 +178,7 @@ export async function GetLayoutServerData(cookies: Cookies, request: Request): P
     loggedInUser,
     homePath,
     myServiceTags,
+    loggedInRoles,
     canSeeHiddenMonitors,
     selectedLang,
     siteStatusColors,

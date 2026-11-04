@@ -229,6 +229,13 @@
     "Expires At": "Läuft ab am",
     "Open events page": "Ereignisseite öffnen",
     "Time Remaining": "Verbleibende Zeit",
-    "SECURED": "GESICHERT"
+    "SECURED": "GESICHERT",
+    "Signed in": "Angemeldet",
+    "Role": "Rolle",
+    "Log out": "Abmelden",
+    "Administrator": "Administrator",
+    "Editor": "Bearbeiter",
+    "Member": "Mitglied",
+    "Service Manager": "Service Manager"
   }
 }

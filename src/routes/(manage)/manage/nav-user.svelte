@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { tm } from "$lib/uiLocale.svelte";
+  import { tm, tmRole } from "$lib/uiLocale.svelte";
   import CreditCardIcon from "@lucide/svelte/icons/credit-card";
   import DotsVerticalIcon from "@lucide/svelte/icons/ellipsis-vertical";
   import LogoutIcon from "@lucide/svelte/icons/log-out";
@@ -24,6 +24,9 @@
   import clientResolver from "$lib/client/resolver.js";
 
   let user = $state<UserRecordPublic>(page.data.userDb);
+  const roleText = $derived(
+    ((page.data.userRoles ?? []) as Array<{ id: string; name: string }>).map(tmRole).join(", ")
+  );
   let nameAbbr = $derived(
     user.name
       .split(" ")
@@ -156,9 +159,9 @@
               </Avatar.Fallback>
             </Avatar.Root>
             <div class="grid flex-1 text-start text-sm leading-tight">
-              <span class="truncate font-medium">{nameAbbr}</span>
-              <span class="text-muted-foreground truncate text-xs">
-                {user.email}
+              <span class="truncate font-medium">{user.name}</span>
+              <span class="text-muted-foreground truncate text-xs" data-testid="signed-in-role">
+                {roleText || user.email}
               </span>
             </div>
             <DotsVerticalIcon class="ms-auto size-4" />
@@ -181,6 +184,11 @@
               <span class="text-muted-foreground truncate text-xs">
                 {user.email}
               </span>
+              {#if roleText}
+                <span class="text-muted-foreground truncate text-xs">
+                  {tm("Signed in as %role", { role: roleText })}
+                </span>
+              {/if}
             </div>
           </div>
         </DropdownMenu.Label>

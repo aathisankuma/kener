@@ -229,6 +229,13 @@
     "You now get updates only for %name.": "Ora ricevi aggiornamenti solo per %name.",
     "%name was added to your services.": "%name è stato aggiunto ai tuoi servizi.",
     "You already get updates for %name.": "Ricevi già aggiornamenti per %name.",
-    "Incidents and maintenance of the whole %name page.": "Incidenti e manutenzioni dell'intera pagina %name."
+    "Incidents and maintenance of the whole %name page.": "Incidenti e manutenzioni dell'intera pagina %name.",
+    "Signed in": "Connesso",
+    "Role": "Ruolo",
+    "Log out": "Esci",
+    "Administrator": "Amministratore",
+    "Editor": "Editor",
+    "Member": "Membro",
+    "Service Manager": "Responsabile del servizio"
   }
 }
