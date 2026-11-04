@@ -44,13 +44,13 @@ Pick one of six designs with a click. Each card shows a small preview:
 
 **Portal** also sets **Layout** to _Portal_: a service portal look. On the home page, and on other pages shown as a grid, a hero in the brand colour with a picture sits at the top and each service is an app card with its icon and a status badge (_Operational_, _Major Outage_, …). On pages shown as a list, services form a plain list with the status on the right; the description opens from a **?** next to the name. With _Kener_ as layout, the page keeps Kener's own structure. For the look in the screenshots of many hosted status pages, choose **Portal** and set **Brand colour** to `#0052cc`.
 
-Then change any option on its own; the design is then shown as your own combination. **Brand colour** colours the menu bar; without it, the accent colour under **Status Colors** is used. Click **Save Design** and reload the status page.
+Then change any option on its own; the design is then shown as your own combination. **Services per row** sets how many services sit side by side on pages shown as a grid and on the portal start page: _Automatic_ keeps what the layout does (two app cards in the portal), or choose 1 to 4. Phones always show one service per row and tablets at most two; the setting stays as it is when you pick another design. **Brand colour** colours the menu bar; without it, the accent colour under **Status Colors** is used. Click **Save Design** and reload the status page.
 
 The design is applied before your **Custom CSS**, so custom CSS can still change anything. If an older custom CSS styles the same parts (for example the menu bar), remove those rules or keep the **Standard** design.
 
 ### Personal design {#personal-design}
 
-Everyone who is signed in sees **Design** in the menu bar of the status page. There they pick a design for themselves; only they see it, and the site's brand colour stays. **As set for everyone** goes back to the design chosen here. The choice is kept in a cookie (`kener-design`) in that browser, so it applies on that device only. Visitors who are not signed in always see the design set here.
+Everyone who is signed in sees **Design** in the menu bar of the status page. There they pick a design and the number of services per row for themselves; only they see it, and the site's brand colour stays. **As set for everyone** goes back to the design chosen here. The choices are kept in cookies (`kener-design`, `kener-columns`) in that browser, so it applies on that device only. Visitors who are not signed in always see the design set here.
 
 ## Footer HTML {#footer-html}
 

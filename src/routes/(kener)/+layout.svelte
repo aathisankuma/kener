@@ -65,6 +65,7 @@
   data-corners={data.design?.corners}
   data-monitors={data.design?.monitors}
   data-density={data.design?.density}
+  data-columns={data.design?.columns}
 >
   <!-- Nav -->
   <KenerNav />

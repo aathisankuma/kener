@@ -25,9 +25,22 @@ export interface DesignSettings {
   density: "normal" | "compact";
   /** Header band and accents; "" uses the site's accent colour. */
   brandColor: string;
+  /**
+   * Services per row on pages shown as a grid (and the portal start page). "auto" keeps what the
+   * layout does: Kener's grid, or two cards in the portal. Phones always show one per row.
+   */
+  columns: DesignColumns;
 }
 
-type Options = Omit<DesignSettings, "preset" | "brandColor">;
+export const DESIGN_COLUMNS = ["auto", "1", "2", "3", "4"] as const;
+export type DesignColumns = (typeof DESIGN_COLUMNS)[number];
+
+function ColumnsOf(value: unknown): DesignColumns | null {
+  const v = String(value ?? "");
+  return (DESIGN_COLUMNS as readonly string[]).includes(v) ? (v as DesignColumns) : null;
+}
+
+type Options = Omit<DesignSettings, "preset" | "brandColor" | "columns">;
 
 export const DESIGN_PRESET_OPTIONS: Record<(typeof DESIGN_PRESETS)[number], Options> = {
   standard: {
@@ -73,7 +86,12 @@ export const DESIGN_PRESET_OPTIONS: Record<(typeof DESIGN_PRESETS)[number], Opti
   },
 };
 
-export const DEFAULT_DESIGN: DesignSettings = { preset: "standard", ...DESIGN_PRESET_OPTIONS.standard, brandColor: "" };
+export const DEFAULT_DESIGN: DesignSettings = {
+  preset: "standard",
+  ...DESIGN_PRESET_OPTIONS.standard,
+  brandColor: "",
+  columns: "auto",
+};
 
 const CHOICES: { [K in keyof Options]: readonly Options[K][] } = {
   layout: ["kener", "portal"],
@@ -113,7 +131,8 @@ export function NormalizeDesign(input: unknown): DesignSettings {
       : DEFAULT_DESIGN[key];
   }
   const brandColor = typeof raw.brandColor === "string" && HEX.test(raw.brandColor) ? raw.brandColor : "";
-  return { preset: PresetOf(options), ...options, brandColor };
+  const columns = ColumnsOf(raw.columns) ?? "auto";
+  return { preset: PresetOf(options), ...options, brandColor, columns };
 }
 
 /** True when the value is a design Kener can store: every given option must be a known one. */
@@ -137,20 +156,33 @@ export function IsValidDesign(value: unknown): boolean {
     !(typeof r.brandColor === "string" && HEX.test(r.brandColor))
   )
     return false;
+  if (r.columns !== undefined && !ColumnsOf(r.columns)) return false;
   return true;
 }
 
 /** Cookie with a signed-in person's own choice of design: a preset name, or absent for the site's. */
 export const PERSONAL_DESIGN_COOKIE = "kener-design";
+/** Cookie with a signed-in person's own number of services per row: "1"–"4", or absent for the site's. */
+export const PERSONAL_COLUMNS_COOKIE = "kener-columns";
 
 /**
- * The design a page shows: the person's own preset when they are signed in and chose one, with the
- * site's brand colour; otherwise the site's design.
+ * The design a page shows: the person's own preset and services per row when they are signed in and
+ * chose them, with the site's brand colour; otherwise the site's design.
  */
-export function EffectiveDesign(site: DesignSettings, personal: string | undefined, signedIn: boolean): DesignSettings {
+export function EffectiveDesign(
+  site: DesignSettings,
+  personal: string | undefined,
+  signedIn: boolean,
+  personalColumns?: string,
+): DesignSettings {
+  if (!signedIn) return site;
   const preset = (DESIGN_PRESETS as readonly string[]).includes(personal ?? "")
     ? (personal as (typeof DESIGN_PRESETS)[number])
     : null;
-  if (!signedIn || !preset) return site;
-  return { preset, ...DESIGN_PRESET_OPTIONS[preset], brandColor: site.brandColor };
+  const columns = ColumnsOf(personalColumns);
+  if (!preset && (!columns || columns === "auto")) return site;
+  const base = preset
+    ? { preset, ...DESIGN_PRESET_OPTIONS[preset], brandColor: site.brandColor, columns: site.columns }
+    : site;
+  return columns && columns !== "auto" ? { ...base, columns } : base;
 }

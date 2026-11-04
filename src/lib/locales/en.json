@@ -256,6 +256,8 @@
     "Compact": "Compact",
     "Bold": "Bold",
     "Portal": "Portal",
-    "Custom": "Custom"
+    "Custom": "Custom",
+    "Services per row": "Services per row",
+    "As set": "As set"
   }
 }

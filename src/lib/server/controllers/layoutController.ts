@@ -1,5 +1,11 @@
 import MobileDetect from "mobile-detect";
-import { EffectiveDesign, NormalizeDesign, PERSONAL_DESIGN_COOKIE, type DesignSettings } from "../../design.js";
+import {
+  EffectiveDesign,
+  NormalizeDesign,
+  PERSONAL_COLUMNS_COOKIE,
+  PERSONAL_DESIGN_COOKIE,
+  type DesignSettings,
+} from "../../design.js";
 import { GetRoleLabels, type RoleLabel } from "../userRoles.js";
 import type { Cookies } from "@sveltejs/kit";
 import type { UserRecordPublic } from "$lib/server/types/db";
@@ -36,6 +42,7 @@ export interface LayoutServerData {
   siteDesign: DesignSettings;
   /** The signed-in person's own preset, or "" for the site's design. */
   personalDesign: string;
+  personalColumns: string;
   canSeeHiddenMonitors: boolean;
   selectedLang: string;
   siteStatusColors: {
@@ -150,6 +157,7 @@ export async function GetLayoutServerData(cookies: Cookies, request: Request): P
   const loggedInRoles = loggedInUser ? await GetRoleLabels(loggedInUser.role_ids) : [];
   const siteDesign = NormalizeDesign(siteData.designSettings);
   const personalDesign = (cookies.get(PERSONAL_DESIGN_COOKIE) || "").trim();
+  const personalColumns = (cookies.get(PERSONAL_COLUMNS_COOKIE) || "").trim();
 
   // Same check as IsSetupComplete, but reuses the site data fetched above
   // instead of querying it a second time on every request
@@ -188,9 +196,10 @@ export async function GetLayoutServerData(cookies: Cookies, request: Request): P
     homePath,
     myServiceTags,
     loggedInRoles,
-    design: EffectiveDesign(siteDesign, personalDesign, !!loggedInUser),
+    design: EffectiveDesign(siteDesign, personalDesign, !!loggedInUser, personalColumns),
     siteDesign,
     personalDesign: loggedInUser ? personalDesign : "",
+    personalColumns: loggedInUser ? personalColumns : "",
     canSeeHiddenMonitors,
     selectedLang,
     siteStatusColors,

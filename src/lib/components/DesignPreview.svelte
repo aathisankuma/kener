@@ -6,7 +6,7 @@
     options,
     brand = "var(--accent-foreground)",
     class: className = "h-28"
-  }: { options: Omit<DesignSettings, "preset" | "brandColor">; brand?: string; class?: string } = $props();
+  }: { options: Omit<DesignSettings, "preset" | "brandColor" | "columns">; brand?: string; class?: string } = $props();
 
   const radius = (corners: DesignSettings["corners"]) =>
     corners === "round" ? "9px" : corners === "soft" ? "4px" : "1px";

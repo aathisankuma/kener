@@ -49,9 +49,29 @@ describe("status page design", () => {
       preset: "portal",
       ...DESIGN_PRESET_OPTIONS.portal,
       brandColor: "#0052cc",
+      columns: "auto",
     });
     expect(EffectiveDesign(site, "portal", false)).toBe(site);
     expect(EffectiveDesign(site, "", true)).toBe(site);
     expect(EffectiveDesign(site, "<script>", true)).toBe(site);
+  });
+
+  it("keeps services per row apart from the preset", () => {
+    expect(NormalizeDesign({ ...DESIGN_PRESET_OPTIONS.portal, columns: "3" })).toMatchObject({
+      preset: "portal",
+      columns: "3",
+    });
+    expect(NormalizeDesign({ columns: "7" }).columns).toBe("auto");
+    expect(IsValidDesign(JSON.stringify({ columns: "4" }))).toBe(true);
+    expect(IsValidDesign(JSON.stringify({ columns: "5" }))).toBe(false);
+  });
+
+  it("lets a signed-in person choose their own services per row", () => {
+    const site = NormalizeDesign({ ...DESIGN_PRESET_OPTIONS.portal, columns: "2" });
+    expect(EffectiveDesign(site, "", true, "4")).toEqual({ ...site, columns: "4" });
+    expect(EffectiveDesign(site, "cards", true, "1")).toMatchObject({ preset: "cards", columns: "1" });
+    expect(EffectiveDesign(site, "cards", true, "")).toMatchObject({ preset: "cards", columns: "2" });
+    expect(EffectiveDesign(site, "", false, "4")).toBe(site);
+    expect(EffectiveDesign(site, "", true, "9")).toBe(site);
   });
 });

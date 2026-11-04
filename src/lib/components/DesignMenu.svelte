@@ -13,7 +13,14 @@
   import Palette from "@lucide/svelte/icons/palette";
   import Check from "@lucide/svelte/icons/check";
   import Settings from "@lucide/svelte/icons/settings";
-  import { DESIGN_PRESETS, DESIGN_PRESET_OPTIONS, PERSONAL_DESIGN_COOKIE, type DesignSettings } from "$lib/design.js";
+  import Columns from "@lucide/svelte/icons/columns-3";
+  import {
+    DESIGN_PRESETS,
+    DESIGN_PRESET_OPTIONS,
+    PERSONAL_COLUMNS_COOKIE,
+    PERSONAL_DESIGN_COOKIE,
+    type DesignSettings
+  } from "$lib/design.js";
   import trackEvent from "$lib/beacon";
 
   const NAMES: Record<string, string> = {
@@ -30,6 +37,8 @@
   const signedIn = $derived(!!page.data?.loggedInUser);
   const site = $derived(page.data?.siteDesign as DesignSettings | undefined);
   const mine = $derived((page.data?.personalDesign as string) || "");
+  const myColumns = $derived((page.data?.personalColumns as string) || "");
+  const COLUMN_CHOICES = ["1", "2", "3", "4"] as const;
   const brand = $derived(site?.brandColor || "var(--accent-foreground)");
   const canSetForEveryone = $derived(signedIn && page.data?.homePath !== "/my-services");
 
@@ -38,19 +47,29 @@
     return key ? $t(key) : $t("Custom");
   };
 
-  async function choose(preset: string) {
+  // An empty value removes the cookie, so the design set for everyone applies again.
+  async function remember(cookie: string, value: string) {
     if (saving) return;
     saving = true;
     try {
       const path = clientResolver(resolve, "/");
-      document.cookie = preset
-        ? `${PERSONAL_DESIGN_COOKIE}=${preset}; path=${path}; max-age=31536000; samesite=lax`
-        : `${PERSONAL_DESIGN_COOKIE}=; path=${path}; max-age=0; samesite=lax`;
-      trackEvent("design_chosen", { design: preset || "site" });
+      document.cookie = value
+        ? `${cookie}=${value}; path=${path}; max-age=31536000; samesite=lax`
+        : `${cookie}=; path=${path}; max-age=0; samesite=lax`;
       await invalidateAll();
     } finally {
       saving = false;
     }
+  }
+
+  function choose(preset: string) {
+    trackEvent("design_chosen", { design: preset || "site" });
+    return remember(PERSONAL_DESIGN_COOKIE, preset);
+  }
+
+  function chooseColumns(columns: string) {
+    trackEvent("design_columns_chosen", { columns: columns || "site" });
+    return remember(PERSONAL_COLUMNS_COOKIE, columns);
   }
 </script>
 
@@ -119,6 +138,47 @@
             </span>
           </button>
         {/each}
+      </div>
+      <div class="flex flex-wrap items-center justify-between gap-2 border-t px-4 py-3">
+        <span class="flex items-center gap-2 text-xs font-medium">
+          <Columns class="text-muted-foreground size-3.5" />
+          {$t("Services per row")}
+        </span>
+        <div
+          class="bg-muted inline-flex items-center gap-0.5 rounded-full p-0.5"
+          role="radiogroup"
+          aria-label={$t("Services per row")}
+        >
+          <button
+            type="button"
+            role="radio"
+            aria-checked={myColumns === ""}
+            data-testid="my-columns-site"
+            disabled={saving}
+            onclick={() => chooseColumns("")}
+            class="cursor-pointer rounded-full px-2.5 py-1 text-[11px] font-medium transition {myColumns === ''
+              ? 'bg-background text-foreground shadow-sm'
+              : 'text-muted-foreground hover:text-foreground'}"
+          >
+            {$t("As set")}
+          </button>
+          {#each COLUMN_CHOICES as columns (columns)}
+            <button
+              type="button"
+              role="radio"
+              aria-checked={myColumns === columns}
+              data-testid="my-columns-{columns}"
+              disabled={saving}
+              onclick={() => chooseColumns(columns)}
+              class="min-w-7 cursor-pointer rounded-full px-2 py-1 text-[11px] font-medium tabular-nums transition {myColumns ===
+              columns
+                ? 'bg-background text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'}"
+            >
+              {columns}
+            </button>
+          {/each}
+        </div>
       </div>
       {#if canSetForEveryone}
         <div class="border-t px-4 py-2.5">

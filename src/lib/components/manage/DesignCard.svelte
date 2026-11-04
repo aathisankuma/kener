@@ -50,7 +50,13 @@
     options: Array<{ value: DesignSettings[K]; label: () => string }>;
   };
   const CHOICES: Array<
-    Choice<"layout"> | Choice<"header"> | Choice<"banner"> | Choice<"corners"> | Choice<"monitors"> | Choice<"density">
+    | Choice<"layout">
+    | Choice<"header">
+    | Choice<"banner">
+    | Choice<"corners">
+    | Choice<"monitors">
+    | Choice<"density">
+    | Choice<"columns">
   > = [
     {
       key: "layout",
@@ -99,6 +105,17 @@
       options: [
         { value: "normal", label: () => tm("Normal") },
         { value: "compact", label: () => tm("Compact") }
+      ]
+    },
+    {
+      key: "columns",
+      label: () => tm("Services per row"),
+      options: [
+        { value: "auto", label: () => tm("Automatic") },
+        { value: "1", label: () => "1" },
+        { value: "2", label: () => "2" },
+        { value: "3", label: () => "3" },
+        { value: "4", label: () => "4" }
       ]
     }
   ];
@@ -206,6 +223,13 @@
                 </Button>
               {/each}
             </div>
+            {#if choice.key === "columns"}
+              <p class="text-muted-foreground text-xs">
+                {tm(
+                  "On pages shown as a grid and on the portal start page. Phones show one service per row, tablets at most two."
+                )}
+              </p>
+            {/if}
           </div>
         {/each}
         <div class="space-y-1.5">
