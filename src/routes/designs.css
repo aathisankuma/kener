@@ -120,7 +120,7 @@
    status badge; list pages get a plain component list with the status on
    the right. Colours: --brand-color (Brand colour) or blue; text and lines in
    neutral greys. The hero runs from a light to a dark shade of the brand
-   colour; Custom CSS can set the two ends with --hub-hero-from / --hub-hero-to.
+   colour; Custom CSS can set the two ends with --hero-from / --hero-to.
    ===================================================================== */
 .kener-status-label {
   display: none;
@@ -614,9 +614,9 @@ html.dark
   z-index: -1;
   background: linear-gradient(
     100deg,
-    var(--hub-hero-from),
+    var(--hero-from, var(--hub-hero-from)),
     var(--hub-blue) 55%,
-    var(--hub-hero-to)
+    var(--hero-to, var(--hub-hero-to))
   );
   pointer-events: none;
 }
