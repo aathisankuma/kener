@@ -118,36 +118,54 @@
    common status pages. Grid pages (layout "Default Grid") get a hero in the
    brand colour with a picture and the services as app cards with icon and
    status badge; list pages get a plain component list with the status on
-   the right. Colours: --brand-color (Brand colour) or blue.
+   the right. Colours: --brand-color (Brand colour) or blue; text and lines in
+   neutral greys. The hero runs from a light to a dark shade of the brand
+   colour; Custom CSS can set the two ends with --hub-hero-from / --hub-hero-to.
    ===================================================================== */
 .kener-status-label {
   display: none;
 }
 .kener-public[data-layout="portal"] {
-  --hub-text: #172b4d;
-  --hub-muted: #6b778c;
-  --hub-link: #0052cc;
+  --hub-text: #333333;
+  --hub-muted: #6b6b6b;
+  --hub-blue: var(--brand-color, #0052cc);
+  --hub-link: var(--hub-blue);
   --hub-bg: #ffffff;
   --hub-card: #ffffff;
-  --hub-line: #dfe1e6;
-  --hub-blue: var(--brand-color, #0052cc);
+  --hub-line: #e3e3e3;
+  /* lighter and darker shade of the brand colour (like BAND's Blau 300 → 900); browsers without
+     relative colours mix with white and black instead */
+  --hub-hero-from: color-mix(in oklab, var(--hub-blue) 62%, white);
+  --hub-hero-to: color-mix(in oklab, var(--hub-blue) 70%, black);
   --hub-shadow:
-    0 1px 1px rgba(9, 30, 66, 0.2), 0 0 1px rgba(9, 30, 66, 0.25), 0 2px 6px rgba(9, 30, 66, 0.12);
-  --hub-shadow-hover: 0 4px 8px rgba(9, 30, 66, 0.2), 0 0 1px rgba(9, 30, 66, 0.25);
+    0 1px 1px rgba(0, 0, 0, 0.12), 0 0 1px rgba(0, 0, 0, 0.18), 0 2px 6px rgba(0, 0, 0, 0.07);
+  --hub-shadow-hover: 0 4px 10px rgba(0, 0, 0, 0.14), 0 0 1px rgba(0, 0, 0, 0.2);
   --kener-radius: 4px;
   color: var(--hub-text);
   font-family:
     -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 html.dark .kener-public[data-layout="portal"] {
-  --hub-text: #e6edf3;
-  --hub-muted: #9aa5b5;
-  --hub-link: #579dff;
+  --hub-text: #ededed;
+  --hub-muted: #a3a3a3;
+  --hub-link: color-mix(in oklab, var(--hub-blue) 55%, white);
   --hub-bg: var(--background);
-  --hub-card: #1d2125;
-  --hub-line: #2c333a;
-  --hub-shadow: 0 0 0 1px #2c333a;
-  --hub-shadow-hover: 0 0 0 1px #454f59, 0 4px 12px rgba(0, 0, 0, 0.5);
+  --hub-card: #1f1f1f;
+  --hub-line: #333333;
+  --hub-hero-from: color-mix(in oklab, var(--hub-blue) 80%, white);
+  --hub-hero-to: color-mix(in oklab, var(--hub-blue) 55%, black);
+  --hub-shadow: 0 0 0 1px #333333;
+  --hub-shadow-hover: 0 0 0 1px #4d4d4d, 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+@supports (color: oklch(from red l c h)) {
+  .kener-public[data-layout="portal"] {
+    --hub-hero-from: oklch(from var(--hub-blue) calc(l + 0.22) c h);
+    --hub-hero-to: oklch(from var(--hub-blue) calc(l - 0.1) calc(c * 0.5) h);
+  }
+  html.dark .kener-public[data-layout="portal"] {
+    --hub-hero-from: oklch(from var(--hub-blue) calc(l + 0.12) c h);
+    --hub-hero-to: oklch(from var(--hub-blue) calc(l - 0.14) calc(c * 0.5) h);
+  }
 }
 html:not(.dark) body:has(.kener-public[data-layout="portal"]) {
   background: var(--hub-bg);
@@ -225,6 +243,10 @@ html:not(.dark) body:has(.kener-public[data-layout="portal"]) {
   font-size: 18px;
   font-weight: 500;
   color: #fff;
+}
+/* light status colours (yellow/orange) need dark text */
+.kener-public[data-layout="portal"] .kener-status-banner[data-status="bg-degraded"] p {
+  color: #1a1a1a;
 }
 
 /* ---------- grid pages: app cards ---------- */
@@ -305,7 +327,7 @@ html.dark
   .kener-public[data-layout="portal"]
   .kener-monitors[data-portal="hub"]
   [data-slot="avatar-image"] {
-  background: #f4f5f7;
+  background: #f8f8f8;
   padding: 6px;
 }
 .kener-public[data-layout="portal"]
@@ -386,7 +408,7 @@ html.dark
   .kener-monitors[data-portal="hub"]
   .kener-status-label[data-status="DEGRADED"] {
   background: var(--degraded);
-  color: #172b4d;
+  color: #333333;
 }
 .kener-public[data-layout="portal"]
   .kener-monitors[data-portal="hub"]
@@ -507,11 +529,11 @@ html.dark
   max-width: 320px;
   padding: 8px 10px;
   border-radius: 4px;
-  background: #172b4d;
+  background: #333333;
   color: #fff;
   font-size: 12px;
   line-height: 1.4;
-  box-shadow: 0 4px 8px rgba(9, 30, 66, 0.25);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
   -webkit-line-clamp: unset;
 }
 .kener-public[data-layout="portal"]
@@ -571,14 +593,36 @@ html.dark
 }
 
 /* ---------- grid pages: hero in the brand colour with a picture ---------- */
+/* The band behind toolbar and hero spans the whole window: a light-to-dark brand gradient, the same
+   on both, so they meet without a seam. */
+.kener-public[data-layout="portal"]:has(.kener-monitors[data-portal="hub"]) {
+  overflow-x: clip;
+}
+/* (the toolbar is already sticky, which positions its ::before) */
 .kener-public[data-layout="portal"]:has(.kener-monitors[data-portal="hub"]) .kener-toolbar {
-  border-image: linear-gradient(var(--hub-blue) 0 0) fill 0 / 0 / 24px 100vmax 0;
+  isolation: isolate;
 }
 .kener-public[data-layout="portal"]:has(.kener-monitors[data-portal="hub"]) .kener-hero {
   position: relative;
+  isolation: isolate;
+}
+.kener-public[data-layout="portal"]:has(.kener-monitors[data-portal="hub"]) .kener-toolbar::before,
+.kener-public[data-layout="portal"]:has(.kener-monitors[data-portal="hub"]) .kener-hero::before {
+  content: "";
+  position: absolute;
+  inset: -24px calc(50% - 50vw) 0;
+  z-index: -1;
+  background: linear-gradient(
+    100deg,
+    var(--hub-hero-from),
+    var(--hub-blue) 55%,
+    var(--hub-hero-to)
+  );
+  pointer-events: none;
+}
+.kener-public[data-layout="portal"]:has(.kener-monitors[data-portal="hub"]) .kener-hero {
   padding: 40px 0 96px;
   margin-bottom: 56px;
-  border-image: linear-gradient(var(--hub-blue) 0 0) fill 0 / 0 / 24px 100vmax 0;
 }
 .kener-public[data-layout="portal"]:has(.kener-monitors[data-portal="hub"]) .kener-hero::after {
   content: "";
@@ -587,9 +631,22 @@ html.dark
   bottom: -50px;
   width: 440px;
   height: 306px;
-  background: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 460 320%22%3E%3Cpath d=%22M38 118c0-14 12-25 26-25 5-15 19-25 35-25 18 0 33 13 36 30 12 1 21 10 21 20H38z%22 fill=%22%232a76e6%22 opacity=%22.55%22/%3E%3Cpath d=%22M300 62c0-11 9-19 20-19 4-12 15-20 28-20 15 0 27 11 29 25 10 1 17 8 17 16H300z%22 fill=%22%232a76e6%22 opacity=%22.5%22/%3E%3Cpath d=%22M96 52c0-6 5-11 11-11 2-6 8-11 15-11 8 0 14 6 15 13 5 0 9 4 9 9H96z%22 fill=%22%235c9cf0%22 opacity=%22.6%22/%3E%3Cg opacity=%22.55%22%3E%3Crect x=%2270%22 y=%22150%22 width=%2234%22 height=%22130%22 rx=%224%22 fill=%22%234fb3d9%22/%3E%3Crect x=%22108%22 y=%22118%22 width=%2240%22 height=%22162%22 rx=%224%22 fill=%22%233fa1cf%22/%3E%3Crect x=%22152%22 y=%2296%22 width=%2228%22 height=%22184%22 rx=%2214%22 fill=%22%235fc4dd%22/%3E%3Crect x=%22318%22 y=%22128%22 width=%2236%22 height=%22152%22 rx=%224%22 fill=%22%233fa1cf%22/%3E%3Crect x=%22358%22 y=%22160%22 width=%2230%22 height=%22120%22 rx=%2215%22 fill=%22%235fc4dd%22/%3E%3C/g%3E%3Cpath d=%22M372 78 L300 290 L228 290 Z%22 fill=%22%239fd8ff%22 opacity=%22.18%22/%3E%3Cg%3E%3Crect x=%22150%22 y=%22130%22 width=%22176%22 height=%22128%22 rx=%228%22 fill=%22%23e9f2ff%22/%3E%3Crect x=%22150%22 y=%22130%22 width=%22176%22 height=%2220%22 rx=%228%22 fill=%22%23ffffff%22/%3E%3Crect x=%22150%22 y=%22142%22 width=%22176%22 height=%228%22 fill=%22%23ffffff%22/%3E%3Ccircle cx=%22163%22 cy=%22140%22 r=%223.5%22 fill=%22%23ff8b00%22/%3E%3Ccircle cx=%22174%22 cy=%22140%22 r=%223.5%22 fill=%22%23ffc400%22/%3E%3Ccircle cx=%22185%22 cy=%22140%22 r=%223.5%22 fill=%22%2336b37e%22/%3E%3Cg%3E%3Crect x=%22166%22 y=%22164%22 width=%22144%22 height=%2218%22 rx=%224%22 fill=%22%23ffffff%22/%3E%3Ccircle cx=%22177%22 cy=%22173%22 r=%224%22 fill=%22%2336b37e%22/%3E%3Crect x=%22187%22 y=%22170%22 width=%2264%22 height=%226%22 rx=%223%22 fill=%22%23b3d4ff%22/%3E%3Crect x=%22276%22 y=%22170%22 width=%2226%22 height=%226%22 rx=%223%22 fill=%22%2379e2b0%22/%3E%3Crect x=%22166%22 y=%22188%22 width=%22144%22 height=%2218%22 rx=%224%22 fill=%22%23ffffff%22/%3E%3Ccircle cx=%22177%22 cy=%22197%22 r=%224%22 fill=%22%2336b37e%22/%3E%3Crect x=%22187%22 y=%22194%22 width=%2280%22 height=%226%22 rx=%223%22 fill=%22%23b3d4ff%22/%3E%3Crect x=%22276%22 y=%22194%22 width=%2226%22 height=%226%22 rx=%223%22 fill=%22%2379e2b0%22/%3E%3Crect x=%22166%22 y=%22212%22 width=%22144%22 height=%2218%22 rx=%224%22 fill=%22%23ffffff%22/%3E%3Ccircle cx=%22177%22 cy=%22221%22 r=%224%22 fill=%22%2336b37e%22/%3E%3Crect x=%22187%22 y=%22218%22 width=%2254%22 height=%226%22 rx=%223%22 fill=%22%23b3d4ff%22/%3E%3Crect x=%22276%22 y=%22218%22 width=%2226%22 height=%226%22 rx=%223%22 fill=%22%2379e2b0%22/%3E%3C/g%3E%3C/g%3E%3Cg%3E%3Cellipse cx=%22258%22 cy=%22282%22 rx=%2236%22 ry=%229%22 fill=%22%23003e9c%22 opacity=%22.35%22/%3E%3Crect x=%22224%22 y=%22226%22 width=%2268%22 height=%2218%22 rx=%226%22 fill=%22%231868db%22/%3E%3Crect x=%22224%22 y=%22246%22 width=%2268%22 height=%2218%22 rx=%226%22 fill=%22%231558bc%22/%3E%3Crect x=%22224%22 y=%22266%22 width=%2268%22 height=%2216%22 rx=%226%22 fill=%22%230f4aa3%22/%3E%3Ccircle cx=%22236%22 cy=%22235%22 r=%222.5%22 fill=%22%2379e2b0%22/%3E%3Ccircle cx=%22236%22 cy=%22255%22 r=%222.5%22 fill=%22%2379e2b0%22/%3E%3Ccircle cx=%22236%22 cy=%22274%22 r=%222.5%22 fill=%22%2379e2b0%22/%3E%3Crect x=%22246%22 y=%22233%22 width=%2236%22 height=%224%22 rx=%222%22 fill=%22%234c9aff%22/%3E%3Crect x=%22246%22 y=%22253%22 width=%2236%22 height=%224%22 rx=%222%22 fill=%22%234c9aff%22/%3E%3Crect x=%22246%22 y=%22272%22 width=%2236%22 height=%224%22 rx=%222%22 fill=%22%234c9aff%22/%3E%3C/g%3E%3Cg%3E%3Ccircle cx=%22372%22 cy=%2270%22 r=%2240%22 fill=%22%2357d9a3%22 opacity=%22.35%22/%3E%3Ccircle cx=%22372%22 cy=%2270%22 r=%2231%22 fill=%22%2336b37e%22/%3E%3Cpath d=%22M356 70 l11 11 l21 -23%22 fill=%22none%22 stroke=%22%23ffffff%22 stroke-width=%228%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/%3E%3C/g%3E%3Cg%3E%3Ccircle cx=%22120%22 cy=%22214%22 r=%2220%22 fill=%22%23ff8b00%22/%3E%3Ccircle cx=%22120%22 cy=%22214%22 r=%2215%22 fill=%22%23ffab00%22/%3E%3Crect x=%22117%22 y=%22203%22 width=%226%22 height=%2214%22 rx=%223%22 fill=%22%23ffffff%22/%3E%3Ccircle cx=%22120%22 cy=%22223%22 r=%223.2%22 fill=%22%23ffffff%22/%3E%3C/g%3E%3Cpath d=%22M420 140 l3 7 7 3 -7 3 -3 7 -3 -7 -7 -3 7 -3z%22 fill=%22%23ffffff%22 opacity=%22.8%22/%3E%3Cpath d=%22M60 180 l2 5 5 2 -5 2 -2 5 -2 -5 -5 -2 5 -2z%22 fill=%22%23ffffff%22 opacity=%22.7%22/%3E%3Cpath d=%22M206 92 l2 5 5 2 -5 2 -2 5 -2 -5 -5 -2 5 -2z%22 fill=%22%23ffffff%22 opacity=%22.7%22/%3E%3Cpath d=%22M0 320 C60 282 150 272 230 278 C320 284 400 276 460 300 L460 320 Z%22 fill=%22%23e3fcef%22/%3E%3Cpath d=%22M40 320 C120 298 200 294 260 300 C330 306 390 300 440 320 Z%22 fill=%22%23abf5d1%22 opacity=%22.7%22/%3E%3Cg%3E%3Cpath d=%22M86 300 C70 270 78 246 96 232 C104 252 104 278 90 300 Z%22 fill=%22%2336b37e%22/%3E%3Cpath d=%22M96 300 C104 274 122 262 140 262 C134 282 118 296 100 302 Z%22 fill=%22%2357d9a3%22/%3E%3Cpath d=%22M90 300 L94 252%22 stroke=%22%23006644%22 stroke-width=%222%22 fill=%22none%22/%3E%3Cpath d=%22M374 302 C360 276 366 248 386 230 C398 254 398 282 382 304 Z%22 fill=%22%2336b37e%22/%3E%3Cpath d=%22M386 302 C394 278 412 268 430 270 C424 290 406 300 388 304 Z%22 fill=%22%2379e2b0%22/%3E%3Cpath d=%22M380 302 L385 246%22 stroke=%22%23006644%22 stroke-width=%222%22 fill=%22none%22/%3E%3C/g%3E%3C/svg%3E")
+  background: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 460 320%22%3E%3Cpath d=%22M38 118c0-14 12-25 26-25 5-15 19-25 35-25 18 0 33 13 36 30 12 1 21 10 21 20H38z%22 fill=%22%23ffffff%22 opacity=%22.55%22/%3E%3Cpath d=%22M300 62c0-11 9-19 20-19 4-12 15-20 28-20 15 0 27 11 29 25 10 1 17 8 17 16H300z%22 fill=%22%23ffffff%22 opacity=%22.5%22/%3E%3Cpath d=%22M96 52c0-6 5-11 11-11 2-6 8-11 15-11 8 0 14 6 15 13 5 0 9 4 9 9H96z%22 fill=%22%23ffffff%22 opacity=%22.6%22/%3E%3Cg opacity=%22.55%22%3E%3Crect x=%2270%22 y=%22150%22 width=%2234%22 height=%22130%22 rx=%224%22 fill=%22%23ffffff%22/%3E%3Crect x=%22108%22 y=%22118%22 width=%2240%22 height=%22162%22 rx=%224%22 fill=%22%23ffffff%22/%3E%3Crect x=%22152%22 y=%2296%22 width=%2228%22 height=%22184%22 rx=%2214%22 fill=%22%23ffffff%22/%3E%3Crect x=%22318%22 y=%22128%22 width=%2236%22 height=%22152%22 rx=%224%22 fill=%22%23ffffff%22/%3E%3Crect x=%22358%22 y=%22160%22 width=%2230%22 height=%22120%22 rx=%2215%22 fill=%22%23ffffff%22/%3E%3C/g%3E%3Cpath d=%22M372 78 L300 290 L228 290 Z%22 fill=%22%23ffffff%22 opacity=%22.18%22/%3E%3Cg%3E%3Crect x=%22150%22 y=%22130%22 width=%22176%22 height=%22128%22 rx=%228%22 fill=%22%23f8f8f8%22/%3E%3Crect x=%22150%22 y=%22130%22 width=%22176%22 height=%2220%22 rx=%228%22 fill=%22%23ffffff%22/%3E%3Crect x=%22150%22 y=%22142%22 width=%22176%22 height=%228%22 fill=%22%23ffffff%22/%3E%3Ccircle cx=%22163%22 cy=%22140%22 r=%223.5%22 fill=%22%23ea8c00%22/%3E%3Ccircle cx=%22174%22 cy=%22140%22 r=%223.5%22 fill=%22%23feaf51%22/%3E%3Ccircle cx=%22185%22 cy=%22140%22 r=%223.5%22 fill=%22%23008a7e%22/%3E%3Cg%3E%3Crect x=%22166%22 y=%22164%22 width=%22144%22 height=%2218%22 rx=%224%22 fill=%22%23ffffff%22/%3E%3Ccircle cx=%22177%22 cy=%22173%22 r=%224%22 fill=%22%23008a7e%22/%3E%3Crect x=%22187%22 y=%22170%22 width=%2264%22 height=%226%22 rx=%223%22 fill=%22%23d0d0d0%22/%3E%3Crect x=%22276%22 y=%22170%22 width=%2226%22 height=%226%22 rx=%223%22 fill=%22%2365c1be%22/%3E%3Crect x=%22166%22 y=%22188%22 width=%22144%22 height=%2218%22 rx=%224%22 fill=%22%23ffffff%22/%3E%3Ccircle cx=%22177%22 cy=%22197%22 r=%224%22 fill=%22%23008a7e%22/%3E%3Crect x=%22187%22 y=%22194%22 width=%2280%22 height=%226%22 rx=%223%22 fill=%22%23d0d0d0%22/%3E%3Crect x=%22276%22 y=%22194%22 width=%2226%22 height=%226%22 rx=%223%22 fill=%22%2365c1be%22/%3E%3Crect x=%22166%22 y=%22212%22 width=%22144%22 height=%2218%22 rx=%224%22 fill=%22%23ffffff%22/%3E%3Ccircle cx=%22177%22 cy=%22221%22 r=%224%22 fill=%22%23008a7e%22/%3E%3Crect x=%22187%22 y=%22218%22 width=%2254%22 height=%226%22 rx=%223%22 fill=%22%23d0d0d0%22/%3E%3Crect x=%22276%22 y=%22218%22 width=%2226%22 height=%226%22 rx=%223%22 fill=%22%2365c1be%22/%3E%3C/g%3E%3C/g%3E%3Cg%3E%3Cellipse cx=%22258%22 cy=%22282%22 rx=%2236%22 ry=%229%22 fill=%22%23000000%22 opacity=%22.35%22/%3E%3Crect x=%22224%22 y=%22226%22 width=%2268%22 height=%2218%22 rx=%226%22 fill=%22%234d4d4d%22/%3E%3Crect x=%22224%22 y=%22246%22 width=%2268%22 height=%2218%22 rx=%226%22 fill=%22%23404040%22/%3E%3Crect x=%22224%22 y=%22266%22 width=%2268%22 height=%2216%22 rx=%226%22 fill=%22%23333333%22/%3E%3Ccircle cx=%22236%22 cy=%22235%22 r=%222.5%22 fill=%22%2365c1be%22/%3E%3Ccircle cx=%22236%22 cy=%22255%22 r=%222.5%22 fill=%22%2365c1be%22/%3E%3Ccircle cx=%22236%22 cy=%22274%22 r=%222.5%22 fill=%22%2365c1be%22/%3E%3Crect x=%22246%22 y=%22233%22 width=%2236%22 height=%224%22 rx=%222%22 fill=%22%23888888%22/%3E%3Crect x=%22246%22 y=%22253%22 width=%2236%22 height=%224%22 rx=%222%22 fill=%22%23888888%22/%3E%3Crect x=%22246%22 y=%22272%22 width=%2236%22 height=%224%22 rx=%222%22 fill=%22%23888888%22/%3E%3C/g%3E%3Cg%3E%3Ccircle cx=%22372%22 cy=%2270%22 r=%2240%22 fill=%22%2365c1be%22 opacity=%22.35%22/%3E%3Ccircle cx=%22372%22 cy=%2270%22 r=%2231%22 fill=%22%23008a7e%22/%3E%3Cpath d=%22M356 70 l11 11 l21 -23%22 fill=%22none%22 stroke=%22%23ffffff%22 stroke-width=%228%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/%3E%3C/g%3E%3Cg%3E%3Ccircle cx=%22120%22 cy=%22214%22 r=%2220%22 fill=%22%23ea8c00%22/%3E%3Ccircle cx=%22120%22 cy=%22214%22 r=%2215%22 fill=%22%23feaf51%22/%3E%3Crect x=%22117%22 y=%22203%22 width=%226%22 height=%2214%22 rx=%223%22 fill=%22%23ffffff%22/%3E%3Ccircle cx=%22120%22 cy=%22223%22 r=%223.2%22 fill=%22%23ffffff%22/%3E%3C/g%3E%3Cpath d=%22M420 140 l3 7 7 3 -7 3 -3 7 -3 -7 -7 -3 7 -3z%22 fill=%22%23ffffff%22 opacity=%22.8%22/%3E%3Cpath d=%22M60 180 l2 5 5 2 -5 2 -2 5 -2 -5 -5 -2 5 -2z%22 fill=%22%23ffffff%22 opacity=%22.7%22/%3E%3Cpath d=%22M206 92 l2 5 5 2 -5 2 -2 5 -2 -5 -5 -2 5 -2z%22 fill=%22%23ffffff%22 opacity=%22.7%22/%3E%3Cpath d=%22M0 320 C60 282 150 272 230 278 C320 284 400 276 460 300 L460 320 Z%22 fill=%22%23f8f8f8%22/%3E%3Cpath d=%22M40 320 C120 298 200 294 260 300 C330 306 390 300 440 320 Z%22 fill=%22%23ededed%22 opacity=%22.7%22/%3E%3Cg%3E%3Cpath d=%22M86 300 C70 270 78 246 96 232 C104 252 104 278 90 300 Z%22 fill=%22%23008a7e%22/%3E%3Cpath d=%22M96 300 C104 274 122 262 140 262 C134 282 118 296 100 302 Z%22 fill=%22%2365c1be%22/%3E%3Cpath d=%22M90 300 L94 252%22 stroke=%22%23004e40%22 stroke-width=%222%22 fill=%22none%22/%3E%3Cpath d=%22M374 302 C360 276 366 248 386 230 C398 254 398 282 382 304 Z%22 fill=%22%23008a7e%22/%3E%3Cpath d=%22M386 302 C394 278 412 268 430 270 C424 290 406 300 388 304 Z%22 fill=%22%2365c1be%22/%3E%3Cpath d=%22M380 302 L385 246%22 stroke=%22%23004e40%22 stroke-width=%222%22 fill=%22none%22/%3E%3C/g%3E%3C/svg%3E")
     no-repeat center / contain;
   pointer-events: none;
+}
+/* in dark mode the light hill would stick out below the band: end the picture at its edge */
+html.dark
+  .kener-public[data-layout="portal"]:has(.kener-monitors[data-portal="hub"])
+  .kener-hero::after {
+  clip-path: inset(0 0 50px 0);
+}
+@media (max-width: 860px) {
+  html.dark
+    .kener-public[data-layout="portal"]:has(.kener-monitors[data-portal="hub"])
+    .kener-hero::after {
+    clip-path: inset(0 0 30px 0);
+  }
 }
 .kener-public[data-layout="portal"]:has(.kener-monitors[data-portal="hub"]) .kener-hero > img {
   display: none;
