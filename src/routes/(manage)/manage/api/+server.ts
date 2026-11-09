@@ -35,6 +35,7 @@ import {
   UpdateUserData,
   UpdatePassword,
   SendInvitationEmail,
+  CreateLocalUserWithPassword,
   SendVerificationEmail,
   ResendInvitationEmail,
   GetAllUsersPaginatedDashboard,
@@ -227,7 +228,12 @@ export async function POST({ request, cookies }) {
       data.userID = userDB.id;
       resp = await UpdatePassword(data);
     } else if (action == "createNewUser") {
-      await SendInvitationEmail(data.email, data.role_ids, data.name);
+      // With a password: the account is ready at once, no invitation email.
+      if (data.password) {
+        await CreateLocalUserWithPassword(data.email, data.role_ids, data.name, data.password, data.passwordConfirm);
+      } else {
+        await SendInvitationEmail(data.email, data.role_ids, data.name);
+      }
       resp = await GetUserByEmail(data.email);
     } else if (action == "setUserServices") {
       resp = { monitor_tags: await SetUserServices(data.user_id, data.monitor_tags) };

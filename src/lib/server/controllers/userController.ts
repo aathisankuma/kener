@@ -304,31 +304,62 @@ export const GetTotalUserPages = async (limit: number): Promise<number> => {
   return totalPages;
 };
 
-//send invitation email to user for account creation
-export const SendInvitationEmail = async (email: string, role_ids: string[], name: string) => {
+/** Checks the roles, email and name of a new user; returns the normalised email and name. */
+async function validateNewUser(email: string, role_ids: string[], name: string) {
   if (!role_ids || role_ids.length === 0) {
     throw new Error("At least one role is required");
   }
-
-  // Validate all role_ids exist and are active
   for (const roleId of role_ids) {
     const role = await db.getRoleById(roleId);
-    if (!role) {
-      throw new Error(`Role "${roleId}" does not exist`);
-    }
-    if (role.status !== "ACTIVE") {
-      throw new Error(`Role "${roleId}" is not active`);
-    }
+    if (!role) throw new Error(`Role "${roleId}" does not exist`);
+    if (role.status !== "ACTIVE") throw new Error(`Role "${roleId}" is not active`);
   }
-
   const normalizedEmail = validateEmailOrThrow(email);
   const normalizedName = validateNameOrThrow(name);
-
-  // Check if user with this email already exists
-  const existingUser = await db.getUserByEmail(normalizedEmail);
-  if (existingUser) {
+  if (await db.getUserByEmail(normalizedEmail)) {
     throw new Error(`A user with email ${normalizedEmail} already exists`);
   }
+  return { normalizedEmail, normalizedName };
+}
+
+/**
+ * A local user with a password the admin sets: no invitation email, so it works without email
+ * set up (or when invitations do not arrive). The admin passes the password on themselves.
+ */
+export const CreateLocalUserWithPassword = async (
+  email: string,
+  role_ids: string[],
+  name: string,
+  password: string,
+  passwordConfirm: string,
+) => {
+  if (!ValidatePassword(password)) {
+    throw new Error(
+      "Password must contain at least 8 characters, one uppercase letter, one lowercase letter and one number",
+    );
+  }
+  if (password !== passwordConfirm) throw new Error("Passwords do not match");
+  const { normalizedEmail, normalizedName } = await validateNewUser(email, role_ids, name);
+  try {
+    await db.insertUser({
+      email: normalizedEmail,
+      password_hash: await HashPassword(password),
+      name: normalizedName,
+      role_ids: role_ids,
+      is_active: 1,
+    });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    if (errorMessage.includes("UNIQUE constraint failed") || errorMessage.includes("duplicate")) {
+      throw new Error(`A user with email ${normalizedEmail} already exists`);
+    }
+    throw error;
+  }
+};
+
+//send invitation email to user for account creation
+export const SendInvitationEmail = async (email: string, role_ids: string[], name: string) => {
+  const { normalizedEmail, normalizedName } = await validateNewUser(email, role_ids, name);
 
   //create user with empty password and is_active = 0
   try {

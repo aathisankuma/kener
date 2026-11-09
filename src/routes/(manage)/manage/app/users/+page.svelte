@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { tm, tmh, tmStatus } from "$lib/uiLocale.svelte";
+  import { tm, tmh, tmMessage, tmStatus } from "$lib/uiLocale.svelte";
   import * as Card from "$lib/components/ui/card/index.js";
   import * as Table from "$lib/components/ui/table/index.js";
   import * as Dialog from "$lib/components/ui/dialog/index.js";
@@ -38,6 +38,10 @@
     name: string;
     email: string;
     role_ids: string[];
+    /** invite: an email with a link to set the password; password: the admin sets it now */
+    mode: "invite" | "password";
+    password: string;
+    passwordConfirm: string;
   }
 
   interface EditUser extends UserRecordDashboard {
@@ -87,8 +91,15 @@
   let newUser = $state<NewUser>({
     name: "",
     email: "",
-    role_ids: []
+    role_ids: [],
+    mode: "invite",
+    password: "",
+    passwordConfirm: ""
   });
+  // Password for a user who never set one (the invitation did not arrive)
+  let initialPassword = $state("");
+  let initialPasswordConfirm = $state("");
+  let settingInitialPassword = $state(false);
 
   // Edit user sheet state
   let showSettingsSheet = $state(false);
@@ -160,6 +171,18 @@
       creatingUserError = tm("Please enter a valid email address");
       return;
     }
+    if (newUser.mode === "password") {
+      if (!/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/.test(newUser.password)) {
+        creatingUserError = tm(
+          "Password must contain at least 8 characters, one uppercase letter, one lowercase letter and one number"
+        );
+        return;
+      }
+      if (newUser.password !== newUser.passwordConfirm) {
+        creatingUserError = tm("Passwords do not match");
+        return;
+      }
+    }
     if (newUser.role_ids.length === 0) {
       creatingUserError = tm("At least one role must be selected");
       return;
@@ -174,9 +197,12 @@
         body: JSON.stringify({
           action: "createNewUser",
           data: {
-            ...newUser,
             name: normalizedName,
-            email: normalizedEmail
+            email: normalizedEmail,
+            role_ids: newUser.role_ids,
+            ...(newUser.mode === "password"
+              ? { password: newUser.password, passwordConfirm: newUser.passwordConfirm }
+              : {})
           }
         })
       });
@@ -187,8 +213,12 @@
       } else {
         users = [...users, result];
         showAddUserDialog = false;
+        toast.success(
+          newUser.mode === "password"
+            ? tm("User created. They can sign in now with the password you set.")
+            : tm("User invited successfully")
+        );
         resetNewUser();
-        toast.success(tm("User invited successfully"));
       }
     } catch (error) {
       creatingUserError = tm("Error while creating user");
@@ -201,7 +231,10 @@
     newUser = {
       name: "",
       email: "",
-      role_ids: []
+      role_ids: [],
+      mode: canSendEmail ? "invite" : "password",
+      password: "",
+      passwordConfirm: ""
     };
   }
 
@@ -265,6 +298,47 @@
   }
 
   // Manual update user data
+  // Sets the first password of a user whose invitation never arrived (or was never sent).
+  async function setInitialPassword() {
+    if (!toEditUser) return;
+    manualUpdateError = "";
+    manualSuccess = "";
+    if (initialPassword !== initialPasswordConfirm) {
+      manualUpdateError = tm("Passwords do not match");
+      return;
+    }
+    settingInitialPassword = true;
+    try {
+      const res = await fetch(clientResolver(resolve, "/manage/api"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "manualUpdate",
+          data: {
+            id: toEditUser.id,
+            updateType: "password",
+            password: initialPassword,
+            passwordPlain: initialPasswordConfirm
+          }
+        })
+      });
+      const result = await res.json();
+      if (result.error) {
+        manualUpdateError = tmMessage(result.error);
+      } else {
+        users = users.map((user) => (user.id === toEditUser!.id ? result : user));
+        toEditUser = { ...result, actions: toEditUser.actions };
+        initialPassword = "";
+        initialPasswordConfirm = "";
+        manualSuccess = tm("Password set. The user can sign in now.");
+      }
+    } catch {
+      manualUpdateError = tm("Error while updating user");
+    } finally {
+      settingInitialPassword = false;
+    }
+  }
+
   async function manualUpdateData(updateType: string) {
     if (!toEditUser) return;
 
@@ -434,13 +508,18 @@
       {#if hasPermission("users.write")}
         {#if !canSendEmail}
           <p class="text-muted-foreground max-w-xs text-xs">
-            {tm("Email service not configured. Cannot invite new users.")}
+            {tm("Email service not configured: new users get a password from you instead of an invitation.")}
             <a href={`${GC.DOCS_URL}/v4/setup/email-setup`} target="_blank" class="text-blue-500 underline">
               {tm("Email setup")}
             </a>
           </p>
         {/if}
-        <Button onclick={() => (showAddUserDialog = true)} disabled={!canSendEmail}>
+        <Button
+          onclick={() => {
+            resetNewUser();
+            showAddUserDialog = true;
+          }}
+        >
           <PlusIcon class="h-4 w-4" />
           {tm("Add User")}
         </Button>
@@ -596,6 +675,61 @@
         </div>
 
         <div class="space-y-2">
+          <Label>{tm("Password")}</Label>
+          <div class="bg-muted grid grid-cols-2 gap-1 rounded-lg p-1" role="radiogroup">
+            <button
+              type="button"
+              role="radio"
+              aria-checked={newUser.mode === "invite"}
+              disabled={!canSendEmail}
+              onclick={() => (newUser.mode = "invite")}
+              class="rounded-md px-3 py-1.5 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50 {newUser.mode ===
+              'invite'
+                ? 'bg-background shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'}"
+            >
+              {tm("Send an invitation")}
+            </button>
+            <button
+              type="button"
+              role="radio"
+              aria-checked={newUser.mode === "password"}
+              onclick={() => (newUser.mode = "password")}
+              class="rounded-md px-3 py-1.5 text-sm font-medium transition {newUser.mode === 'password'
+                ? 'bg-background shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'}"
+            >
+              {tm("Set a password")}
+            </button>
+          </div>
+          {#if newUser.mode === "invite"}
+            <p class="text-muted-foreground text-xs">
+              {tm("The user gets an email with a link and chooses their own password.")}
+            </p>
+          {:else}
+            <Input
+              id="new-password"
+              type="password"
+              autocomplete="new-password"
+              placeholder={tm("Password")}
+              bind:value={newUser.password}
+            />
+            <Input
+              id="new-password-confirm"
+              type="password"
+              autocomplete="new-password"
+              placeholder={tm("Repeat password")}
+              bind:value={newUser.passwordConfirm}
+            />
+            <p class="text-muted-foreground text-xs">
+              {tm(
+                "No email is sent: give the password to the user yourself. At least 8 characters with an uppercase letter, a lowercase letter and a number."
+              )}
+            </p>
+          {/if}
+        </div>
+
+        <div class="space-y-2">
           <Label>{tm("Roles")}</Label>
           <div class="space-y-2">
             {#each activeRoles as role (role.id)}
@@ -688,6 +822,31 @@
                   {/if}
                   {tm("Resend Invitation")}
                 </Button>
+                <div class="mt-4 space-y-2 border-t pt-4">
+                  <p class="text-sm">
+                    {tm("Invitation not arriving? Set a password and give it to the user yourself.")}
+                  </p>
+                  <Input
+                    type="password"
+                    autocomplete="new-password"
+                    placeholder={tm("Password")}
+                    bind:value={initialPassword}
+                  />
+                  <Input
+                    type="password"
+                    autocomplete="new-password"
+                    placeholder={tm("Repeat password")}
+                    bind:value={initialPasswordConfirm}
+                  />
+                  <Button
+                    variant="secondary"
+                    disabled={settingInitialPassword || !initialPassword}
+                    onclick={setInitialPassword}
+                  >
+                    {#if settingInitialPassword}<Spinner class="size-4" />{/if}
+                    {tm("Set password")}
+                  </Button>
+                </div>
               </Card.Content>
             </Card.Root>
           {/if}

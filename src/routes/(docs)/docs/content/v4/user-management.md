@@ -113,7 +113,7 @@ Owner-specific restrictions:
 ## Invite flow {#invite-flow}
 
 > [!IMPORTANT]
-> Email must be configured before invitation flow can be used.
+> Email must be configured before invitation flow can be used. Without email, [create the user with a password](#create-with-password).
 
 From **Manage → Users**:
 
@@ -126,6 +126,12 @@ Current behavior:
 - invited user is created with inactive account and empty password
 - invitation token expires after 7 days
 - all selected roles must be active
+
+## Create a user with a password {#create-with-password}
+
+Under **Add User**, choose **Set a password** instead of **Send an invitation**. Kener creates the account at once with that password and sends no email; give the password to the user yourself. This works without email set up and when invitations do not arrive (e.g. held by a spam filter). The password needs at least 8 characters with an uppercase letter, a lowercase letter and a number.
+
+For a user who was invited but never set a password, open the user's settings: under **Resend Invitation** you can also **Set password**.
 
 ## How users accept invitation {#how-users-accept-invitation}
 
