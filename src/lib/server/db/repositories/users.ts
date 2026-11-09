@@ -421,6 +421,14 @@ export class UsersRepository extends BaseRepository {
 
   // ============ OIDC ============
 
+  /** Lets an existing account also sign in with single sign-on (its password keeps working). */
+  async linkUserOidcSub(id: number, oidcSub: string): Promise<number> {
+    return await this.knex("users").where({ id }).whereNull("oidc_sub").update({
+      oidc_sub: oidcSub,
+      updated_at: this.knex.fn.now(),
+    });
+  }
+
   async getUserByOidcSub(oidcSub: string): Promise<UserRecordPublic | undefined> {
     const row = await this.knex("users")
       .select(...this.userColumns)

@@ -409,6 +409,22 @@
               <Switch bind:checked={settings.auto_create_users} />
             </div>
 
+            <!-- Link existing accounts -->
+            <div class="flex items-center justify-between gap-4">
+              <div>
+                <Label>{tm("Sign in to existing accounts with the same email")}</Label>
+                <p class="text-muted-foreground text-sm">
+                  {tm(
+                    "When someone signs in with single sign-on and a Kener account with their email already exists (e.g. your own admin account), they are signed in to that account and keep its roles and password. Only turn this on if your identity provider lets only your organisation's accounts sign in."
+                  )}
+                </p>
+              </div>
+              <Switch
+                checked={!!settings.link_local_accounts}
+                onCheckedChange={(v) => (settings.link_local_accounts = v)}
+              />
+            </div>
+
             <!-- Default Role -->
             <div class="grid gap-2">
               <Label>{tm("Default Role")}</Label>

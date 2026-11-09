@@ -174,6 +174,11 @@ export interface OidcSettings {
   allow_local_login: boolean;
   auto_create_users: boolean;
   default_role_id: string;
+  /**
+   * Single sign-on with the email of an existing Kener account signs in to that account (and
+   * links it), instead of refusing. Its roles and password stay.
+   */
+  link_local_accounts?: boolean;
 }
 
 export interface OidcGroupRoleMapping {

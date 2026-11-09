@@ -16,7 +16,7 @@ Kener implements the standard OpenID Connect Authorization Code Flow with PKCE:
 5. Kener exchanges the code for tokens and reads the user's identity and group memberships.
 6. A Kener session is created and roles are assigned based on group mappings.
 
-OIDC users and local users are kept completely separate — there is no account merging. If a local account with the same email already exists, the OIDC login will be rejected with an error message.
+OIDC users and local users are kept separate by default. If a local account with the same email already exists, the OIDC login is rejected with an error message — unless **Sign in to existing accounts with the same email** is on (see below).
 
 ## Setup {#setup}
 
@@ -96,11 +96,12 @@ If none of a user's groups match any mapping, the configured **Default Role** is
 
 ## Settings reference {#settings-reference}
 
-| Setting                          | Default  | Description                                                             |
-| -------------------------------- | -------- | ----------------------------------------------------------------------- |
-| Allow local login                | ON       | When OFF, the password form is hidden and only the OIDC button is shown |
-| Auto-create users on first login | OFF      | When ON, new Kener users are created automatically on first OIDC login  |
-| Default Role                     | `viewer` | Fallback role when no group mapping matches                             |
+| Setting                                          | Default  | Description                                                                                                                                                                                                                                                                            |
+| ------------------------------------------------ | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Allow local login                                | ON       | When OFF, the password form is hidden and only the OIDC button is shown                                                                                                                                                                                                                |
+| Auto-create users on first login                 | OFF      | When ON, new Kener users are created automatically on first OIDC login                                                                                                                                                                                                                 |
+| Sign in to existing accounts with the same email | OFF      | When ON, an OIDC login whose email matches an active Kener account without an OIDC link signs in to that account and links it; its roles and password stay. Only for identity providers that let only your organisation's accounts sign in (e.g. a single-tenant Microsoft Entra app). |
+| Default Role                                     | `viewer` | Fallback role when no group mapping matches                                                                                                                                                                                                                                            |
 
 ## Lockout recovery {#lockout-recovery}
 
@@ -116,7 +117,7 @@ This re-enables the local login form regardless of the OIDC setting. Remove the 
 
 - **No RP-Initiated Logout**: Signing out of Kener does not end the session at the identity provider. The user remains authenticated at the provider until the session expires there.
 - **HTTPS required**: The `openid-client` library enforces HTTPS for the issuer URL. An `http://` issuer is only accepted when Kener runs in development mode (`npm run dev`); in production it fails with a discovery error.
-- **No account merging**: OIDC users and local users are separate. A user cannot sign in via both methods with the same account.
+- **Account linking is opt-in**: by default OIDC users and local users are separate. With **Sign in to existing accounts with the same email** on, an existing account (for example your own admin account) can sign in both with its password and with OIDC. The link is made once and kept; another OIDC identity cannot take over an account that is already linked.
 
 ## Related pages {#related-pages}
 

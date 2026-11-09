@@ -218,6 +218,16 @@ export async function FindOrCreateOidcUser(
 ): Promise<UserRecordPublic> {
   let user = await db.getUserByOidcSub(oidcData.sub);
 
+  // An account with this email already exists (e.g. the admin's own, made before single sign-on):
+  // with linking on, the identity provider's sign-in opens that account from now on.
+  if (!user && settings.link_local_accounts && oidcData.email) {
+    const owner = await db.getUserByEmail(oidcData.email);
+    if (owner && owner.is_active && !owner.oidc_sub) {
+      await db.linkUserOidcSub(owner.id, oidcData.sub);
+      user = await db.getUserByOidcSub(oidcData.sub);
+    }
+  }
+
   if (!user) {
     if (!settings.auto_create_users) {
       throw new OidcLoginError(

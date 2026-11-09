@@ -156,6 +156,7 @@ class DbImpl {
 
   // ============ OIDC ============
   getUserByOidcSub!: UsersRepository["getUserByOidcSub"];
+  linkUserOidcSub!: UsersRepository["linkUserOidcSub"];
   getAllOidcGroupRoleMappings!: UsersRepository["getAllOidcGroupRoleMappings"];
   getOidcGroupRoleMappingByGroup!: UsersRepository["getOidcGroupRoleMappingByGroup"];
   upsertOidcGroupRoleMapping!: UsersRepository["upsertOidcGroupRoleMapping"];
@@ -566,6 +567,7 @@ class DbImpl {
 
     // OIDC
     this.getUserByOidcSub = this.users.getUserByOidcSub.bind(this.users);
+    this.linkUserOidcSub = this.users.linkUserOidcSub.bind(this.users);
     this.getAllOidcGroupRoleMappings = this.users.getAllOidcGroupRoleMappings.bind(this.users);
     this.getOidcGroupRoleMappingByGroup = this.users.getOidcGroupRoleMappingByGroup.bind(this.users);
     this.upsertOidcGroupRoleMapping = this.users.upsertOidcGroupRoleMapping.bind(this.users);
