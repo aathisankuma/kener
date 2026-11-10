@@ -112,6 +112,20 @@ The detail page shows the resource with Azure's explanation and the times it was
 | `Azure refused access (HTTP 403)`     | Give the app the Reader role on the resource.      |
 | `Azure resource not found (HTTP 404)` | Check the resource ID, including the subscription. |
 
+## How the provider's reports count {#provider-impact}
+
+A provider often reports problems that do not affect you, for example Microsoft's "degraded performance" for a feature you do not use. Each Cloud Service monitor has **How the provider's reports count**:
+
+| Choice                    | Status page                                                                    |
+| ------------------------- | ------------------------------------------------------------------------------ |
+| Use the provider's status | As the provider reports it (default).                                          |
+| Only outages              | Degraded performance and advisories stay **Operational**; outages still count. |
+| Only as information       | The provider never changes the status.                                         |
+
+Whenever a rule keeps a service green, what the provider reports appears as a small note under the service name, e.g. "Microsoft 365: Degraded Performance", and the provider's current issues stay listed on the service's page. No incident is opened and no alert fires for it.
+
+For Microsoft 365 and Azure, one choice for all monitors is under **Manage → Microsoft 365 → How Microsoft's reports count**; a monitor set to **As set under Microsoft 365** (the default) follows it, any other choice on the monitor wins.
+
 ## UniFi access points {#unifi}
 
 Follow your own Wi-Fi: Kener reads whether each UniFi access point is online from UniFi Site Manager (unifi.ui.com), the cloud your UniFi consoles report to.

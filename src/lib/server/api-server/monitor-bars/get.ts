@@ -6,7 +6,11 @@ import { GetMinuteStartNowTimestampUTC } from "$lib/server/tool";
 import type { StatusType } from "$lib/types/status";
 import GC from "$lib/global-constants";
 import type { MonitorBarResponse } from "$lib/server/api-server/monitor-bar/get";
-import { buildMonitorBarResponseFromRawData, parseIntParam } from "$lib/server/api-server/monitor-bar/shared";
+import {
+  AttachProviderNotice,
+  buildMonitorBarResponseFromRawData,
+  parseIntParam,
+} from "$lib/server/api-server/monitor-bar/shared";
 import {
   AttachSslCacheFields,
   GetLatestMonitoringDataAllActive,
@@ -104,7 +108,7 @@ export default async function get(req: APIServerRequest): Promise<Response> {
           latestStatusByTag.get(tag) || GC.NO_DATA,
           monitor.monitor_type === "SSL" ? await AttachSslCacheFields(latestDataByTag.get(tag)) : null,
         );
-        return { tag, payload };
+        return { tag, payload: await AttachProviderNotice(monitor, payload) };
       }),
   );
 

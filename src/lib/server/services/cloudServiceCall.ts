@@ -18,6 +18,18 @@ import {
 import { WorstStatus } from "../instatusClient.js";
 import { FetchAzureCurrent, MapAzureAvailability } from "../azureResourceHealth.js";
 import { FetchUnifiDevices, MapUnifiStatus } from "../unifiClient.js";
+import { SetCloudNotice } from "../cloudNotice.js";
+import { ApplyProviderImpact, IsProviderImpact, type ProviderImpact } from "../../cloudServices.js";
+
+/** How much Microsoft 365 and Azure reports count by default (Settings → Microsoft 365). Tests replace it. */
+type ImpactLoader = () => Promise<ProviderImpact>;
+let microsoftImpactLoader: ImpactLoader = async () => {
+  const { GetM365Impact } = await import("../controllers/m365SettingsController.js");
+  return GetM365Impact();
+};
+export function SetMicrosoftImpactLoader(loader: ImpactLoader): void {
+  microsoftImpactLoader = loader;
+}
 
 /** Reads the UniFi API key of Settings → UniFi (or UNIFI_API_KEY). Tests replace it. */
 type UnifiKeyLoader = () => Promise<string>;
@@ -121,12 +133,14 @@ class CloudServiceCall {
       return this.fail(GC.ERROR, "Cloud Service monitor has no valid provider");
     }
     try {
-      if (provider.kind === "m365") return await this.checkM365(provider);
-      if (provider.kind === "azure") return await this.checkAzure();
-      if (provider.kind === "instatus") return await this.checkInstatus(provider);
-      if (provider.kind === "uptimerobot") return await this.checkUptimeRobot(provider);
       if (provider.kind === "unifi") return await this.checkUnifi();
-      return await this.checkStatuspage(provider);
+      let result: MonitoringResult;
+      if (provider.kind === "m365") result = await this.checkM365(provider);
+      else if (provider.kind === "azure") result = await this.checkAzure();
+      else if (provider.kind === "instatus") result = await this.checkInstatus(provider);
+      else if (provider.kind === "uptimerobot") result = await this.checkUptimeRobot(provider);
+      else result = await this.checkStatuspage(provider);
+      return await this.applyImpact(provider, result);
     } catch (err: unknown) {
       const error = err as { code?: string; message?: string };
       const timeout = data.timeout || 10000;
@@ -135,6 +149,26 @@ class CloudServiceCall {
       }
       return this.fail(GC.ERROR, error.message || "Network error");
     }
+  }
+
+  /**
+   * The monitor's impact rule: e.g. Microsoft's "degraded performance" stays Operational and is
+   * kept as a note for the status page. Only for a successful read; failures follow errorStatus.
+   */
+  private async applyImpact(provider: CloudProvider, result: MonitoringResult): Promise<MonitoringResult> {
+    if (result.type !== GC.REALTIME) return result;
+    const data = this.monitor.type_data;
+    const microsoft = provider.kind === "m365" || provider.kind === "azure";
+    const impact: ProviderImpact = IsProviderImpact(data.providerImpact)
+      ? data.providerImpact
+      : microsoft
+        ? await microsoftImpactLoader()
+        : "all";
+    const applied = ApplyProviderImpact(result.status, impact);
+    const providerName =
+      provider.kind === "m365" ? "Microsoft 365" : provider.kind === "azure" ? "Azure" : provider.label;
+    await SetCloudNotice(this.monitor.tag, applied.notice ? { status: applied.notice, provider: providerName } : null);
+    return applied.notice ? { ...result, status: applied.status } : result;
   }
 
   // ---------------------------------------------------------------- UniFi

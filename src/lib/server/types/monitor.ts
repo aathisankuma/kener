@@ -146,6 +146,10 @@ export interface CloudServiceMonitorTypeData {
   clientId?: string; // Microsoft 365: app registration client id; secret substitution applies
   clientSecret?: string; // Microsoft 365: client secret, ideally "$ENV_NAME"; secret substitution applies
   ignoreMinor?: boolean; // Statuspage, Instatus: minor incidents and degraded performance count as UP
+  // How much the provider's report counts: "all", "outages" (degraded stays UP) or "info" (never
+  // changes the status, shown as a note). Unset: Microsoft 365 / Azure follow Settings → Microsoft 365,
+  // others "all".
+  providerImpact?: "all" | "outages" | "info";
   errorStatus?: "UP" | "DEGRADED" | "DOWN"; // status when the provider cannot be read, default "DEGRADED"
   timeout?: number; // ms, default 10000
 }

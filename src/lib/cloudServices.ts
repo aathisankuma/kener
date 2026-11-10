@@ -48,6 +48,29 @@ export function IsCustomStatusPage(id: string | undefined): boolean {
 /** Provider id for any other Microsoft 365 service, entered by its Graph name or id. */
 export const CLOUD_CUSTOM_M365 = "m365-custom";
 
+/**
+ * How much a provider's report counts for the status page:
+ * - all: as the provider reports it;
+ * - outages: only outages, degraded performance and advisories stay Operational;
+ * - info: never changes the status; what the provider reports is shown as a note.
+ */
+export const PROVIDER_IMPACTS = ["all", "outages", "info"] as const;
+export type ProviderImpact = (typeof PROVIDER_IMPACTS)[number];
+
+export function IsProviderImpact(value: unknown): value is ProviderImpact {
+  return (PROVIDER_IMPACTS as readonly unknown[]).includes(value);
+}
+
+/**
+ * The status after the impact rule, and what the provider reported when the rule lowered it
+ * (shown as a note next to the service), else null.
+ */
+export function ApplyProviderImpact(status: string, impact: ProviderImpact): { status: string; notice: string | null } {
+  if (impact === "outages" && status === "DEGRADED") return { status: "UP", notice: status };
+  if (impact === "info" && status !== "UP") return { status: "UP", notice: status };
+  return { status, notice: null };
+}
+
 /** Provider id for one UniFi device; its id is the monitor's component. Made under Settings → UniFi. */
 export const CLOUD_UNIFI_DEVICE = "unifi-device";
 

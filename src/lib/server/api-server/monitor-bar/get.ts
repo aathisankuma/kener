@@ -32,6 +32,8 @@ export interface MonitorBarResponse {
   sslTrusted?: boolean | null;
   issuerCn?: string | null;
   issuerO?: string | null;
+  /** Cloud Service: what the provider reports while the monitor's rule keeps it Operational. */
+  providerNotice?: { status: string; provider: string } | null;
 }
 
 /**

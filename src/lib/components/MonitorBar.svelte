@@ -20,6 +20,7 @@
   import ProblemButton from "./ProblemButton.svelte";
   import { t } from "$lib/stores/i18n";
   import { page } from "$app/state";
+  import InfoIcon from "@lucide/svelte/icons/info";
 
   interface Props {
     tag: string;
@@ -136,6 +137,19 @@
         </Item.Title>
         {#if data.description}
           <Item.Description class="line-clamp-2 wrap-break-word">{data.description}</Item.Description>
+        {/if}
+        {#if data.providerNotice}
+          <!-- The provider's report, kept as information: the status itself stays as set by the rule. -->
+          <span
+            class="kener-provider-notice text-muted-foreground flex items-center gap-1 text-xs"
+            data-status={data.providerNotice.status}
+            title={$t("Information from the provider. It does not change the status here.")}
+          >
+            <InfoIcon class="size-3.5 shrink-0" />
+            <span class="truncate"
+              >{data.providerNotice.provider}: {$t(STATUS_LABEL[data.providerNotice.status] ?? "No Data")}</span
+            >
+          </span>
         {/if}
         {#if !grid && page.data.problemButton?.counts?.[tag] !== undefined}
           <!-- Rows: below the name (and a status shown next to it). -->

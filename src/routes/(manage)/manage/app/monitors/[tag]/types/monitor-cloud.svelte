@@ -394,6 +394,39 @@
     </div>
   {/if}
 
+  {#if provider && provider.kind !== "unifi"}
+    {@const microsoft = IsMicrosoftKind(provider.kind)}
+    {@const impactOptions = [
+      ...(microsoft ? [{ value: "", label: tm("As set under Microsoft 365") }] : []),
+      { value: "all", label: microsoft ? tm("Use Microsoft's status") : tm("Use the provider's status") },
+      { value: "outages", label: tm("Only outages") },
+      { value: "info", label: tm("Only as information") }
+    ]}
+    {@const current = data.providerImpact ?? (microsoft ? "" : "all")}
+    <div class="flex flex-col gap-2">
+      <Label for="cloud-impact">{tm("How the provider's reports count")}</Label>
+      <Select.Root
+        type="single"
+        value={current}
+        onValueChange={(v) => (data.providerImpact = v === "" ? undefined : (v as "all" | "outages" | "info"))}
+      >
+        <Select.Trigger id="cloud-impact" class="w-full">
+          {impactOptions.find((o) => o.value === current)?.label}
+        </Select.Trigger>
+        <Select.Content>
+          {#each impactOptions as opt (opt.value)}
+            <Select.Item value={opt.value}>{opt.label}</Select.Item>
+          {/each}
+        </Select.Content>
+      </Select.Root>
+      <p class="text-muted-foreground text-xs">
+        {tm(
+          "Only outages: degraded performance stays Operational. Only as information: the provider never changes the status. Either way, what the provider reports appears as a note next to the service."
+        )}
+      </p>
+    </div>
+  {/if}
+
   <div class="grid gap-4 sm:grid-cols-2">
     <div class="flex flex-col gap-2">
       <Label for="cloud-error">{tm("If the provider cannot be read")}</Label>

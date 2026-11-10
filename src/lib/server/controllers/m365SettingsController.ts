@@ -2,6 +2,7 @@
 // (tenant, client id, secret) for every Microsoft 365 and Azure Cloud Service monitor whose own
 // fields are empty. It comes before the M365_* environment variables.
 import db from "../db/db.js";
+import { IsProviderImpact, type ProviderImpact } from "../../cloudServices.js";
 import {
   ClearCloudProviderCache,
   M365HealthOverviews,
@@ -19,37 +20,52 @@ export interface M365SettingsView {
   hasSecret: boolean;
   /** Which values Kener's environment provides as a fallback (M365_*). */
   fromEnvironment: { tenantId: boolean; clientId: boolean; clientSecret: boolean };
+  /** How much Microsoft's reports count for monitors that follow this setting. */
+  impact: ProviderImpact;
 }
 
 // Every Microsoft monitor reads the connection on each check: keep it for a short while.
 const CACHE_MS = 30 * 1000;
-let cached: { at: number; value: M365Credentials } | null = null;
 
-async function readStored(): Promise<M365Credentials> {
+type Stored = M365Credentials & { impact: ProviderImpact };
+
+async function readStored(): Promise<Stored> {
   const row = await db.getSiteDataByKey(KEY);
-  if (!row?.value) return { ...EMPTY };
+  if (!row?.value) return { ...EMPTY, impact: "all" };
   try {
     const parsed = JSON.parse(row.value);
     return {
       tenantId: String(parsed.tenantId ?? ""),
       clientId: String(parsed.clientId ?? ""),
       clientSecret: String(parsed.clientSecret ?? ""),
+      impact: IsProviderImpact(parsed.impact) ? parsed.impact : "all",
     };
   } catch {
-    return { ...EMPTY };
+    return { ...EMPTY, impact: "all" };
   }
 }
 
-export async function GetM365SharedConnection(): Promise<M365Credentials> {
-  if (cached && Date.now() - cached.at < CACHE_MS) return cached.value;
+let cachedStored: { at: number; value: Stored } | null = null;
+async function readCached(): Promise<Stored> {
+  if (cachedStored && Date.now() - cachedStored.at < CACHE_MS) return cachedStored.value;
   const value = await readStored();
-  cached = { at: Date.now(), value };
+  cachedStored = { at: Date.now(), value };
   return value;
+}
+
+export async function GetM365SharedConnection(): Promise<M365Credentials> {
+  const { tenantId, clientId, clientSecret } = await readCached();
+  return { tenantId, clientId, clientSecret };
+}
+
+/** How much Microsoft 365 and Azure reports count, for monitors that follow the settings page. */
+export async function GetM365Impact(): Promise<ProviderImpact> {
+  return (await readCached()).impact;
 }
 
 /** Test hook. */
 export function ClearM365SettingsCache(): void {
-  cached = null;
+  cachedStored = null;
 }
 
 export async function GetM365SettingsView(): Promise<M365SettingsView> {
@@ -64,6 +80,7 @@ export async function GetM365SettingsView(): Promise<M365SettingsView> {
       clientId: env("M365_CLIENT_ID"),
       clientSecret: env("M365_CLIENT_SECRET"),
     },
+    impact: stored.impact,
   };
 }
 
@@ -98,10 +115,11 @@ export async function SaveM365Settings(data: Record<string, unknown>): Promise<M
       "This looks like the Secret ID. Paste the secret's Value from Certificates & secrets (it usually contains a ~).",
     );
   }
-  const settings: M365Credentials = {
+  const settings: Stored = {
     tenantId,
     clientId,
     clientSecret: data.removeSecret === true ? "" : newSecret || current.clientSecret,
+    impact: data.impact === undefined ? current.impact : IsProviderImpact(data.impact) ? data.impact : current.impact,
   };
   await db.insertOrUpdateSiteData(KEY, JSON.stringify(settings), "object");
   ClearM365SettingsCache();

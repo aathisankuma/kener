@@ -59,6 +59,42 @@
     }
   }
 
+  // How much Microsoft's reports count; saved as soon as one is picked.
+  const IMPACTS = [
+    {
+      value: "all",
+      label: () => tm("Use Microsoft's status"),
+      hint: () => tm("Degraded performance and outages at Microsoft show on the status page as reported.")
+    },
+    {
+      value: "outages",
+      label: () => tm("Only outages"),
+      hint: () =>
+        tm(
+          "Degraded performance and advisories stay Operational and appear as a note. Outages still turn the service red."
+        )
+    },
+    {
+      value: "info",
+      label: () => tm("Only as information"),
+      hint: () =>
+        tm("Microsoft never changes the status here. Whatever Microsoft reports appears as a note next to the service.")
+    }
+  ] as const;
+
+  async function chooseImpact(impact: string) {
+    if (!saved || saved.impact === impact || busy) return;
+    busy = "impact";
+    try {
+      saved = await call("saveM365Settings", { tenantId: saved.tenantId, clientId: saved.clientId, impact });
+      toast.success(tm("Saved"));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : tm("Could not save"));
+    } finally {
+      busy = null;
+    }
+  }
+
   async function test() {
     // What is typed is saved first, so the test uses it.
     if (canWrite && !(await save())) return;
@@ -213,6 +249,41 @@
           </div>
         </Card.Footer>
       {/if}
+    </Card.Root>
+
+    <Card.Root>
+      <Card.Header>
+        <Card.Title>{tm("How Microsoft's reports count")}</Card.Title>
+        <Card.Description>
+          {tm(
+            "For every Microsoft 365 and Azure monitor that has no rule of its own. Microsoft's current issues stay listed on each service's page."
+          )}
+        </Card.Description>
+      </Card.Header>
+      <Card.Content>
+        <div class="grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label={tm("How Microsoft's reports count")}>
+          {#each IMPACTS as option (option.value)}
+            {@const active = saved?.impact === option.value}
+            <button
+              type="button"
+              role="radio"
+              aria-checked={active}
+              data-testid="m365-impact-{option.value}"
+              disabled={!canWrite || busy !== null}
+              onclick={() => chooseImpact(option.value)}
+              class="hover:bg-muted/50 flex flex-col gap-1 rounded-xl border p-3 text-left transition disabled:cursor-not-allowed {active
+                ? 'border-primary ring-primary/25 ring-2'
+                : ''}"
+            >
+              <span class="flex items-center gap-1.5 text-sm font-medium">
+                {option.label()}
+                {#if active}<CheckIcon class="text-primary ml-auto size-4" />{/if}
+              </span>
+              <span class="text-muted-foreground text-xs">{option.hint()}</span>
+            </button>
+          {/each}
+        </div>
+      </Card.Content>
     </Card.Root>
   {/if}
 </div>

@@ -49,3 +49,15 @@ describe("ChosenComponents", () => {
     expect(ChosenComponents(undefined)).toEqual([]);
   });
 });
+
+describe("how much a provider's report counts", () => {
+  it("keeps the status, lowers degraded, or turns everything into a note", async () => {
+    const { ApplyProviderImpact } = await import("./cloudServices");
+    expect(ApplyProviderImpact("DEGRADED", "all")).toEqual({ status: "DEGRADED", notice: null });
+    expect(ApplyProviderImpact("DEGRADED", "outages")).toEqual({ status: "UP", notice: "DEGRADED" });
+    expect(ApplyProviderImpact("DOWN", "outages")).toEqual({ status: "DOWN", notice: null });
+    expect(ApplyProviderImpact("DOWN", "info")).toEqual({ status: "UP", notice: "DOWN" });
+    expect(ApplyProviderImpact("MAINTENANCE", "info")).toEqual({ status: "UP", notice: "MAINTENANCE" });
+    expect(ApplyProviderImpact("UP", "info")).toEqual({ status: "UP", notice: null });
+  });
+});

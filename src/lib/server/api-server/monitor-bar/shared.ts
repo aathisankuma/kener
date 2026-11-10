@@ -1,4 +1,5 @@
 import db from "$lib/server/db/db";
+import { GetCloudNotice } from "$lib/server/cloudNotice";
 import GC from "$lib/global-constants";
 import type { StatusType } from "$lib/types/status";
 import type { MonitorRecord, MonitoringData, TimestampStatusCount } from "$lib/server/types/db";
@@ -81,7 +82,7 @@ export const buildMonitorBarResponse = async (
   ]);
   const latest = isSsl ? await AttachSslCacheFields(latestData) : latestData;
 
-  return buildMonitorBarResponseFromRawData(
+  const response = buildMonitorBarResponseFromRawData(
     monitor,
     rawUptimeData,
     days,
@@ -89,6 +90,17 @@ export const buildMonitorBarResponse = async (
     latestStatus || (latest?.status as StatusType) || GC.NO_DATA,
     latest,
   );
+  return AttachProviderNotice(monitor, response);
+};
+
+/** Cloud Service monitors: the provider's note, when the monitor's rule kept the status Operational. */
+export const AttachProviderNotice = async (
+  monitor: MonitorRecord,
+  response: MonitorBarResponse,
+): Promise<MonitorBarResponse> => {
+  if (monitor.monitor_type !== "CLOUD") return response;
+  const notice = await GetCloudNotice(monitor.tag);
+  return notice ? { ...response, providerNotice: notice } : response;
 };
 
 export const buildMonitorBarResponseFromRawData = (

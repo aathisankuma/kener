@@ -814,3 +814,12 @@ html.dark
     margin-top: 2px;
   }
 }
+
+/* The provider's note under a service name ("Microsoft 365: Degraded Performance"): small in every
+   design, also in the portal's large app cards. */
+.kener-public .kener-monitor .kener-provider-notice {
+  font-size: 12px;
+  line-height: 1.4;
+  font-weight: 400;
+  margin-top: 2px;
+}

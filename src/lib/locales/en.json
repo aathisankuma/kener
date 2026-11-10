@@ -263,6 +263,7 @@
     "Sign in to subscribe": "Sign in to subscribe",
     "Sign in to get notified about incidents and scheduled maintenance.": "Sign in to get notified about incidents and scheduled maintenance.",
     "Sign in to get notified about incidents and scheduled maintenance of %name.": "Sign in to get notified about incidents and scheduled maintenance of %name.",
-    "Sign in with your company account. You then get the emails at your work address, no code needed.": "Sign in with your company account. You then get the emails at your work address, no code needed."
+    "Sign in with your company account. You then get the emails at your work address, no code needed.": "Sign in with your company account. You then get the emails at your work address, no code needed.",
+    "Information from the provider. It does not change the status here.": "Information from the provider. It does not change the status here."
   }
 }

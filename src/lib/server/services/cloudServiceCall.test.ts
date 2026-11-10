@@ -3,6 +3,7 @@ import { SetM365SharedConnectionLoader } from "../cloudProviderClient";
 import axios from "axios";
 import { ClearAzureHealthCache } from "../azureResourceHealth";
 import CloudServiceCall, {
+  SetMicrosoftImpactLoader,
   ClearCloudServiceCache,
   MapM365Status,
   MapStatuspageComponent,
@@ -13,9 +14,13 @@ import { ABACUS_COMPONENTS, ABACUS_SUMMARY } from "../instatusFixture";
 
 vi.mock("axios", () => ({ default: vi.fn() }));
 const mockedAxios = vi.mocked(axios);
+const { SetCloudNotice } = vi.hoisted(() => ({ SetCloudNotice: vi.fn() }));
+vi.mock("../cloudNotice", () => ({ SetCloudNotice }));
 
 beforeEach(() => {
   SetM365SharedConnectionLoader(async () => ({}));
+  SetMicrosoftImpactLoader(async () => "all");
+  SetCloudNotice.mockReset();
   mockedAxios.mockReset();
   ClearCloudServiceCache();
   ClearAzureHealthCache();
@@ -313,6 +318,32 @@ describe("Microsoft 365 providers", () => {
     const [graphUrl, graphOptions] = mockedAxios.mock.calls[1] as [string, { headers: Record<string, string> }];
     expect(graphUrl).toContain("/admin/serviceAnnouncement/healthOverviews");
     expect(graphOptions.headers.Authorization).toBe("Bearer tok");
+  });
+
+  it("keeps Microsoft's degraded performance as a note when only outages count", async () => {
+    process.env.TEST_M365_SECRET = "s3cret";
+    const degraded = reply(200, {
+      value: [
+        { id: "Exchange", service: "Exchange Online", status: "serviceDegradation" },
+        { id: "microsoftteams", service: "Microsoft Teams", status: "serviceInterruption" },
+      ],
+    });
+    mockedAxios.mockResolvedValueOnce(token).mockResolvedValueOnce(degraded);
+    SetMicrosoftImpactLoader(async () => "outages");
+
+    const exchange = await new CloudServiceCall(m365({ provider: "m365-exchange" })).execute();
+    const teams = await new CloudServiceCall(m365()).execute();
+
+    expect(exchange.status).toBe("UP");
+    expect(SetCloudNotice).toHaveBeenCalledWith("cloud-test", { status: "DEGRADED", provider: "Microsoft 365" });
+    // An outage still counts.
+    expect(teams.status).toBe("DOWN");
+    expect(SetCloudNotice).toHaveBeenLastCalledWith("cloud-test", null);
+
+    // The monitor's own rule wins over the Microsoft 365 page: only information.
+    const info = await new CloudServiceCall(m365({ providerImpact: "info" })).execute();
+    expect(info.status).toBe("UP");
+    expect(SetCloudNotice).toHaveBeenLastCalledWith("cloud-test", { status: "DOWN", provider: "Microsoft 365" });
   });
 
   it("shares one sign-in and one health read across monitors", async () => {
