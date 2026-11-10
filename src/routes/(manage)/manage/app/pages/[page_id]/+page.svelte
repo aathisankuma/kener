@@ -1,5 +1,8 @@
 <script lang="ts">
-  import { tm, tmh } from "$lib/uiLocale.svelte";
+  import { tm, tmh, tmMessage } from "$lib/uiLocale.svelte";
+  import { SectionTitleOf } from "$lib/pageSections";
+  import HeadingIcon from "@lucide/svelte/icons/heading";
+  import PencilIcon from "@lucide/svelte/icons/pencil";
   import { page } from "$app/state";
   import { goto } from "$app/navigation";
   import * as Card from "$lib/components/ui/card/index.js";
@@ -74,6 +77,10 @@
   let addingMonitor = $state(false);
   let removingMonitor = $state<string | null>(null);
   let reordering = $state(false);
+  // Section titles: a title on a service starts a section there (title above a fine line).
+  let sectionTitles = $state<Record<string, string>>({});
+  let editingSection = $state<string | null>(null);
+  let sectionDraft = $state("");
 
   // Delete state
   let deleteConfirmText = $state("");
@@ -134,6 +141,14 @@
           page_logo: foundPage.page_logo || ""
         };
         selectedMonitors = foundPage.monitors?.map((m: { monitor_tag: string }) => m.monitor_tag) || [];
+        sectionTitles = Object.fromEntries(
+          (foundPage.monitors || [])
+            .map((m: { monitor_tag: string; monitor_settings_json?: string | null }) => [
+              m.monitor_tag,
+              SectionTitleOf(m.monitor_settings_json)
+            ])
+            .filter(([, title]: [string, string]) => !!title)
+        );
         // Load page settings with defaults
         if (foundPage.page_settings_json) {
           try {
@@ -319,6 +334,37 @@
 
   // Get available monitors (not already on the current page)
   const availableMonitors = $derived(monitors.filter((m) => !selectedMonitors.includes(m.tag)));
+
+  function startSection(tag: string) {
+    editingSection = tag;
+    sectionDraft = sectionTitles[tag] ?? "";
+  }
+
+  async function saveSection(tag: string) {
+    if (!currentPage || editingSection !== tag) return;
+    editingSection = null;
+    const title = sectionDraft.trim();
+    if ((sectionTitles[tag] ?? "") === title) return;
+    try {
+      const response = await fetch(clientResolver(resolve, "/manage/api"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "setPageMonitorSection",
+          data: { page_id: currentPage.id, monitor_tag: tag, title }
+        })
+      });
+      const result = await response.json();
+      if (result.error) throw new Error(result.error);
+      const next = { ...sectionTitles };
+      if (result.title) next[tag] = result.title;
+      else delete next[tag];
+      sectionTitles = next;
+      toast.success(result.title ? tm("Section saved") : tm("Section removed"));
+    } catch (e) {
+      toast.error(e instanceof Error ? tmMessage(e.message) : tm("Could not save"));
+    }
+  }
 
   async function moveMonitor(index: number, direction: "up" | "down") {
     const newIndex = direction === "up" ? index - 1 : index + 1;
@@ -735,12 +781,49 @@
               <div class="space-y-2">
                 {#each selectedMonitors as monitorTag, i (monitorTag)}
                   {@const monitor = monitors.find((m) => m.tag === monitorTag)}
+                  {#if editingSection === monitorTag}
+                    <div class="flex items-center gap-2 pt-2">
+                      <Input
+                        class="h-8 max-w-64 text-sm"
+                        placeholder={tm("Section title, e.g. IT")}
+                        bind:value={sectionDraft}
+                        autofocus
+                        onkeydown={(e) => {
+                          if (e.key === "Enter") saveSection(monitorTag);
+                          if (e.key === "Escape") editingSection = null;
+                        }}
+                        onblur={() => saveSection(monitorTag)}
+                      />
+                      <div class="bg-border h-px flex-1"></div>
+                    </div>
+                  {:else if sectionTitles[monitorTag]}
+                    <button
+                      type="button"
+                      class="group flex w-full items-center gap-2 pt-2 text-left"
+                      title={tm("Edit section")}
+                      onclick={() => startSection(monitorTag)}
+                    >
+                      <span class="text-sm font-semibold">{sectionTitles[monitorTag]}</span>
+                      <PencilIcon class="text-muted-foreground size-3 opacity-0 transition group-hover:opacity-100" />
+                      <span class="bg-border h-px flex-1"></span>
+                    </button>
+                  {/if}
                   <div class="bg-muted flex items-center justify-between rounded-lg p-3">
                     <div>
                       <p class="font-medium">{monitor?.name || monitorTag}</p>
                       <p class="text-muted-foreground text-xs">{monitorTag}</p>
                     </div>
                     <div class="flex items-center gap-1">
+                      {#if !sectionTitles[monitorTag] && editingSection !== monitorTag}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          title={tm("Start a section here")}
+                          onclick={() => startSection(monitorTag)}
+                        >
+                          <HeadingIcon class="h-4 w-4" />
+                        </Button>
+                      {/if}
                       <Button
                         variant="ghost"
                         size="sm"

@@ -823,3 +823,37 @@ html.dark
   font-weight: 400;
   margin-top: 2px;
 }
+
+/* =====================================================================
+   Sections on a page (Pages → a service → "Section"): the title on the left, a fine line
+   under it, then the section's services in their own box.
+   ===================================================================== */
+.kener-section-heading {
+  margin: 2.5rem 0 1rem;
+  padding: 0 0.25rem 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+.kener-section-heading[data-first="true"] {
+  margin-top: 0.5rem;
+}
+.kener-section-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--foreground);
+}
+.kener-public[data-density="compact"] .kener-section-heading {
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+/* Portal: like the sections of a hosted status page, a quiet line with the title above it */
+.kener-public[data-layout="portal"] .kener-section-heading {
+  margin: 8px 0 28px;
+  padding: 0 0 10px;
+  border-bottom-color: var(--hub-line);
+}
+.kener-public[data-layout="portal"] .kener-section-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--hub-text);
+}

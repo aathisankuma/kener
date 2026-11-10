@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { SplitIntoSections } from "$lib/pageSections";
   import { browser } from "$app/environment";
   import * as Item from "$lib/components/ui/item/index.js";
   import EventsCard from "$lib/components/EventsCard.svelte";
@@ -34,6 +35,8 @@
       data.alwaysShownTags ?? []
     )
   );
+  // The shown services split into the page's sections (title above a fine line).
+  const sections = $derived(SplitIntoSections(shownTags, data.monitorSectionByTag));
   let pageSettings = $derived(data.pageDetails.page_settings);
   let barCount = $derived.by(() =>
     data.isMobile
@@ -216,33 +219,42 @@
         {/each}
       </div>
     {/if}
-    <div
-      class="kener-monitors overflow-hidden rounded-3xl border"
-      data-view={viewType}
-      data-portal={viewType?.endsWith("grid") ? "hub" : "list"}
-    >
-      <div class={`kener-monitors-grid grid grid-cols-1 ${getGridContainerClass(viewType)}`}>
-        {#each shownTags as tag, i (tag)}
-          <div
-            class="kener-monitor {viewType === 'compact-grid' || viewType === 'default-grid'
-              ? `${getGridItemSpanClass(i, shownTags.length, viewType)} bg-background`
-              : i < shownTags.length - 1
-                ? 'border-b'
-                : ''} px-2 py-2 sm:px-0"
-          >
-            <MonitorBar
-              {tag}
-              prefetchedData={monitorBarDataByTag[tag]}
-              prefetchedError={monitorBarErrorByTag[tag]}
-              days={barCount}
-              {endOfDayTodayAtTz}
-              groupChildTags={data.monitorGroupMembersByTag?.[tag] || []}
-              compact={isCompact}
-              grid={viewType === "compact-grid" || viewType === "default-grid"}
-            />
+    <div class="kener-sections flex flex-col">
+      {#each sections as section, s (s)}
+        {#if section.title}
+          <div class="kener-section-heading" data-first={s === 0}>
+            <h2 class="kener-section-title">{section.title}</h2>
           </div>
-        {/each}
-      </div>
+        {/if}
+        <div
+          class="kener-monitors overflow-hidden rounded-3xl border"
+          data-view={viewType}
+          data-portal={viewType?.endsWith("grid") ? "hub" : "list"}
+        >
+          <div class={`kener-monitors-grid grid grid-cols-1 ${getGridContainerClass(viewType)}`}>
+            {#each section.tags as tag, i (tag)}
+              <div
+                class="kener-monitor {viewType === 'compact-grid' || viewType === 'default-grid'
+                  ? `${getGridItemSpanClass(i, section.tags.length, viewType)} bg-background`
+                  : i < section.tags.length - 1
+                    ? 'border-b'
+                    : ''} px-2 py-2 sm:px-0"
+              >
+                <MonitorBar
+                  {tag}
+                  prefetchedData={monitorBarDataByTag[tag]}
+                  prefetchedError={monitorBarErrorByTag[tag]}
+                  days={barCount}
+                  {endOfDayTodayAtTz}
+                  groupChildTags={data.monitorGroupMembersByTag?.[tag] || []}
+                  compact={isCompact}
+                  grid={viewType === "compact-grid" || viewType === "default-grid"}
+                />
+              </div>
+            {/each}
+          </div>
+        </div>
+      {/each}
     </div>
   {/if}
   <PastIncidents incidents={data.pastJsmIncidents} />

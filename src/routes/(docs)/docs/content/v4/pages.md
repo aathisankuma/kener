@@ -44,6 +44,15 @@ Remove a monitor by clicking the remove button next to it.
 > [!IMPORTANT]
 > Only monitors added to a page are shown on that page.
 
+## Sections {#sections}
+
+Split a page into sections, each with a title and a fine line, like "IT" and "Atlassian":
+
+1. Under **Monitors on the page**, click **H** (**Start a section here**) on the first service of the section.
+2. Type the title, e.g. `IT`, and press Enter.
+
+The section runs until the next service with a title; services above the first title have none. On the status page the title sits on the left above a fine line, and each section's services are in their own box or grid, in every design. To rename a section, click its title in the list; save it empty to remove it. Moving services with the arrows keeps the title on the service it belongs to. A title on a hidden service still starts its section, and a section whose services a visitor hid under **Choose services** is left out for that visitor.
+
 ## Display settings {#display-settings}
 
 Each page has its own display preferences.

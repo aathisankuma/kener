@@ -65,6 +65,7 @@ import {
   RemoveMonitorFromPage,
   GetPageMonitors,
   ReorderPageMonitors,
+  SetPageMonitorSection,
 } from "$lib/server/controllers/pagesController.js";
 import {
   CreateMaintenance,
@@ -565,6 +566,8 @@ export async function POST({ request, cookies }) {
     } else if (action == "reorderPageMonitors") {
       await ReorderPageMonitors(data.page_id, data.monitor_tags);
       resp = { success: true };
+    } else if (action == "setPageMonitorSection") {
+      resp = { title: await SetPageMonitorSection(Number(data.page_id), String(data.monitor_tag), data.title) };
     }
     // ============ Maintenance Actions ============
     else if (action == "getMaintenances") {

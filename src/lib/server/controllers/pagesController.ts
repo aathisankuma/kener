@@ -177,6 +177,33 @@ export async function GetPageMonitors(page_id: number): Promise<PageMonitorRecor
 }
 
 /**
+ * Starts a section at a service on a page: its title shows above a fine line, before this service.
+ * An empty title ends nothing and removes the section start.
+ */
+export async function SetPageMonitorSection(page_id: number, monitor_tag: string, title: unknown): Promise<string> {
+  const clean = String(title ?? "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 60);
+  const row = (await db.getPageMonitors(page_id)).find((pm) => pm.monitor_tag === monitor_tag);
+  if (!row) throw new Error(`Monitor "${monitor_tag}" not found on this page`);
+  let settings: Record<string, unknown> = {};
+  try {
+    settings = row.monitor_settings_json ? JSON.parse(row.monitor_settings_json) || {} : {};
+  } catch {
+    settings = {};
+  }
+  if (clean) settings.sectionTitle = clean;
+  else delete settings.sectionTitle;
+  await UpdatePageMonitorSettings(
+    page_id,
+    monitor_tag,
+    Object.keys(settings).length > 0 ? JSON.stringify(settings) : null,
+  );
+  return clean;
+}
+
+/**
  * Update monitor settings on a page
  */
 export async function UpdatePageMonitorSettings(

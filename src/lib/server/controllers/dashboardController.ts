@@ -1,3 +1,4 @@
+import { SectionByTag, SectionTitleOf } from "../../pageSections.js";
 import db from "../db/db.js";
 import { AlwaysShownTagsOf } from "../../serviceSelection.js";
 import { GetMinuteStartNowTimestampUTC, BeginningOfMinute, BeginningOfDay } from "../tool.js";
@@ -239,6 +240,8 @@ export interface PageDashboardData {
   /** Services the administrator marked "always shown": visitors cannot hide them. */
   alwaysShownTags: string[];
   monitorGroupMembersByTag: Record<string, string[]>;
+  /** The section each service belongs to ("" before the first section title). */
+  monitorSectionByTag: Record<string, string>;
   pageDetails: PageRecordTyped;
   socialPagePreviewImage?: string;
   metaPageTitle?: string;
@@ -393,6 +396,13 @@ export const GetPageDashboardData = async (
 
   const { page: pageDetails, monitors: pageMonitors } = pageData;
   const monitorTags = pageMonitors.map((pm) => pm.monitor_tag);
+  // Section titles from all of the page's services, hidden ones included.
+  const monitorSectionByTag = SectionByTag(
+    (await db.getPageMonitors(pageDetails.id)).map((pm) => ({
+      tag: pm.monitor_tag,
+      title: SectionTitleOf(pm.monitor_settings_json),
+    })),
+  );
 
   // Parse page settings with defaults
   let settings: PageSettingsType = defaultPageSettings;
@@ -453,6 +463,7 @@ export const GetPageDashboardData = async (
       monitorNames: {},
       alwaysShownTags: [],
       monitorGroupMembersByTag: {},
+      monitorSectionByTag,
       pageDetails: pageDetailsTyped,
       socialPagePreviewImage,
       metaPageTitle,
@@ -517,6 +528,7 @@ export const GetPageDashboardData = async (
     monitorNames: Object.fromEntries(parsedMonitors.map((m) => [m.tag, m.name])),
     alwaysShownTags: AlwaysShownTagsOf(parsedMonitors),
     monitorGroupMembersByTag,
+    monitorSectionByTag,
     pageDetails: pageDetailsTyped,
     socialPagePreviewImage,
     metaPageTitle,
