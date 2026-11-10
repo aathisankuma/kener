@@ -396,13 +396,15 @@ export const GetPageDashboardData = async (
 
   const { page: pageDetails, monitors: pageMonitors } = pageData;
   const monitorTags = pageMonitors.map((pm) => pm.monitor_tag);
-  // Section titles from all of the page's services, hidden ones included.
-  const monitorSectionByTag = SectionByTag(
+  // Section titles from all of the page's services, so a title on a hidden service still starts its
+  // section; only the services this viewer may see are sent (hidden tags must not leak).
+  const allSections = SectionByTag(
     (await db.getPageMonitors(pageDetails.id)).map((pm) => ({
       tag: pm.monitor_tag,
       title: SectionTitleOf(pm.monitor_settings_json),
     })),
   );
+  const monitorSectionByTag = Object.fromEntries(monitorTags.map((tag) => [tag, allSections[tag] ?? ""]));
 
   // Parse page settings with defaults
   let settings: PageSettingsType = defaultPageSettings;
