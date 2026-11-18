@@ -45,9 +45,12 @@ import {
   ClearCloudProviderCache,
   FindM365Service,
   M365HealthOverviews,
+  M365OpenIncidentFor,
+  M365OpenIssues,
   M365MatchNames,
   ResolveM365CredentialsShared,
   StatuspageBase,
+  type M365Credentials,
 } from "../cloudProviderClient.js";
 import {
   FetchInstatusComponents,
@@ -121,6 +124,8 @@ export const ClearCloudServiceCache = ClearCloudProviderCache;
 
 class CloudServiceCall {
   monitor: CloudServiceMonitor;
+  // Set by a Microsoft 365 check: what the "incidents" rule needs to read Microsoft's open issues.
+  private m365Read: { credentials: M365Credentials; service: string; timeout: number } | null = null;
 
   constructor(monitor: CloudServiceMonitor) {
     this.monitor = monitor;
@@ -164,11 +169,25 @@ class CloudServiceCall {
       : microsoft
         ? await microsoftImpactLoader()
         : "all";
-    const applied = ApplyProviderImpact(result.status, impact);
+    let openIncident: boolean | null = null;
+    let incidentTitle = "";
+    if (impact === "incidents" && this.m365Read) {
+      const { credentials, service, timeout } = this.m365Read;
+      try {
+        const incident = M365OpenIncidentFor(await M365OpenIssues(credentials, timeout), service);
+        openIncident = !!incident;
+        if (incident) incidentTitle = `incident ${incident.id}: ${incident.title}`.substring(0, 200);
+      } catch (err) {
+        // The issue list could not be read: the service's own status decides, as with "outages".
+        console.error(`Microsoft 365 issues for ${this.monitor.tag} could not be read:`, err);
+      }
+    }
+    const applied = ApplyProviderImpact(result.status, impact, openIncident);
     const providerName =
       provider.kind === "m365" ? "Microsoft 365" : provider.kind === "azure" ? "Azure" : provider.label;
     await SetCloudNotice(this.monitor.tag, applied.notice ? { status: applied.notice, provider: providerName } : null);
-    return applied.notice ? { ...result, status: applied.status } : result;
+    if (incidentTitle) return { ...result, status: applied.status, raw_status: incidentTitle };
+    return applied.notice || applied.status !== result.status ? { ...result, status: applied.status } : result;
   }
 
   // ---------------------------------------------------------------- UniFi
@@ -382,6 +401,11 @@ class CloudServiceCall {
       const names = overviews.map((o) => o.service).filter(Boolean);
       return this.fail(GC.ERROR, `Service not found in this tenant. Available: ${names.join(", ") || "none"}`);
     }
+    this.m365Read = {
+      credentials: resolved.credentials,
+      service: String(service.service),
+      timeout: data.timeout || 10000,
+    };
     return { status: MapM365Status(service.status), latency, type: GC.REALTIME, raw_status: String(service.status) };
   }
 

@@ -240,6 +240,75 @@ const OVERVIEW_TTL_MS = 50 * 1000;
 export function ClearCloudProviderCache(): void {
   tokenCache.clear();
   overviewCache.clear();
+  openIssuesCache.clear();
+}
+
+/** One open Microsoft 365 service health issue. classification is "incident" or "advisory". */
+export interface M365OpenIssue {
+  id: string;
+  service: string;
+  title: string;
+  classification: string;
+  status: string;
+}
+
+const openIssuesCache = new Map<string, { at: number; data: Promise<M365OpenIssue[]> }>();
+const ISSUES_URL = "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/issues";
+const ISSUE_FIELDS = "$select=id,service,title,classification,status,isResolved";
+
+/**
+ * The tenant's open service health issues, shared like the overview. Graph documents no filter
+ * for this list: the filtered read is tried first, and on refusal the full list is read and
+ * filtered here.
+ */
+export async function M365OpenIssues(c: M365Credentials, timeout = 10000): Promise<M365OpenIssue[]> {
+  const key = M365CacheKey(c);
+  const cached = openIssuesCache.get(key);
+  if (cached && Date.now() - cached.at < OVERVIEW_TTL_MS) {
+    return cached.data;
+  }
+  const readAll = async (first: string): Promise<Array<Record<string, unknown>>> => {
+    const rows: Array<Record<string, unknown>> = [];
+    let url: string | undefined = first;
+    for (let page = 0; url && page < 10; page++) {
+      const response = await M365Get(url, c, timeout);
+      rows.push(...(Array.isArray(response.data?.value) ? response.data.value : []));
+      url = response.data?.["@odata.nextLink"];
+    }
+    return rows;
+  };
+  const data = (async () => {
+    let rows: Array<Record<string, unknown>>;
+    try {
+      rows = await readAll(`${ISSUES_URL}?$filter=isResolved eq false&${ISSUE_FIELDS}`);
+    } catch (err) {
+      if (!/HTTP (400|501)\b/.test(String((err as Error).message))) throw err;
+      rows = await readAll(`${ISSUES_URL}?${ISSUE_FIELDS}`);
+    }
+    return rows
+      .filter((r) => r.isResolved !== true)
+      .map((r) => ({
+        id: String(r.id ?? ""),
+        service: String(r.service ?? ""),
+        title: String(r.title ?? ""),
+        classification: String(r.classification ?? "").toLowerCase(),
+        status: String(r.status ?? ""),
+      }));
+  })();
+  openIssuesCache.set(key, { at: Date.now(), data });
+  data.catch(() => openIssuesCache.delete(key));
+  return data;
+}
+
+/** Microsoft's service for issues that concern every Microsoft 365 service (ids "MO…"). */
+export const M365_SUITE_SERVICE = "microsoft 365 suite";
+
+/** The open incident that makes a service an outage: one of its own, or one of the whole suite. */
+export function M365OpenIncidentFor(issues: M365OpenIssue[], service: string): M365OpenIssue | undefined {
+  const name = service.toLowerCase();
+  return issues.find(
+    (i) => i.classification === "incident" && [name, M365_SUITE_SERVICE].includes(i.service.toLowerCase()),
+  );
 }
 
 /** Health of every Microsoft 365 service in the tenant. */

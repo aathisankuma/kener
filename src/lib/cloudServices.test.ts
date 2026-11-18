@@ -60,4 +60,16 @@ describe("how much a provider's report counts", () => {
     expect(ApplyProviderImpact("MAINTENANCE", "info")).toEqual({ status: "UP", notice: "MAINTENANCE" });
     expect(ApplyProviderImpact("UP", "info")).toEqual({ status: "UP", notice: null });
   });
+
+  it("makes Microsoft's open incidents outages and keeps advisories as a note", async () => {
+    const { ApplyProviderImpact } = await import("./cloudServices");
+    // An incident counts as an outage even when Microsoft calls it degradation.
+    expect(ApplyProviderImpact("DEGRADED", "incidents", true)).toEqual({ status: "DOWN", notice: null });
+    expect(ApplyProviderImpact("DOWN", "incidents", false)).toEqual({ status: "UP", notice: "DOWN" });
+    expect(ApplyProviderImpact("DEGRADED", "incidents", false)).toEqual({ status: "UP", notice: "DEGRADED" });
+    expect(ApplyProviderImpact("UP", "incidents", false)).toEqual({ status: "UP", notice: null });
+    // No classification (Azure, or the issue list could not be read): as "outages".
+    expect(ApplyProviderImpact("DEGRADED", "incidents")).toEqual({ status: "UP", notice: "DEGRADED" });
+    expect(ApplyProviderImpact("DOWN", "incidents")).toEqual({ status: "DOWN", notice: null });
+  });
 });

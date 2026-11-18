@@ -75,6 +75,14 @@
         )
     },
     {
+      value: "incidents",
+      label: () => tm("Only Microsoft incidents"),
+      hint: () =>
+        tm(
+          "Microsoft labels every issue as an incident (noticeable impact for users) or an advisory (limited impact). An open incident turns the service red, so alerts and mails go out. Advisories stay Operational and appear as a note."
+        )
+    },
+    {
       value: "info",
       label: () => tm("Only as information"),
       hint: () =>

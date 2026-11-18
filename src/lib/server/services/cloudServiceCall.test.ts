@@ -346,6 +346,84 @@ describe("Microsoft 365 providers", () => {
     expect(SetCloudNotice).toHaveBeenLastCalledWith("cloud-test", { status: "DOWN", provider: "Microsoft 365" });
   });
 
+  it("counts only Microsoft's incidents as outages when set to incidents", async () => {
+    process.env.TEST_M365_SECRET = "s3cret";
+    SetMicrosoftImpactLoader(async () => "incidents");
+    const overview = reply(200, {
+      value: [
+        { id: "Exchange", service: "Exchange Online", status: "serviceDegradation" },
+        { id: "microsoftteams", service: "Microsoft Teams", status: "serviceInterruption" },
+        { id: "SharePoint", service: "SharePoint Online", status: "serviceDegradation" },
+      ],
+    });
+    const issues = reply(200, {
+      value: [
+        { id: "EX1", service: "Exchange Online", title: "Mail delayed", classification: "advisory", isResolved: false },
+        { id: "TM1", service: "Microsoft Teams", title: "Old", classification: "incident", isResolved: true },
+        {
+          id: "MO1",
+          service: "Microsoft 365 suite",
+          title: "Users can't sign in",
+          classification: "Incident",
+          isResolved: false,
+        },
+      ],
+    });
+    mockedAxios.mockImplementation(async (url: unknown) => {
+      const u = String(url);
+      if (u.includes("/token")) return token;
+      if (u.includes("healthOverviews")) return overview;
+      if (u.includes("/issues")) return issues;
+      throw new Error(`unexpected ${u}`);
+    });
+
+    // A suite-wide incident affects every service, whatever Microsoft says about the service itself.
+    const exchange = await new CloudServiceCall(m365({ provider: "m365-exchange" })).execute();
+    expect(exchange).toMatchObject({ status: "DOWN", raw_status: "incident MO1: Users can't sign in" });
+
+    // Without that incident, advisories and a resolved incident leave the service Operational.
+    issues.data.value.pop();
+    ClearCloudServiceCache();
+    const again = await new CloudServiceCall(m365({ provider: "m365-exchange" })).execute();
+    expect(again).toMatchObject({ status: "UP", raw_status: "serviceDegradation" });
+    expect(SetCloudNotice).toHaveBeenLastCalledWith("cloud-test", { status: "DEGRADED", provider: "Microsoft 365" });
+    const teams = await new CloudServiceCall(m365()).execute();
+    expect(teams.status).toBe("UP");
+    // One read before the cache was cleared, then one shared by both monitors.
+    expect(mockedAxios.mock.calls.filter(([u]) => String(u).includes("/issues"))).toHaveLength(2);
+  });
+
+  it("reads all issues when Microsoft refuses the filter, and falls back when issues cannot be read", async () => {
+    process.env.TEST_M365_SECRET = "s3cret";
+    SetMicrosoftImpactLoader(async () => "incidents");
+    const issueUrls: string[] = [];
+    let issuesFail = false;
+    mockedAxios.mockImplementation(async (url: unknown) => {
+      const u = String(url);
+      if (u.includes("/token")) return token;
+      if (u.includes("healthOverviews")) return health;
+      issueUrls.push(u);
+      if (issuesFail) return reply(500, {});
+      if (u.includes("$filter")) return reply(400, {});
+      return reply(200, {
+        value: [{ id: "TM2", service: "Microsoft Teams", title: "Chat down", classification: "incident" }],
+      });
+    });
+
+    const teams = await new CloudServiceCall(m365()).execute();
+    expect(teams).toMatchObject({ status: "DOWN", raw_status: "incident TM2: Chat down" });
+    expect(issueUrls).toHaveLength(2);
+    expect(issueUrls[1]).not.toContain("$filter");
+
+    // The issue list fails: Microsoft's service status decides, as with "outages".
+    issuesFail = true;
+    ClearCloudServiceCache();
+    const errors = vi.spyOn(console, "error").mockImplementation(() => {});
+    expect((await new CloudServiceCall(m365()).execute()).status).toBe("DOWN");
+    expect((await new CloudServiceCall(m365({ provider: "m365-exchange" })).execute()).status).toBe("UP");
+    errors.mockRestore();
+  });
+
   it("shares one sign-in and one health read across monitors", async () => {
     process.env.TEST_M365_SECRET = "s3cret";
     mockedAxios.mockResolvedValueOnce(token).mockResolvedValueOnce(health);

@@ -400,6 +400,7 @@
       ...(microsoft ? [{ value: "", label: tm("As set under Microsoft 365") }] : []),
       { value: "all", label: microsoft ? tm("Use Microsoft's status") : tm("Use the provider's status") },
       { value: "outages", label: tm("Only outages") },
+      ...(provider.kind === "m365" ? [{ value: "incidents", label: tm("Only Microsoft incidents") }] : []),
       { value: "info", label: tm("Only as information") }
     ]}
     {@const current = data.providerImpact ?? (microsoft ? "" : "all")}
@@ -408,7 +409,8 @@
       <Select.Root
         type="single"
         value={current}
-        onValueChange={(v) => (data.providerImpact = v === "" ? undefined : (v as "all" | "outages" | "info"))}
+        onValueChange={(v) =>
+          (data.providerImpact = v === "" ? undefined : (v as "all" | "outages" | "info" | "incidents"))}
       >
         <Select.Trigger id="cloud-impact" class="w-full">
           {impactOptions.find((o) => o.value === current)?.label}
@@ -423,6 +425,11 @@
         {tm(
           "Only outages: degraded performance stays Operational. Only as information: the provider never changes the status. Either way, what the provider reports appears as a note next to the service."
         )}
+        {#if provider.kind === "m365"}
+          {tm(
+            "Only Microsoft incidents: an issue Microsoft labels as incident turns the service red; advisories stay a note."
+          )}
+        {/if}
       </p>
     </div>
   {/if}

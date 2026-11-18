@@ -53,8 +53,11 @@ export const CLOUD_CUSTOM_M365 = "m365-custom";
  * - all: as the provider reports it;
  * - outages: only outages, degraded performance and advisories stay Operational;
  * - info: never changes the status; what the provider reports is shown as a note.
+ * - incidents (Microsoft 365): an open issue Microsoft classifies as "incident" is an outage, even
+ *   when Microsoft calls it degradation; advisories stay Operational and appear as a note.
+ *   Microsoft gives no other severity. Where there is no classification (Azure), as "outages".
  */
-export const PROVIDER_IMPACTS = ["all", "outages", "info"] as const;
+export const PROVIDER_IMPACTS = ["all", "outages", "info", "incidents"] as const;
 export type ProviderImpact = (typeof PROVIDER_IMPACTS)[number];
 
 export function IsProviderImpact(value: unknown): value is ProviderImpact {
@@ -63,9 +66,19 @@ export function IsProviderImpact(value: unknown): value is ProviderImpact {
 
 /**
  * The status after the impact rule, and what the provider reported when the rule lowered it
- * (shown as a note next to the service), else null.
+ * (shown as a note next to the service), else null. openIncident: for "incidents", whether
+ * Microsoft has an open incident for the service; null when the provider has no classification.
  */
-export function ApplyProviderImpact(status: string, impact: ProviderImpact): { status: string; notice: string | null } {
+export function ApplyProviderImpact(
+  status: string,
+  impact: ProviderImpact,
+  openIncident: boolean | null = null,
+): { status: string; notice: string | null } {
+  if (impact === "incidents" && openIncident !== null) {
+    if (openIncident) return { status: "DOWN", notice: null };
+    return status === "UP" ? { status, notice: null } : { status: "UP", notice: status };
+  }
+  if (impact === "incidents" && status === "DEGRADED") return { status: "UP", notice: status };
   if (impact === "outages" && status === "DEGRADED") return { status: "UP", notice: status };
   if (impact === "info" && status !== "UP") return { status: "UP", notice: status };
   return { status, notice: null };

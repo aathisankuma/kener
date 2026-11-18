@@ -120,9 +120,18 @@ A provider often reports problems that do not affect you, for example Microsoft'
 | ------------------------- | ------------------------------------------------------------------------------ |
 | Use the provider's status | As the provider reports it (default).                                          |
 | Only outages              | Degraded performance and advisories stay **Operational**; outages still count. |
+| Only Microsoft incidents  | Microsoft 365 only, see below.                                                 |
 | Only as information       | The provider never changes the status.                                         |
 
 Whenever a rule keeps a service green, what the provider reports appears as a small note under the service name, e.g. "Microsoft 365: Degraded Performance", and the provider's current issues stay listed on the service's page. No incident is opened and no alert fires for it.
+
+**Only Microsoft incidents** uses the only severity Microsoft gives: every Microsoft 365 issue is labelled either **incident** (noticeable impact for users, e.g. "Exchange mailbox service is down") or **advisory** (limited impact, e.g. "Users may experience delays in email reception"). With this choice:
+
+- an open **incident** for the service turns it **Down**, whatever status Microsoft shows for the service, so alert rules fire and incidents and mails go out. An incident for **Microsoft 365 suite** (issue ids starting with `MO`) counts for every Microsoft 365 service;
+- advisories keep the service **Operational** and appear as the note;
+- the incident's id and title are kept as the monitor's raw status, e.g. `incident EX123456: Users can't access email`.
+
+It needs no extra permission: `ServiceHealth.Read.All` also reads the issues. For Azure resources, which have no such label, it works like **Only outages**. Kener only notifies when an alert rule follows the monitor's **Down** status: see [Alerts](/docs/v4/alerting/overview).
 
 For Microsoft 365 and Azure, one choice for all monitors is under **Manage → Microsoft 365 → How Microsoft's reports count**; a monitor set to **As set under Microsoft 365** (the default) follows it, any other choice on the monitor wins.
 
