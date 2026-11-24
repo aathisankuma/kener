@@ -18,7 +18,9 @@
   import { getSslNowMs } from "$lib/client/sslClock.svelte";
   import GroupMonitorPopover from "./GroupMonitorPopover.svelte";
   import ProblemButton from "./ProblemButton.svelte";
-  import { t } from "$lib/stores/i18n";
+  import { t, currentLocale } from "$lib/stores/i18n";
+  import { OUTAGE_REPORTS_SITE, OutageReportsUrl } from "$lib/cloudServices.js";
+  import ExternalLinkIcon from "@lucide/svelte/icons/external-link";
   import { page } from "$app/state";
   import InfoIcon from "@lucide/svelte/icons/info";
 
@@ -45,6 +47,7 @@
   }: Props = $props();
   let data = $derived(prefetchedData ?? null);
   let error = $derived(prefetchedError ?? null);
+  let outageReportsUrl = $derived(data?.outageReports ? OutageReportsUrl(data.outageReports, $currentLocale) : null);
   let loading = $derived(!data && !error);
   let showGroupPopover = $derived(
     groupChildTags.length > 0 && typeof days === "number" && typeof endOfDayTodayAtTz === "number"
@@ -189,6 +192,19 @@
             {/if}
           </div>
         </Item.Title>
+        {#if outageReportsUrl}
+          <!-- What users report on allestörungen.ch (Swiss Downdetector): Microsoft 365 services. -->
+          <a
+            class="kener-outage-reports text-muted-foreground hover:text-foreground inline-flex items-center gap-1 self-start text-xs hover:underline sm:self-end"
+            href={outageReportsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            title="{$t('What other users report right now')} – {OUTAGE_REPORTS_SITE}"
+          >
+            {OUTAGE_REPORTS_SITE}
+            <ExternalLinkIcon class="size-3 shrink-0" />
+          </a>
+        {/if}
       </Item.Content>
       {#if grid && page.data.problemButton?.counts?.[tag] !== undefined}
         <!-- Grids and cards: its own row, below the status. -->

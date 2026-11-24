@@ -73,3 +73,27 @@ describe("how much a provider's report counts", () => {
     expect(ApplyProviderImpact("DOWN", "incidents")).toEqual({ status: "DOWN", notice: null });
   });
 });
+
+describe("allestörungen.ch links", () => {
+  it("links Microsoft 365 services to their page, in the page's language", async () => {
+    const { OutageReportsSlug, OutageReportsUrl } = await import("./cloudServices");
+    expect(OutageReportsSlug("m365-teams")).toBe("teams");
+    expect(OutageReportsSlug("m365-exchange")).toBe("outlook");
+    expect(OutageReportsSlug("m365-onedrive")).toBe("microsoftonedrive");
+    // Without a page of its own: Microsoft 365.
+    expect(OutageReportsSlug("m365-intune")).toBe("microsoft-365");
+    expect(OutageReportsSlug("m365-sharepoint")).toBe("microsoft-365");
+    expect(OutageReportsSlug("m365-custom")).toBe("microsoft-365");
+    // Only Microsoft 365 for now.
+    expect(OutageReportsSlug("jira")).toBeNull();
+    expect(OutageReportsSlug("azure-openai")).toBeNull();
+    expect(OutageReportsSlug(undefined)).toBeNull();
+
+    expect(OutageReportsUrl("teams", "de")).toBe("https://xn--allestrungen-9ib.ch/stoerung/teams/");
+    expect(OutageReportsUrl("teams", "fr")).toBe("https://xn--allestrungen-9ib.ch/fr/statut/teams/");
+    expect(OutageReportsUrl("teams", "it")).toBe("https://xn--allestrungen-9ib.ch/it/problemi/teams/");
+    expect(OutageReportsUrl("teams", "en")).toBe("https://xn--allestrungen-9ib.ch/en/status/teams/");
+    expect(OutageReportsUrl("teams", "pt-BR")).toBe("https://xn--allestrungen-9ib.ch/stoerung/teams/");
+    expect(OutageReportsUrl("../x", "de")).toBeNull();
+  });
+});

@@ -815,6 +815,27 @@ html.dark
   }
 }
 
+/* The link to allestörungen.ch (Microsoft 365 services): above a card's own link, so it opens the
+   reports and not the service. In the portal's app cards it sits on the badge's line, on the right. */
+.kener-public .kener-monitor .kener-outage-reports {
+  position: relative;
+  z-index: 2;
+  white-space: nowrap;
+}
+.kener-public[data-layout="portal"]
+  .kener-monitors[data-portal="hub"]
+  [data-slot="item-content"]
+  + [data-slot="item-content"]:has(> .kener-outage-reports) {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.kener-public[data-layout="portal"] .kener-monitors[data-portal="hub"] .kener-outage-reports {
+  align-self: center;
+}
+
 /* The provider's note under a service name ("Microsoft 365: Degraded Performance"): small in every
    design, also in the portal's large app cards. */
 .kener-public .kener-monitor .kener-provider-notice {

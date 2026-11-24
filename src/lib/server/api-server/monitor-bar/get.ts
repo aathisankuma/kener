@@ -34,6 +34,8 @@ export interface MonitorBarResponse {
   issuerO?: string | null;
   /** Cloud Service: what the provider reports while the monitor's rule keeps it Operational. */
   providerNotice?: { status: string; provider: string } | null;
+  /** Cloud Service, Microsoft 365: the service's page on allestörungen.ch, e.g. "teams". */
+  outageReports?: string;
 }
 
 /**

@@ -32,6 +32,8 @@ export interface CloudProvider {
    * They are ignored, so such a monitor follows the whole page.
    */
   legacyComponents?: string[];
+  /** The service's page on allestörungen.ch (Downdetector Switzerland), e.g. "teams". */
+  outageReports?: string;
 }
 
 /** Provider id for any other Atlassian Statuspage, entered by URL. */
@@ -82,6 +84,39 @@ export function ApplyProviderImpact(
   if (impact === "outages" && status === "DEGRADED") return { status: "UP", notice: status };
   if (impact === "info" && status !== "UP") return { status: "UP", notice: status };
   return { status, notice: null };
+}
+
+/**
+ * allestörungen.ch, the Swiss Downdetector: how many users report a problem with a service right
+ * now. Shown as a link on the status page, for now only for Microsoft 365 services; one without a
+ * page of its own links to "Microsoft 365".
+ */
+export const OUTAGE_REPORTS_SITE = "allestörungen.ch";
+const OUTAGE_REPORTS_ORIGIN = "https://xn--allestrungen-9ib.ch";
+const OUTAGE_REPORTS_PATHS: Record<string, string> = {
+  de: "stoerung",
+  en: "en/status",
+  fr: "fr/statut",
+  it: "it/problemi",
+};
+
+/** The allestörungen.ch page of a Cloud Service monitor's provider, or null. */
+export function OutageReportsSlug(providerId: string | undefined): string | null {
+  const provider = GetCloudProvider(providerId);
+  if (!provider || provider.kind !== "m365") return null;
+  return provider.outageReports ?? "microsoft-365";
+}
+
+/** Link to a service on allestörungen.ch in the page's language (German when it has none). */
+export function OutageReportsUrl(slug: string, locale: string | undefined): string | null {
+  if (!/^[a-z0-9-]+$/.test(slug)) return null;
+  const path =
+    OUTAGE_REPORTS_PATHS[
+      String(locale || "")
+        .toLowerCase()
+        .split(/[-_]/)[0]
+    ] ?? OUTAGE_REPORTS_PATHS.de;
+  return `${OUTAGE_REPORTS_ORIGIN}/${path}/${slug}/`;
 }
 
 /** Provider id for one UniFi device; its id is the monitor's component. Made under Settings → UniFi. */
@@ -179,6 +214,7 @@ export const CLOUD_PROVIDERS: CloudProvider[] = [
   // Microsoft 365
   {
     id: "m365-suite",
+    outageReports: "microsoft-365",
     label: "Microsoft 365 suite",
     group: "Microsoft 365",
     kind: "m365",
@@ -187,6 +223,7 @@ export const CLOUD_PROVIDERS: CloudProvider[] = [
   },
   {
     id: "m365-exchange",
+    outageReports: "outlook",
     label: "Exchange Online (Outlook)",
     group: "Microsoft 365",
     kind: "m365",
@@ -195,6 +232,7 @@ export const CLOUD_PROVIDERS: CloudProvider[] = [
   },
   {
     id: "m365-teams",
+    outageReports: "teams",
     label: "Microsoft Teams",
     group: "Microsoft 365",
     kind: "m365",
@@ -210,6 +248,7 @@ export const CLOUD_PROVIDERS: CloudProvider[] = [
   },
   {
     id: "m365-onedrive",
+    outageReports: "microsoftonedrive",
     label: "OneDrive for Business",
     group: "Microsoft 365",
     kind: "m365",
@@ -218,6 +257,7 @@ export const CLOUD_PROVIDERS: CloudProvider[] = [
   },
   {
     id: "m365-apps",
+    outageReports: "microsoft-365",
     label: "Microsoft 365 Apps (Office)",
     group: "Microsoft 365",
     kind: "m365",

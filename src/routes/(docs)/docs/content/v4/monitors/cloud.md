@@ -135,6 +135,19 @@ It needs no extra permission: `ServiceHealth.Read.All` also reads the issues. Fo
 
 For Microsoft 365 and Azure, one choice for all monitors is under **Manage → Microsoft 365 → How Microsoft's reports count**; a monitor set to **As set under Microsoft 365** (the default) follows it, any other choice on the monitor wins.
 
+## What other users report {#outage-reports}
+
+Each Microsoft 365 service on the status page shows a small **allestörungen.ch** link next to its status. It opens the service's page on [allestörungen.ch](https://xn--allestrungen-9ib.ch/stoerung/microsoft-365/), the Swiss Downdetector, where you see how many people report a problem right now. A sudden jump in reports is a quick sign that many users are affected, often before Microsoft reports anything.
+
+| Service                                | Page on allestörungen.ch |
+| -------------------------------------- | ------------------------ |
+| Exchange Online (Outlook)              | Outlook                  |
+| Microsoft Teams                        | Microsoft Teams          |
+| OneDrive for Business                  | OneDrive                 |
+| Microsoft 365 suite, any other service | Microsoft 365            |
+
+The link opens the page in the language the visitor reads the status page in (German, French, Italian or English). It changes nothing on the status page: the status still comes from Microsoft. Kener does not read allestörungen.ch itself; the site has no public API and blocks automated requests.
+
 ## UniFi access points {#unifi}
 
 Follow your own Wi-Fi: Kener reads whether each UniFi access point is online from UniFi Site Manager (unifi.ui.com), the cloud your UniFi consoles report to.

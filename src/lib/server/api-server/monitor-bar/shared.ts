@@ -1,5 +1,6 @@
 import db from "$lib/server/db/db";
 import { GetCloudNotice } from "$lib/server/cloudNotice";
+import { OutageReportsSlug } from "$lib/cloudServices";
 import GC from "$lib/global-constants";
 import type { StatusType } from "$lib/types/status";
 import type { MonitorRecord, MonitoringData, TimestampStatusCount } from "$lib/server/types/db";
@@ -93,15 +94,32 @@ export const buildMonitorBarResponse = async (
   return AttachProviderNotice(monitor, response);
 };
 
-/** Cloud Service monitors: the provider's note, when the monitor's rule kept the status Operational. */
+/**
+ * Cloud Service monitors: the provider's note, when the monitor's rule kept the status Operational,
+ * and the service's page on allestörungen.ch (Microsoft 365 services only).
+ */
 export const AttachProviderNotice = async (
   monitor: MonitorRecord,
   response: MonitorBarResponse,
 ): Promise<MonitorBarResponse> => {
   if (monitor.monitor_type !== "CLOUD") return response;
   const notice = await GetCloudNotice(monitor.tag);
-  return notice ? { ...response, providerNotice: notice } : response;
+  const outageReports = OutageReportsSlug(ProviderIdOf(monitor));
+  return {
+    ...response,
+    ...(notice ? { providerNotice: notice } : {}),
+    ...(outageReports ? { outageReports } : {}),
+  };
 };
+
+function ProviderIdOf(monitor: MonitorRecord): string | undefined {
+  try {
+    const data = typeof monitor.type_data === "string" ? JSON.parse(monitor.type_data) : monitor.type_data;
+    return typeof data?.provider === "string" ? data.provider : undefined;
+  } catch {
+    return undefined;
+  }
+}
 
 export const buildMonitorBarResponseFromRawData = (
   monitor: MonitorRecord,
